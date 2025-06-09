@@ -1,0 +1,579 @@
+<template>
+  <div id="app" :class="['min-vh-100', isDarkMode ? 'dark-theme' : 'light-theme']">
+    <!-- 导航栏 -->
+    <nav :class="['navbar navbar-expand-lg fixed-top transition-all animate__animated', isDarkMode ? 'navbar-dark' : 'navbar-light', navbarClass, navbarAnimationClass]" ref="navbar">
+      <div class="container-fluid d-flex align-items-center">
+        <router-link to="/" class="navbar-brand">我的个人博客</router-link>
+        
+        <!-- 搜索栏 - 真正居中显示 -->
+        <div class="navbar-search-center d-none d-lg-flex">
+          <SearchBar />
+        </div>
+        
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <!-- 移动端搜索栏 -->
+          <div class="d-lg-none my-3">
+            <SearchBar />
+          </div>
+          
+          <ul class="navbar-nav ms-auto align-items-center">
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" id="categoryDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                分类
+              </a>
+              <ul class="dropdown-menu" aria-labelledby="categoryDropdown">
+                <li><a class="dropdown-item" href="#" @click="filterByCategory(null)">全部</a></li>
+                <li><a class="dropdown-item" href="#" @click="filterByCategory('study')">学习</a></li>
+                <li><a class="dropdown-item" href="#" @click="filterByCategory('game')">游戏</a></li>
+                <li><a class="dropdown-item" href="#" @click="filterByCategory('work')">个人作品</a></li>
+                <li><a class="dropdown-item" href="#" @click="filterByCategory('resource')">资源分享</a></li>
+              </ul>
+            </li>
+            <li class="nav-item">
+              <router-link to="/" class="nav-link" active-class="active">首页</router-link>
+            </li>
+            <li class="nav-item">
+              <button class="btn btn-link nav-link border-0 bg-transparent" @click="toggleDarkMode">
+                <i :class="isDarkMode ? 'bi bi-sun-fill' : 'bi bi-moon-fill'"></i>
+              </button>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+    
+    <!-- 欢迎区域 - 全屏显示 -->
+    <WelcomeSection />
+    
+    <!-- 主内容区 - 可以覆盖欢迎区域 -->
+    <div class="main-content" :class="{ 'admin-full-width': isAdminRoute }">
+      <div class="container-fluid">
+        <div class="row">
+          <!-- 文章内容区域 -->
+          <div class="col-12 col-lg-8 col-xl-9" :class="{ 'col-lg-12 col-xl-12': isAdminRoute }">
+            <main>
+              <!-- 路由切换动画 -->
+              <transition
+                enter-active-class="animate__animated animate__fadeInRight"
+                leave-active-class="animate__animated animate__fadeOutLeft"
+                mode="out-in"
+              >
+                <router-view></router-view> <!-- 路由匹配的组件将在这里渲染 -->
+              </transition>
+            </main>
+          </div>
+          
+          <!-- 侧边栏个人信息 - 大屏显示 -->
+          <div class="col-lg-4 col-xl-3 d-none d-lg-block animate__animated animate__fadeInUp" v-if="!isAdminRoute">
+            <div class="sidebar-content">
+              <PersonalInfo />
+                <div class="mobile-music-player-container">
+                 <MusicPlayer />
+             </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 移动端个人信息按钮 -->
+    <div class="mobile-personal-info d-lg-none animate__animated animate__fadeInRight" v-if="!isAdminRoute">
+      <PersonalInfo />
+    </div>
+
+    <!-- 移动端音乐播放器 - 独立定位 -->
+    <div class="mobile-music-player d-lg-none animate__animated animate__fadeInUp" v-if="!isAdminRoute">
+      <MusicPlayer />
+    </div>
+
+    <!-- Toast通知组件 -->
+    <Toast />
+  </div>
+</template>
+
+<script setup>
+import { ref, onMounted, onUnmounted, computed } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
+import SearchBar from './components/SearchBar.vue';
+import WelcomeSection from './components/WelcomeSection.vue';
+import PersonalInfo from './components/PersonalInfo.vue';
+import MusicPlayer from './components/MusicPlayer.vue';
+import Toast from './components/Toast.vue';
+
+const router = useRouter();
+const route = useRoute();
+const navbar = ref(null);
+const isNavbarVisible = ref(true);
+const isAtTop = ref(true);
+const mouseAtTop = ref(false);
+const lastScrollY = ref(0);
+const isDarkMode = ref(false);
+const hideTimeout = ref(null);
+
+// 判断是否为admin路由
+const isAdminRoute = computed(() => {
+  return route.path.startsWith('/admin');
+});
+
+// 导航栏样式类
+const navbarClass = computed(() => {
+  const shouldShow = isNavbarVisible.value || mouseAtTop.value || isAtTop.value;
+  return {
+    'navbar-transparent': isAtTop.value,
+    'navbar-solid': !isAtTop.value,
+    'navbar-hidden': !shouldShow,
+    'navbar-visible': shouldShow
+  };
+});
+
+// 导航栏动画类
+const navbarAnimationClass = computed(() => {
+  const shouldShow = isNavbarVisible.value || mouseAtTop.value || isAtTop.value;
+  return shouldShow ? 'animate__slideInDown' : 'animate__slideOutUp';
+});
+
+// 处理滚动事件
+const handleScroll = () => {
+  const currentScrollY = window.scrollY;
+  
+  // 检查是否在顶部
+  isAtTop.value = currentScrollY < 50;
+  
+  // 检查滚动方向
+  if (currentScrollY > lastScrollY.value && currentScrollY > 100) {
+    // 向下滚动，隐藏导航栏
+    isNavbarVisible.value = false;
+  } else {
+    // 向上滚动，显示导航栏
+    isNavbarVisible.value = true;
+  }
+  
+  lastScrollY.value = currentScrollY;
+};
+
+// 处理鼠标移动事件
+const handleMouseMove = (event) => {
+  // 扩大响应范围到顶部100px内，并且包括导航栏区域
+  const isInTopArea = event.clientY <= 100;
+  const navbarElement = navbar.value;
+  let isOverNavbar = false;
+  
+  // 检查鼠标是否在导航栏元素上
+  if (navbarElement) {
+    const navbarRect = navbarElement.getBoundingClientRect();
+    isOverNavbar = event.clientX >= navbarRect.left && 
+                   event.clientX <= navbarRect.right && 
+                   event.clientY >= navbarRect.top && 
+                   event.clientY <= navbarRect.bottom;
+  }
+  
+  // 如果鼠标在顶部区域或导航栏上，显示导航栏
+  if (isInTopArea || isOverNavbar) {
+    mouseAtTop.value = true;
+    // 清除隐藏定时器
+    if (hideTimeout.value) {
+      clearTimeout(hideTimeout.value);
+      hideTimeout.value = null;
+    }
+  } else {
+    // 延迟隐藏导航栏，给用户一些缓冲时间
+    if (hideTimeout.value) {
+      clearTimeout(hideTimeout.value);
+    }
+    hideTimeout.value = setTimeout(() => {
+      mouseAtTop.value = false;
+      hideTimeout.value = null;
+    }, 300); // 300ms延迟
+  }
+};
+
+// 分类筛选
+const filterByCategory = (category) => {
+  if (category) {
+    router.push({ name: 'ArticleList', query: { category } });
+  } else {
+    router.push({ name: 'ArticleList' });
+  }
+};
+
+// 主题切换
+const toggleDarkMode = () => {
+  isDarkMode.value = !isDarkMode.value;
+  localStorage.setItem('darkMode', isDarkMode.value.toString());
+  document.documentElement.setAttribute('data-bs-theme', isDarkMode.value ? 'dark' : 'light');
+};
+
+// 初始化主题
+const initTheme = () => {
+  const savedTheme = localStorage.getItem('darkMode');
+  if (savedTheme !== null) {
+    isDarkMode.value = savedTheme === 'true';
+  } else {
+    // 检查系统主题偏好
+    isDarkMode.value = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  }
+  document.documentElement.setAttribute('data-bs-theme', isDarkMode.value ? 'dark' : 'light');
+};
+
+onMounted(() => {
+  initTheme();
+  window.addEventListener('scroll', handleScroll);
+  window.addEventListener('mousemove', handleMouseMove);
+  
+  // 初始化滚动位置
+  handleScroll();
+});
+
+onUnmounted(() => {
+  window.removeEventListener('scroll', handleScroll);
+  window.removeEventListener('mousemove', handleMouseMove);
+  
+  // 清除定时器
+  if (hideTimeout.value) {
+    clearTimeout(hideTimeout.value);
+    hideTimeout.value = null;
+  }
+});
+</script>
+
+<style scoped>
+/* 全局样式 */
+#app {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* 主题样式 */
+.light-theme {
+  background-color: #f8f9fa;
+  color: #212529;
+}
+
+.dark-theme {
+  background-color: #121212;
+  color: #ffffff;
+}
+
+/* 导航栏样式 */
+.navbar {
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  z-index: 1030;
+  transition: all 0.3s ease-in-out;
+}
+
+.navbar-hidden {
+  transform: translateY(-100%);
+  opacity: 0.8;
+}
+
+.navbar-visible {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.transition-all {
+  transition: all 0.3s ease-in-out;
+}
+
+/* 亮色主题导航栏 - 天蓝色 */
+.light-theme .navbar-transparent {
+  background: linear-gradient(rgba(135, 206, 235, 0.85), rgba(135, 206, 235, 0.8)) !important;
+  box-shadow: none;
+}
+
+.light-theme .navbar-solid {
+  background: linear-gradient(rgba(135, 206, 235, 0.95), rgba(135, 206, 235, 0.9)) !important;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* 暗色主题导航栏 */
+.dark-theme .navbar-transparent {
+  background: linear-gradient(rgba(13, 110, 253, 0.1), rgba(13, 110, 253, 0.05)) !important;
+  box-shadow: none;
+}
+
+.dark-theme .navbar-solid {
+   background: linear-gradient(rgba(13, 110, 253, 0.1), rgba(13, 110, 253, 0.05)) !important;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.navbar-brand {
+  font-weight: bold;
+  letter-spacing: 0.5px;
+}
+
+.nav-link.active {
+  font-weight: bold;
+}
+
+.navbar-nav .nav-link {
+    font-weight: 400; 
+    padding: 0.85rem 1.1rem; 
+    margin: 0 0.25rem; 
+    position: relative;
+    font-size: 1.1rem;
+    border-radius: 4px; 
+}
+
+/* 搜索栏样式 */
+.navbar-search-center {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: 400px;
+  width: 100%;
+}
+
+.navbar-search {
+  max-width: 400px;
+  width: 100%;
+}
+
+/* 下拉菜单样式 */
+.dropdown-menu {
+  border: none;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  border-radius: 8px;
+}
+
+.dropdown-item {
+  padding: 0.5rem 1rem;
+  transition: background-color 0.2s ease;
+}
+
+.dropdown-item:hover {
+  background-color: rgba(13, 110, 253, 0.1);
+}
+
+/* 主要内容区域 */
+.main-content {
+  position: relative;
+  z-index: 10;
+  background-color: var(--bs-body-bg, #ffffff);
+  min-height: 100vh;
+  padding: 2rem 0;
+  margin-top: -20px; /* 轻微重叠 */
+  box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.1);
+  /* 大屏幕限制宽度为70% */
+  max-width: 70%;
+  margin-top: auto;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Admin页面全宽度样式 */
+.main-content.admin-full-width {
+  max-width: 100%;
+  margin-left: 0;
+  margin-right: 0;
+  border-radius: 0;
+  margin-top: 0;
+  box-shadow: none;
+  padding: 0;
+  background-color: transparent;
+}
+
+main {
+  padding: 0 15px 60px;
+  max-width: 100%;
+  margin: 0;
+}
+
+/* 侧边栏样式 */
+.sidebar-content {
+  padding: 2rem 1rem;
+  position: sticky;
+  top: 100px; /* 导航栏高度 + 间距 */
+  height: fit-content;
+}
+
+/* MusicPlayer容器样式 */
+.music-player-container {
+  margin-top: 20px;
+}
+
+.mobile-music-player-container {
+  margin-top: 15px;
+  position: relative;
+  z-index: 999;
+}
+
+/* 移动端个人信息 */
+.mobile-personal-info {
+  position: fixed;
+  bottom: 50%;
+  right: 20px;
+  z-index: 1025;
+}
+
+/* 移动端音乐播放器 */
+.mobile-music-player {
+  position: fixed;
+  bottom: 75px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1020;
+  padding: 8px;
+  background-color: rgba(255, 255, 255, 0.95);
+  border-radius: 25px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(10px);
+}
+
+/* 暗色主题下的移动端音乐播放器 */
+:global(.dark-theme) .mobile-music-player {
+  background-color: rgba(26, 26, 26, 0.95);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+  .navbar-search-center {
+    position: static;
+    transform: none;
+    max-width: 100%;
+  }
+  
+  .main-content {
+    padding: 1rem 0;
+    margin-top: -10px;
+    /* 移动端恢复全宽 */
+    max-width: 100%;
+    margin-left: 0;
+    margin-right: 0;
+    /* 为底部音乐播放器留出更多空间 */
+    padding-bottom: 130px;
+  }
+  
+  main {
+    padding: 0 10px 40px;
+  }
+  
+  .sidebar-content {
+    display: none;
+  }
+  
+  /* 移动端音乐播放器适配 */
+  .mobile-music-player {
+    bottom: 60px;
+    padding: 6px;
+  }
+  
+  .mobile-personal-info {
+    right: 15px;
+    bottom: 90px;
+  }
+}
+
+/* 小屏幕进一步优化 */
+@media (max-width: 576px) {
+  .mobile-music-player {
+    bottom: 50px;
+    padding: 5px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  
+  .mobile-personal-info {
+    right: 15px;
+    bottom: 90px;
+  }
+  
+  .main-content {
+    padding-bottom: 110px;
+  }
+}
+
+/* 极小屏幕或横屏手机优化 */
+@media (max-width: 480px), (max-height: 600px) {
+  .mobile-music-player {
+    bottom: 40px;
+    padding: 4px;
+  }
+  
+  .mobile-personal-info {
+    right: 10px;
+    top: 80px;
+  }
+  
+  .main-content {
+    padding-bottom: 100px;
+  }
+}
+
+/* 中等屏幕调整 */
+@media (min-width: 769px) and (max-width: 1199px) {
+  .sidebar-content {
+    padding: 1.5rem 0.5rem;
+  }
+  
+  .main-content {
+    /* 中等屏幕使用85%宽度 */
+    max-width: 85%;
+  }
+}
+
+/* 亮色主题导航栏文字颜色 - 适配天蓝色背景 */
+.light-theme .navbar-brand,
+.light-theme .nav-link {
+  color: #ffffff !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.light-theme .nav-link:hover {
+  color: #f8f9fa !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.light-theme .dropdown-toggle::after {
+  border-top-color: #ffffff;
+}
+
+/* 亮色主题下拉菜单 - 适配天蓝色主题 */
+.light-theme .dropdown-menu {
+  background-color: rgba(135, 206, 235, 0.95);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.light-theme .dropdown-item {
+  color: #ffffff;
+}
+
+.light-theme .dropdown-item:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+}
+
+/* 暗色主题下的特殊样式 */
+:global(.dark-theme) .main-content {
+  background-color: #121212;
+}
+
+:global(.dark-theme) .navbar-transparent {
+  background: linear-gradient(rgba(33, 37, 41, 0.1), rgba(33, 37, 41, 0.05)) !important;
+}
+
+:global(.dark-theme) .navbar-solid {
+  background: linear-gradient(rgba(33, 37, 41, 0.95), rgba(33, 37, 41, 0.9)) !important;
+}
+
+:global(.dark-theme) .dropdown-menu {
+  background-color: #2d3748;
+  border: 1px solid #4a5568;
+}
+
+:global(.dark-theme) .dropdown-item {
+  color: #e2e8f0;
+}
+
+:global(.dark-theme) .dropdown-item:hover {
+  background-color: rgba(66, 153, 225, 0.2);
+  color: #ffffff;
+}
+</style>
