@@ -36,6 +36,10 @@
   overflow: hidden;
 }
 
+.custom-animation{
+  animation-duration: 0.2s;
+}
+
 .article-image-container {
   width: 100%;
   height: 100%;

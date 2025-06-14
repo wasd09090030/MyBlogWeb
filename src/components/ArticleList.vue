@@ -16,12 +16,14 @@
         </button>
       </div>
     </div>    <!-- 显示筛选结果 -->
-    <template v-if="route.query.search || route.query.category">
-      <div v-if="paginatedFilteredArticles.length" class="articles-container">
+    <template v-if="route.query.search || route.query.category">      <div v-if="paginatedFilteredArticles.length" class="articles-container">
         <div 
           v-for="(article, index) in paginatedFilteredArticles" 
           :key="article.id" 
-          :class="['article-card', 'animate__animated', 'animate__fadeInUp', { 'article-card-reverse': (currentFilteredIndex + index + 1) % 2 === 0 }]"          :style="{ animationDelay: `${index * 0.1}s` }"        >          <!-- 封面图片区域 -->
+          v-memo="[article.id, article.title, article.coverImage, article.createdAt, article.category, currentFilteredPage, route.query.search, route.query.category]"
+          :class="['article-card', 'animate__animated', 'animate__fadeInUp','.custom-animation', { 'article-card-reverse': (currentFilteredIndex + index + 1) % 2 === 0 }]"
+          :style="{ animationDelay: `${index * 0.1}s` }"
+        ><!-- 封面图片区域 -->
           <div class="article-image-section">
             <img
               v-if="article.coverImage && article.coverImage !== 'null'"
@@ -91,11 +93,14 @@
     </template>
     
     <!-- 默认显示所有文章 -->
-    <template v-else>
-      <div v-if="paginatedArticles.length" class="articles-container">        <div 
+    <template v-else>      <div v-if="paginatedArticles.length" class="articles-container">
+        <div 
           v-for="(article, index) in paginatedArticles" 
           :key="article.id" 
-          :class="['article-card', 'animate__animated', 'animate__fadeInUp', { 'article-card-reverse': (currentIndex + index + 1) % 2 === 0 }]"          :style="{ animationDelay: `${index * 0.1}s` }"        >          <!-- 封面图片区域 -->
+          v-memo="[article.id, article.title, article.coverImage, article.createdAt, article.category, currentPage]"
+          :class="['article-card', 'animate__animated', 'animate__fadeInUp','.custom-animation', { 'article-card-reverse': (currentIndex + index + 1) % 2 === 0 }]"
+          :style="{ animationDelay: `${index * 0.1}s` }"
+        ><!-- 封面图片区域 -->
           <div class="article-image-section">
             <img
               v-if="article.coverImage && article.coverImage !== 'null'"
@@ -134,7 +139,7 @@
           </div>
         </div>      </div>
         <!-- 分页控件 - 所有文章 -->
-      <div v-if="totalPages > 1" class="pagination-container mt-4 animate__animated animate__fadeInUp">
+      <div v-if="totalPages > 1" class="pagination-container mt-4">
         <nav aria-label="文章分页">
           <ul class="pagination justify-content-center">
             <li class="page-item" :class="{ disabled: currentPage === 1 }">
@@ -156,12 +161,12 @@
           </ul>
         </nav>
         
-        <div class="text-center text-muted mt-2 animate__animated animate__fadeIn animate__delay-0.5s">
+        <div class="text-center text-muted mt-2">
           共 {{ articles.length }} 篇文章，第 {{ currentPage }} / {{ totalPages }} 页
         </div>
       </div>
       
-      <div v-else class="alert alert-info text-center animate__animated animate__fadeIn" role="alert">
+      <div v-else class="alert alert-info text-center" role="alert">
         暂无文章
       </div>
     </template>
@@ -169,9 +174,14 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, watch } from 'vue';
+import { ref, onMounted, computed, watch, onActivated, onDeactivated, nextTick } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import './ArticleList.styles.css';
+
+// 定义组件名称以便 KeepAlive 识别
+defineOptions({
+  name: 'ArticleList'
+});
 
 // 创建ref来引用ArticleList容器
 const articleListContainer = ref(null);
@@ -179,6 +189,11 @@ const articles = ref([]);
 const error = ref(null);
 const route = useRoute();
 const router = useRouter();
+
+// 保存滚动位置和分页状态
+const savedScrollPosition = ref(0);
+const savedCurrentPage = ref(1);
+const savedCurrentFilteredPage = ref(1);
 
 // 分页相关变量
 const currentPage = ref(1);
@@ -265,8 +280,8 @@ const clearSearch = () => {
   router.push({ name: 'ArticleList' });
 };
 
-// 生成文章详情路由，包含当前页面信息
-const getArticleDetailRoute = (articleId) => {
+// 计算属性：为当前页面的文章预先生成路由对象，避免重复计算
+const articleRoutesMap = computed(() => {
   const query = {};
   
   // 如果当前是筛选状态，传递筛选页码
@@ -285,13 +300,28 @@ const getArticleDetailRoute = (articleId) => {
     query.category = route.query.category;
   }
   
-  const detailRoute = {
-    path: `/article/${articleId}`,
-    query
-  };
+  // 为当前页面的所有文章生成路由映射
+  const routesMap = new Map();
+  const currentArticles = route.query.search || route.query.category 
+    ? paginatedFilteredArticles.value 
+    : paginatedArticles.value;
+    
+  currentArticles.forEach(article => {
+    routesMap.set(article.id, {
+      path: `/article/${article.id}`,
+      query: { ...query }
+    });
+  });
   
-  console.log('生成文章详情路由:', detailRoute); // 调试日志
-  return detailRoute;
+  return routesMap;
+});
+
+// 生成文章详情路由的简化函数
+const getArticleDetailRoute = (articleId) => {
+  return articleRoutesMap.value.get(articleId) || {
+    path: `/article/${articleId}`,
+    query: {}
+  };
 };
 
 // 分页方法
@@ -459,10 +489,76 @@ onMounted(async () => {
           currentPage.value = pageNum;
         }
       }
-      
-      // 清除hash，避免页面刷新时重复处理
+        // 清除hash，避免页面刷新时重复处理
       router.replace({ ...route, hash: '' });
     }
   }
+});
+
+// KeepAlive 生命周期钩子
+onActivated(async () => {
+  console.log('ArticleList 组件被激活');
+  
+  // 检查是否需要刷新数据（例如从管理员页面返回）
+  const shouldRefresh = route.meta?.refreshOnActivated || false;
+  if (shouldRefresh) {
+    console.log('检测到需要刷新数据，重新获取文章列表');
+    await fetchArticles();
+    // 清除刷新标记
+    if (route.meta) {
+      route.meta.refreshOnActivated = false;
+    }
+  }
+  
+  // 恢复分页状态
+  if (savedCurrentPage.value > 1) {
+    currentPage.value = savedCurrentPage.value;
+    console.log('恢复普通分页状态:', savedCurrentPage.value);
+  }
+  
+  if (savedCurrentFilteredPage.value > 1) {
+    currentFilteredPage.value = savedCurrentFilteredPage.value;
+    console.log('恢复筛选分页状态:', savedCurrentFilteredPage.value);
+  }
+  
+  // 恢复滚动位置
+  await nextTick();
+  if (savedScrollPosition.value > 0) {
+    // 使用 setTimeout 确保 DOM 完全渲染后再滚动
+    setTimeout(() => {
+      window.scrollTo({
+        top: savedScrollPosition.value,
+        behavior: 'smooth'
+      });
+      console.log('恢复滚动位置:', savedScrollPosition.value);
+    }, 100);
+  }
+});
+
+onDeactivated(() => {
+  console.log('ArticleList 组件被缓存');
+  
+  // 保存当前分页状态
+  savedCurrentPage.value = currentPage.value;
+  savedCurrentFilteredPage.value = currentFilteredPage.value;
+  console.log('保存分页状态 - 普通:', currentPage.value, '筛选:', currentFilteredPage.value);
+  
+  // 保存当前滚动位置
+  savedScrollPosition.value = window.scrollY;
+  console.log('保存滚动位置:', savedScrollPosition.value);
+});
+
+// 添加一个手动刷新方法，可以从外部调用
+const refreshData = async () => {
+  console.log('手动刷新文章数据');
+  await fetchArticles();
+  // 重置滚动位置
+  savedScrollPosition.value = 0;
+  window.scrollTo(0, 0);
+};
+
+// 暴露刷新方法给父组件使用
+defineExpose({
+  refreshData
 });
 </script>

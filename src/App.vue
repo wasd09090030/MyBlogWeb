@@ -56,14 +56,18 @@
           <!-- 文章内容区域 -->
           <div class="col-12 col-lg-8 col-xl-9" :class="{ 'col-lg-12 col-xl-12': isAdminRoute }">
             <main>
-              <!-- 路由切换动画 -->
-              <transition
-                enter-active-class="animate__animated animate__fadeInRight"
-                leave-active-class="animate__animated animate__fadeOutLeft"
-                mode="out-in"
-              >
-                <router-view></router-view> <!-- 路由匹配的组件将在这里渲染 -->
-              </transition>
+              <!-- 使用 Vue Router 4 推荐的 slot props 语法 -->
+              <router-view v-slot="{ Component, route }">
+                <transition
+                  enter-active-class="animate__animated animate__fadeInRight"
+                  leave-active-class="animate__animated animate__fadeOutLeft"
+                  mode="out-in"
+                >
+                  <KeepAlive :include="cachedComponents">
+                    <component :is="Component" :key="getRouteKey(route)" />
+                  </KeepAlive>
+                </transition>
+              </router-view>
             </main>
           </div>
           
@@ -81,12 +85,12 @@
     </div>
     
     <!-- 移动端个人信息按钮 -->
-    <div class="mobile-personal-info d-lg-none animate__animated animate__fadeInRight" v-if="!isAdminRoute">
+    <div class="mobile-personal-info d-lg-none" v-if="!isAdminRoute">
       <PersonalInfo />
     </div>
 
     <!-- 移动端音乐播放器 - 独立定位 -->
-    <div class="mobile-music-player d-lg-none animate__animated animate__fadeInUp" v-if="!isAdminRoute">
+    <div class="mobile-music-player d-lg-none" v-if="!isAdminRoute">
       <MusicPlayer />
     </div>
 
@@ -103,6 +107,7 @@ import WelcomeSection from './components/WelcomeSection.vue';
 import PersonalInfo from './components/PersonalInfo.vue';
 import MusicPlayer from './components/MusicPlayer.vue';
 import Toast from './components/Toast.vue';
+import { useKeepAliveManager } from './utils/keepAliveManager.js';
 
 const router = useRouter();
 const route = useRoute();
@@ -113,6 +118,9 @@ const mouseAtTop = ref(false);
 const lastScrollY = ref(0);
 const isDarkMode = ref(false);
 const hideTimeout = ref(null);
+
+// 使用 KeepAlive 管理器
+const { cachedComponents } = useKeepAliveManager();
 
 // 判断是否为admin路由
 const isAdminRoute = computed(() => {
@@ -205,6 +213,16 @@ const toggleDarkMode = () => {
   isDarkMode.value = !isDarkMode.value;
   localStorage.setItem('darkMode', isDarkMode.value.toString());
   document.documentElement.setAttribute('data-bs-theme', isDarkMode.value ? 'dark' : 'light');
+};
+
+// 获取路由 key，对于需要缓存的组件使用固定 key
+const getRouteKey = (route) => {
+  // 对于文章列表页面，使用固定的 key 以便缓存
+  if (route.name === 'ArticleList') {
+    return 'ArticleList';
+  }
+  // 对于其他页面，使用完整路径作为 key
+  return route.fullPath;
 };
 
 // 初始化主题

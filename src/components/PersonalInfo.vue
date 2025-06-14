@@ -2,13 +2,13 @@
   <div class="desktop-sidebar d-none d-lg-block animate__animated animate__fadeInLeft">
     <div class="sidebar-content">
       <div class="user-profile text-center">
-        <div class="avatar-container animate__animated animate__bounceIn animate__delay-1s" @click="triggerAvatarEffect">
+        <div class="avatar-container animate__animated animate__bounceIn animate__delay-0.5s" @click="triggerAvatarEffect">
           <img src="../assets/icon/Master.ico" alt="用户头像" class="avatar-img">
           <div class="avatar-overlay" :class="{ 'active': avatarClicked }">
             <i class="bi bi-stars"></i>
           </div>
         </div>
-        <h4 class="user-name mt-3 animate__animated animate__fadeInUp animate__delay-1.5s">WASD09090030</h4>
+        <h4 class="user-name mt-3 animate__animated animate__fadeInUp animate__delay-1s">WASD09090030</h4>
         <div class="user-status animate__animated animate__fadeIn animate__delay-1.7s">
           <span class="status-dot" :class="statusClass"></span>
           <span class="status-text">{{ currentStatus }}</span>
@@ -16,7 +16,7 @@
       </div>
       
       <!-- 实时时钟 -->
-      <div class="live-clock animate__animated animate__fadeInUp animate__delay-2s">
+      <div class="live-clock animate__animated animate__fadeInUp animate__delay-1.5s">
         <div class="clock-display">
           <i class="bi bi-clock me-2"></i>
           {{ currentTime }}
@@ -25,7 +25,7 @@
       </div>
 
       <!-- 个人技能展示 -->
-      <div class="skills-section animate__animated animate__fadeInUp animate__delay-2.2s">
+      <div class="skills-section animate__animated animate__fadeInUp animate__delay-1.7s">
         <h5 class="section-title">
           <i class="bi bi-gear me-2"></i>技能等级
         </h5>

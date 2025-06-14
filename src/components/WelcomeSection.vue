@@ -1,12 +1,12 @@
 <template>
   <div class="welcome-section" id="welcome-section">
     <div class="welcome-content">
-      <h1 class="welcome-title animate__animated animate__fadeInDown animate__delay-0.5s">欢迎访问</h1>
-      <p class="welcome-text animate__animated animate__fadeInUp animate__delay-1s">这里是我的个人博客，记录学习、游戏和个人作品</p>
-      <p class="welcome-subtitle mt-3 animate__animated animate__fadeInUp animate__delay-1.5s">使用导航栏的分类菜单和搜索功能来探索内容</p>
-      <button class="btn btn-explore mt-4 animate__animated animate__bounceIn animate__delay-2s" @click="scrollToArticles">
+      <h1 class="welcome-title animate__animated animate__fadeInDown">欢迎访问</h1>
+      <p class="welcome-text">这里是我的个人博客，记录学习、游戏和个人作品</p>
+      <p class="welcome-subtitle mt-3 animate__animated animate__fadeInUp animate__delay-0.5s">使用导航栏的分类菜单和搜索功能来探索内容</p>
+      <button class="btn btn-explore mt-4 animate__animated animate__bounceIn animate__delay-1s" @click="scrollToArticles">
         探索文章
-        <i class="bi bi-arrow-down ms-2 animate__animated animate__bounce animate__infinite"></i>
+        <i class="bi bi-arrow-down ms-2"></i>
       </button>
     </div>
   </div>

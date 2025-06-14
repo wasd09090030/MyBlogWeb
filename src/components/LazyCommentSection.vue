@@ -50,7 +50,7 @@ const CommentSection = defineAsyncComponent({
   errorComponent: {
     template: '<div class="error-comments">评论组件加载失败</div>'
   },
-  delay: 300,
+  delay: 100,
   timeout: 5000
 });
 

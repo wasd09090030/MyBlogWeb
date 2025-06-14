@@ -1,5 +1,5 @@
 <template>
-  <div class="comment-section mt-5 animate__animated animate__fadeInUp">
+  <div class="comment-section mt-5">
     <!-- 点赞区域 -->
     <div class="like-section mb-4 text-center">
       <button 
@@ -20,7 +20,7 @@
           <i class="bi bi-chat-dots me-2"></i>
           发表评论
         </h5>
-        <div v-if="submitSuccess" class="alert alert-success animate__animated animate__fadeIn">
+        <div v-if="submitSuccess" class="alert alert-success">
           <i class="bi bi-check-circle me-2"></i>
           评论提交成功！正在等待审核...
         </div>        <form @submit.prevent="submitComment">
@@ -88,7 +88,7 @@
         <div 
           v-for="comment in comments" 
           :key="comment.id" 
-          class="comment-item card mb-3 animate__animated animate__fadeInLeft"
+          class="comment-item card mb-3"
         >
           <div class="card-body">
             <div class="d-flex justify-content-between align-items-start mb-2">
