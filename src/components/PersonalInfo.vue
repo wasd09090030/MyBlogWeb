@@ -133,8 +133,8 @@ const statusClass = ref('status-online');
 
 // 技能数据
 const skills = ref([
-  { name: 'JavaScript', level: 85, color: 'js-color' },
-  { name: 'Vue.js', level: 80, color: 'vue-color' },  { name: 'Python', level: 70, color: 'python-color' },
+  { name: 'JavaScript', level: 35, color: 'js-color' },
+  { name: 'Vue.js', level: 33, color: 'vue-color' },  { name: 'Python', level: 26, color: 'python-color' },
 ]);
 
 // 切换侧边栏

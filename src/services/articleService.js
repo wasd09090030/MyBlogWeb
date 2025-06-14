@@ -1,7 +1,8 @@
 // 文章服务 - 处理与后端API的通信
 import axios from 'axios';
 
-class ArticleService {  constructor() {
+class ArticleService {  
+  constructor() {
     this.baseURL = 'http://localhost:3000';
     // 创建 axios 实例
     this.api = axios.create({

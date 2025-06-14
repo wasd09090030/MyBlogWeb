@@ -45,15 +45,16 @@
 </template>
 
 <script setup>
-import { useRouter } from 'vue-router';
-import auth from '../store/auth';
+import { useRouter } from 'vue-router'
+import { useAuthStore } from '../stores/auth'
 
-const router = useRouter();
+const router = useRouter()
+const authStore = useAuthStore()
 
 const logout = () => {
-  auth.logout();
-  router.push({ name: 'AdminLogin' });
-};
+  authStore.logout()
+  router.push({ name: 'AdminLogin' })
+}
 </script>
 
 <style scoped>

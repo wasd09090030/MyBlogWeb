@@ -2,7 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ArticleSeedService } from './article/seed/article.seed';
 
-async function bootstrap() {
+async function Mybackend() {
   const app = await NestFactory.create(AppModule);
   app.enableCors(); // Enable CORS
 
@@ -18,4 +18,4 @@ async function bootstrap() {
   await app.listen(process.env.PORT ?? 3000);
   console.log(`应用已启动，监听端口: ${process.env.PORT ?? 3000}`);
 }
-void bootstrap();
+void Mybackend();

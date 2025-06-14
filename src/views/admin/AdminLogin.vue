@@ -37,29 +37,30 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
-import { useRouter } from 'vue-router';
-import auth, { UserRoles } from '../../store/auth';
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { useAuthStore, UserRoles } from '../../stores/auth'
 
-const router = useRouter();
-const password = ref('');
-const error = ref('');
-const isLoggingIn = ref(false);
+const router = useRouter()
+const authStore = useAuthStore()
+const password = ref('')
+const error = ref('')
+const isLoggingIn = ref(false)
 
 const login = async () => {
-  isLoggingIn.value = true;
-  error.value = '';
+  isLoggingIn.value = true
+  error.value = ''
   
-  const result = auth.setUserRole(UserRoles.ADMIN, password.value);
+  const result = authStore.login('admin', password.value)
   
   if (result.success) {
-    router.push({ name: 'AdminDashboard' });
+    router.push({ name: 'AdminDashboard' })
   } else {
-    error.value = result.message;
+    error.value = result.message
   }
   
-  isLoggingIn.value = false;
-};
+  isLoggingIn.value = false
+}
 </script>
 
 <style scoped>
