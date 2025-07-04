@@ -50,6 +50,7 @@
     <WelcomeSection />
     
     <!-- 主内容区 - 可以覆盖欢迎区域 -->
+  <div class="main-container">
     <div class="main-content" :class="{ 'admin-full-width': isAdminRoute }">
       <div class="container-fluid">
         <div class="row">
@@ -83,6 +84,7 @@
         </div>
       </div>
     </div>
+    </div>
     
     <!-- 移动端个人信息按钮 -->
     <div class="mobile-personal-info d-lg-none" v-if="!isAdminRoute">
@@ -93,9 +95,6 @@
     <div class="mobile-music-player d-lg-none" v-if="!isAdminRoute">
       <MusicPlayer />
     </div>
-
-    <!-- Toast通知组件 -->
-    <Toast />
   </div>
 </template>
 
@@ -106,7 +105,6 @@ import SearchBar from './components/SearchBar.vue';
 import WelcomeSection from './components/WelcomeSection.vue';
 import PersonalInfo from './components/PersonalInfo.vue';
 import MusicPlayer from './components/MusicPlayer.vue';
-import Toast from './components/Toast.vue';
 import { useKeepAliveManager } from './utils/keepAliveManager.js';
 
 const router = useRouter();
@@ -259,6 +257,18 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+/* 全局body背景 - 与App内容形成对比 */
+:global(body) {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
+  transition: background 0.3s ease;
+}
+
+/* 暗色主题的body背景 */
+:global(.dark-theme body) {
+  background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+}
+
 /* 全局样式 */
 #app {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -272,7 +282,7 @@ onUnmounted(() => {
 }
 
 .dark-theme {
-  background-color: #121212;
+  background-color: #96ffda79;
   color: #ffffff;
 }
 
@@ -300,12 +310,12 @@ onUnmounted(() => {
 
 /* 亮色主题导航栏 - 天蓝色 */
 .light-theme .navbar-transparent {
-  background: linear-gradient(rgba(135, 206, 235, 0.85), rgba(135, 206, 235, 0.8)) !important;
+  background: linear-gradient(rgba(69, 85, 210, 0.85), rgba(69, 85, 210, 0.85)) !important;
   box-shadow: none;
 }
 
 .light-theme .navbar-solid {
-  background: linear-gradient(rgba(135, 206, 235, 0.95), rgba(135, 206, 235, 0.9)) !important;
+  background: linear-gradient(rgba(69, 85, 210, 0.85), rgba(69, 85, 210, 0.85)) !important;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
@@ -368,6 +378,10 @@ onUnmounted(() => {
   background-color: rgba(13, 110, 253, 0.1);
 }
 
+.main-container {
+  width: 100%;
+  margin: 0 auto;
+}
 /* 主要内容区域 */
 .main-content {
   position: relative;
@@ -376,7 +390,8 @@ onUnmounted(() => {
   min-height: 100vh;
   padding: 2rem 0;
   margin-top: -20px; /* 轻微重叠 */
-  box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.1), 0 8px 32px rgba(0, 0, 0, 0.15);
+  border-radius: 12px 12px 0 0;
   /* 大屏幕限制宽度为70% */
   max-width: 70%;
   margin-top: auto;
@@ -554,7 +569,7 @@ main {
 
 /* 亮色主题下拉菜单 - 适配天蓝色主题 */
 .light-theme .dropdown-menu {
-  background-color: rgba(135, 206, 235, 0.95);
+  background-color: rgba(65, 81, 255, 0.95);
   border: 1px solid rgba(0, 0, 0, 0.1);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
 }
@@ -570,7 +585,8 @@ main {
 
 /* 暗色主题下的特殊样式 */
 :global(.dark-theme) .main-content {
-  background-color: #121212;
+  background-color: #04407b;
+  box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.3), 0 8px 32px rgba(0, 0, 0, 0.4);
 }
 
 :global(.dark-theme) .navbar-transparent {

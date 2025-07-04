@@ -1,19 +1,20 @@
 <template>
   <div class="article-editor animate__animated animate__fadeIn">
-    <div class="d-flex justify-content-between align-items-center mb-4 animate__animated animate__slideInDown">
+    <div class="d-flex justify-content-between align-items-center mb-4">
       <h2>{{ isEdit ? '编辑文章' : '创建文章' }}</h2>
-      <button class="btn btn-outline-secondary animate__animated animate__fadeInRight" @click="goBack">
+      <button class="btn btn-outline-secondary" @click="goBack">
         <i class="bi bi-arrow-left me-2"></i>返回
       </button>
     </div>
 
-    <div class="card animate__animated animate__fadeInUp">
+    <div class="card">
       <div class="card-body">
         <div v-if="loading" class="text-center py-5">
-          <div class="spinner-border text-primary animate__animated animate__pulse animate__infinite" role="status"></div>
+          <div class="spinner-border text-primary" role="status"></div>
         </div>
         
-        <form v-else @submit.prevent="saveArticle" class="animate__animated animate__fadeIn">          <div class="mb-3 animate__animated animate__fadeInUp animate__delay-0.1s">
+        <form v-else @submit.prevent="saveArticle" class="animate__animated animate__fadeIn">      
+              <div class="mb-3">
             <label for="title" class="form-label">标题</label>
             <input 
               type="text" 
@@ -25,7 +26,7 @@
           </div>
 
           <!-- 添加封面图URL输入 -->
-          <div class="mb-3 animate__animated animate__fadeInUp animate__delay-0.2s">
+          <div class="mb-3">
             <label for="coverImage" class="form-label">封面图片URL（可选）</label>
             <input 
               type="url" 

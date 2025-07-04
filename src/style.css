@@ -62,10 +62,10 @@ button:focus-visible {
 
 /* Global dark/light theme styles */
 [data-bs-theme="dark"] {
-  --bs-body-bg: #121212;
+  --bs-body-bg: #373333;
   --bs-body-color: #ffffff;
   --bs-border-color: #404040;
-  --bs-secondary-bg: #1e1e1e;
+  --bs-secondary-bg: #5b4747;
 }
 
 [data-bs-theme="light"] {
@@ -91,7 +91,7 @@ button:focus-visible {
 }
 
 [data-bs-theme="dark"] .bg-light {
-  background-color: #121212 !important;
+  background-color: #434242 !important;
 }
 
 [data-bs-theme="dark"] .alert-info {
@@ -115,6 +115,6 @@ button:focus-visible {
 @media (prefers-color-scheme: dark) {
   :root {
     color: rgba(255, 255, 255, 0.87);
-    background-color: #242424;
+    background-color: #525252;
   }
 }

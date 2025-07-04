@@ -68,7 +68,7 @@
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import ConfirmModal from './ConfirmModal.vue';
-import { showToast } from '../../components/Toast.vue';
+import { showToast } from '../../utils/notification.js';
 import articleService from '../../services/articleService';
 
 const router = useRouter();

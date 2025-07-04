@@ -40,7 +40,7 @@ export class Article {
   })
   category: ArticleCategory;
 
-  // 添加与评论的关联（延迟导入避免循环依赖）
+  // 添加与评论的关联
   @OneToMany('Comment', 'article')
   comments: any[];
 
