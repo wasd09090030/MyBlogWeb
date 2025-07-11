@@ -17,12 +17,19 @@ const routes = [
     path: '/',
     name: 'ArticleList',
     component: ArticleList,
+    meta: { 
+      keepAlive: true,
+      title: '文章列表'
+    }
   },
   {
     path: '/article/:id',
     name: 'ArticleDetail',
     component: ArticleDetail,
-    props: true
+    props: true,
+    meta: {
+      title: '文章详情'
+    }
   },
   
   // 管理员路由 - 完全独立的路径

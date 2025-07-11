@@ -21,7 +21,7 @@
           />
         </div>
         
-        <div class="article-header mb-4 animate__animated animate__fadeInDown">
+        <div class="article-header mb-4 header-fade-in">
           <h1 class="article-title">{{ article.title }}</h1>
           <div class="article-meta">
             <span class="badge" :class="getCategoryBadgeClass(article.category)">
@@ -35,7 +35,7 @@
         </div>          <div class="article-actions mb-4">
           <button @click="goBackToList" class="btn btn-outline-secondary">
             <i class="bi bi-arrow-left me-2"></i>
-            返回列表
+            返回上页
           </button>
         </div>
 
@@ -47,7 +47,7 @@
         <div class="article-bottom-actions mt-5 pt-4 border-top text-center">
           <button @click="goBackToList" class="btn btn-primary btn-lg">
             <i class="bi bi-arrow-left me-2"></i>
-            返回文章列表
+            返回上页
           </button>
         </div>
       </div>
@@ -132,40 +132,18 @@ async function fetchArticle() {
     loading.value = false;  }
 }
 
-// 返回文章列表，保持原来的页码和筛选条件
+// 返回上一页，使用浏览器历史记录
 const goBackToList = () => {
-  const query = {};
+  console.log('使用浏览器后退功能返回上一页');
   
-  // 获取返回页码
-  const returnPage = route.query.returnPage;
-  
-  // 如果有搜索参数，保持搜索状态
-  if (route.query.search) {
-    query.search = route.query.search;
-  }
-  
-  // 如果有分类参数，保持分类状态
-  if (route.query.category) {
-    query.category = route.query.category;
-  }
-  
-  // 构造返回路由
-  const returnRoute = {
-    name: 'ArticleList',
-    query
-  };
-  
-  // 如果有返回页码，需要在跳转后设置页码
-  if (returnPage) {
-    router.push(returnRoute).then(() => {
-      // 通过URL hash来传递页码信息，让ArticleList组件处理
-      router.replace({
-        ...returnRoute,
-        hash: `#page=${returnPage}`
-      });
-    });
+  // 检查是否有历史记录可以返回
+  if (window.history.length > 1) {
+    // 使用浏览器的后退功能
+    router.go(-1);
   } else {
-    router.push(returnRoute);
+    // 如果没有历史记录，则回到首页
+    console.log('没有历史记录，返回首页');
+    router.push({ name: 'ArticleList' });
   }
 };
 
@@ -365,5 +343,10 @@ onMounted(() => {
 
 [data-bs-theme="dark"] .article-content-html ::v-deep(a:hover) {
   color: #93c5fd;
+}
+
+/* 自定义动画类 */
+.header-fade-in {
+  animation: fadeInDown 0.6s ease-out;
 }
 </style>

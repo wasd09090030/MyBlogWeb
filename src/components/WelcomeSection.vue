@@ -1,10 +1,10 @@
 <template>
   <div class="welcome-section" id="welcome-section">
     <div class="welcome-content">
-      <h1 class="welcome-title animate__animated animate__fadeInDown">欢迎访问</h1>
+      <h1 class="welcome-title title-fade-in">欢迎访问</h1>
       <p class="welcome-text">这里是我的个人博客，记录学习、游戏和个人作品</p>
-      <p class="welcome-subtitle mt-3 animate__animated animate__fadeInUp animate__delay-0.5s">使用导航栏的分类菜单和搜索功能来探索内容</p>
-      <button class="btn btn-explore mt-4 animate__animated animate__bounceIn animate__delay-1s" @click="scrollToArticles">
+      <p class="welcome-subtitle mt-3 subtitle-fade-in">使用导航栏的分类菜单和搜索功能来探索内容</p>
+      <button class="btn btn-explore mt-4 button-bounce-in" @click="scrollToArticles">
         探索文章
         <i class="bi bi-arrow-down ms-2"></i>
       </button>
@@ -159,6 +159,58 @@ const scrollToArticles = () => {
   
   .welcome-subtitle {
     font-size: 0.9rem;
+  }
+}
+
+/* 自定义动画 */
+.title-fade-in {
+  animation: fadeInDown 0.8s ease-out;
+}
+
+.subtitle-fade-in {
+  animation: fadeInUp 0.8s ease-out 0.5s both;
+}
+
+.button-bounce-in {
+  animation: bounceIn 1s ease-out 1s both;
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes bounceIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
   }
 }
 </style>

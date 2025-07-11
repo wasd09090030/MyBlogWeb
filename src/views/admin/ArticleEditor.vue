@@ -45,7 +45,6 @@
                   alt="封面图预览" 
                   @error="handleImageError"
                   @load="handleImageLoad"
-                  crossorigin="anonymous"
                 />
               </div>
               <div v-if="!isValidImageUrl" class="mt-1">
@@ -207,8 +206,6 @@ const validateImageUrl = (url) => {
   img.onerror = () => {
     isValidImageUrl.value = false;
   };
-  // 设置 crossOrigin 属性以处理 CORS 问题
-  img.crossOrigin = 'anonymous';
   img.src = url;
 };
 

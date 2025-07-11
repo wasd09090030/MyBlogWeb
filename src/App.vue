@@ -1,7 +1,7 @@
 <template>
   <div id="app" :class="['min-vh-100', isDarkMode ? 'dark-theme' : 'light-theme']">
     <!-- 导航栏 -->
-    <nav :class="['navbar navbar-expand-lg fixed-top transition-all animate__animated', isDarkMode ? 'navbar-dark' : 'navbar-light', navbarClass, navbarAnimationClass]" ref="navbar">
+    <nav :class="['navbar navbar-expand-lg fixed-top transition-all', isDarkMode ? 'navbar-dark' : 'navbar-light', navbarClass, navbarAnimationClass]" ref="navbar">
       <div class="container-fluid d-flex align-items-center">
         <router-link to="/" class="navbar-brand">欢迎访问我的博客</router-link>
         
@@ -59,21 +59,15 @@
             <main>
               <!-- 使用 Vue Router 4 推荐的 slot props 语法 -->
               <router-view v-slot="{ Component, route }">
-                <transition
-                  enter-active-class="animate__animated animate__fadeInRight"
-                  leave-active-class="animate__animated animate__fadeOutLeft"
-                  mode="out-in"
-                >
-                  <KeepAlive :include="cachedComponents">
-                    <component :is="Component" :key="getRouteKey(route)" />
-                  </KeepAlive>
-                </transition>
+                <KeepAlive :include="cachedComponents">
+                  <component :is="Component" :key="getRouteKey(route)" />
+                </KeepAlive>
               </router-view>
             </main>
           </div>
           
           <!-- 侧边栏个人信息 - 大屏显示 -->
-          <div class="col-lg-4 col-xl-3 d-none d-lg-block animate__animated animate__fadeInUp" v-if="!isAdminRoute">
+          <div class="col-lg-4 col-xl-3 d-none d-lg-block sidebar-animate" v-if="!isAdminRoute">
             <div class="sidebar-content">
               <PersonalInfo />
                 <div class="mobile-music-player-container">
@@ -139,7 +133,7 @@ const navbarClass = computed(() => {
 // 导航栏动画类
 const navbarAnimationClass = computed(() => {
   const shouldShow = isNavbarVisible.value || mouseAtTop.value || isAtTop.value;
-  return shouldShow ? 'animate__slideInDown' : 'animate__slideOutUp';
+  return shouldShow ? 'navbar-slide-in' : 'navbar-slide-out';
 });
 
 // 处理滚动事件
@@ -609,5 +603,99 @@ main {
 :global(.dark-theme) .dropdown-item:hover {
   background-color: rgba(66, 153, 225, 0.2);
   color: #ffffff;
+}
+
+/* 自定义动画类替换animate.css */
+.navbar-slide-in {
+  animation: slideInDown 0.3s ease-out forwards;
+}
+
+.navbar-slide-out {
+  animation: slideOutUp 0.3s ease-in forwards;
+}
+
+.sidebar-animate {
+  animation: fadeInUp 0.8s ease-out;
+}
+
+@keyframes slideInDown {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOutUp {
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeInDown {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeInLeft {
+  from {
+    transform: translateX(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes bounceIn {
+  0% {
+    transform: scale(0.3);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(0.9);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 </style>

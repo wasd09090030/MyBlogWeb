@@ -1,15 +1,15 @@
 <template>  <!-- 桌面端侧边栏 -->
-  <div class="desktop-sidebar d-none d-lg-block animate__animated animate__fadeInLeft">
+  <div class="desktop-sidebar d-none d-lg-block sidebar-fade-in">
     <div class="sidebar-content">
       <div class="user-profile text-center">
-        <div class="avatar-container animate__animated animate__bounceIn animate__delay-0.5s" @click="triggerAvatarEffect">
+        <div class="avatar-container avatar-bounce" @click="triggerAvatarEffect">
           <img src="../assets/icon/Master.ico" alt="用户头像" class="avatar-img">
           <div class="avatar-overlay" :class="{ 'active': avatarClicked }">
             <i class="bi bi-stars"></i>
           </div>
         </div>
-        <h4 class="user-name mt-3 animate__animated animate__fadeInUp animate__delay-1s">WASD09090030</h4>
-        <div class="user-status animate__animated animate__fadeIn animate__delay-1.7s">
+        <h4 class="user-name mt-3 username-fade">WASD09090030</h4>
+        <div class="user-status status-fade">
           <span class="status-dot" :class="statusClass"></span>
           <span class="status-text">{{ currentStatus }}</span>
         </div>
@@ -749,5 +749,22 @@ onBeforeUnmount(() => {
 
 [data-bs-theme="dark"] .personal-info-sidebar::-webkit-scrollbar-thumb {
   background: var(--bs-gray-600);
+}
+
+/* 自定义动画类替换animate.css */
+.sidebar-fade-in {
+  animation: fadeInLeft 0.8s ease-out;
+}
+
+.avatar-bounce {
+  animation: bounceIn 0.8s ease-out 0.5s both;
+}
+
+.username-fade {
+  animation: fadeInUp 0.6s ease-out 1s both;
+}
+
+.status-fade {
+  animation: fadeIn 0.6s ease-out 1.7s both;
 }
 </style>

@@ -12,7 +12,7 @@
 - **Bootstrap 5** - 响应式 CSS 框架（支持明暗主题）
 - **Bootstrap Icons** - 丰富的图标库
 - **MD Editor V3** - 专业的Markdown编辑器（支持实时预览）
-- **Animate.css** - CSS动画库（提供流畅的界面动效）
+- **CSS3 Animations** - 原生CSS3动画（流畅的界面动效）
 
 ### 后端技术
 - **NestJS** - 基于 TypeScript 的 Node.js 框架

@@ -21,8 +21,7 @@
           v-for="(article, index) in paginatedFilteredArticles" 
           :key="article.id" 
           v-memo="[article.id, article.title, article.coverImage, article.createdAt, article.category, currentFilteredPage, route.query.search, route.query.category]"
-          :class="['article-card', 'animate__animated', 'animate__fadeInUp','.custom-animation', { 'article-card-reverse': (currentFilteredIndex + index + 1) % 2 === 0 }]"
-          :style="{ animationDelay: `${index * 0.1}s` }"
+          :class="['article-card',  { 'article-card-reverse': (currentFilteredIndex + index + 1) % 2 === 0 }]"
         ><!-- 封面图片区域 -->
           <div class="article-image-section">
             <img
@@ -98,8 +97,7 @@
           v-for="(article, index) in paginatedArticles" 
           :key="article.id" 
           v-memo="[article.id, article.title, article.coverImage, article.createdAt, article.category, currentPage]"
-          :class="['article-card', 'animate__animated', 'animate__fadeInUp','.custom-animation', { 'article-card-reverse': (currentIndex + index + 1) % 2 === 0 }]"
-          :style="{ animationDelay: `${index * 0.1}s` }"
+          :class="['article-card', { 'article-card-reverse': (currentIndex + index + 1) % 2 === 0 }]"
         ><!-- 封面图片区域 -->
           <div class="article-image-section">
             <img
@@ -190,11 +188,6 @@ const error = ref(null);
 const route = useRoute();
 const router = useRouter();
 
-// 保存滚动位置和分页状态
-const savedScrollPosition = ref(0);
-const savedCurrentPage = ref(1);
-const savedCurrentFilteredPage = ref(1);
-
 // 分页相关变量
 const currentPage = ref(1);
 const currentFilteredPage = ref(1);
@@ -283,14 +276,6 @@ const clearSearch = () => {
 // 计算属性：为当前页面的文章预先生成路由对象，避免重复计算
 const articleRoutesMap = computed(() => {
   const query = {};
-  
-  // 如果当前是筛选状态，传递筛选页码
-  if (route.query.search || route.query.category) {
-    query.returnPage = currentFilteredPage.value;
-  } else {
-    // 否则传递普通页码
-    query.returnPage = currentPage.value;
-  }
   
   // 保持原有的搜索和分类参数
   if (route.query.search) {
@@ -468,29 +453,28 @@ async function fetchArticles() {
 onMounted(async () => {
   await fetchArticles();
   
-  // 检查URL hash中是否有页码信息
-  if (route.hash && route.hash.startsWith('#page=')) {
-    const pageNum = parseInt(route.hash.replace('#page=', ''));
- //   console.log('从URL hash恢复页码:', pageNum); // 调试日志
+  // 检查URL query中是否有页码信息
+  const pageFromQuery = route.query.page;
+  if (pageFromQuery) {
+    const pageNum = parseInt(pageFromQuery);
+    console.log('从URL query恢复页码:', pageNum);
     
     if (!isNaN(pageNum) && pageNum > 0) {
-      // 使用nextTick确保DOM更新后再设置页码
-      await new Promise(resolve => setTimeout(resolve, 100)); // 给计算属性一些时间更新
+      // 使用短暂延迟确保DOM更新后再设置页码
+      await new Promise(resolve => setTimeout(resolve, 150));
       
       // 根据当前是否在筛选状态来设置相应的页码
       if (route.query.search || route.query.category) {
-//        console.log('设置筛选页码:', pageNum, '总页数:', totalFilteredPages.value);
+        console.log('设置筛选页码:', pageNum, '总页数:', totalFilteredPages.value);
         if (pageNum <= totalFilteredPages.value) {
           currentFilteredPage.value = pageNum;
         }
       } else {
- //       console.log('设置普通页码:', pageNum, '总页数:', totalPages.value);
+        console.log('设置普通页码:', pageNum, '总页数:', totalPages.value);
         if (pageNum <= totalPages.value) {
           currentPage.value = pageNum;
         }
       }
-        // 清除hash，避免页面刷新时重复处理
-      router.replace({ ...route, hash: '' });
     }
   }
 });
@@ -509,52 +493,16 @@ onActivated(async () => {
       route.meta.refreshOnActivated = false;
     }
   }
-  
-  // 恢复分页状态
-  if (savedCurrentPage.value > 1) {
-    currentPage.value = savedCurrentPage.value;
-    console.log('恢复普通分页状态:', savedCurrentPage.value);
-  }
-  
-  if (savedCurrentFilteredPage.value > 1) {
-    currentFilteredPage.value = savedCurrentFilteredPage.value;
-    console.log('恢复筛选分页状态:', savedCurrentFilteredPage.value);
-  }
-  
-  // 恢复滚动位置
-  await nextTick();
-  if (savedScrollPosition.value > 0) {
-    // 使用 setTimeout 确保 DOM 完全渲染后再滚动
-    setTimeout(() => {
-      window.scrollTo({
-        top: savedScrollPosition.value,
-        behavior: 'smooth'
-      });
-      console.log('恢复滚动位置:', savedScrollPosition.value);
-    }, 100);
-  }
 });
 
 onDeactivated(() => {
   console.log('ArticleList 组件被缓存');
-  
-  // 保存当前分页状态
-  savedCurrentPage.value = currentPage.value;
-  savedCurrentFilteredPage.value = currentFilteredPage.value;
-  console.log('保存分页状态 - 普通:', currentPage.value, '筛选:', currentFilteredPage.value);
-  
-  // 保存当前滚动位置
-  savedScrollPosition.value = window.scrollY;
-  console.log('保存滚动位置:', savedScrollPosition.value);
 });
 
 // 添加一个手动刷新方法，可以从外部调用
 const refreshData = async () => {
   console.log('手动刷新文章数据');
   await fetchArticles();
-  // 重置滚动位置
-  savedScrollPosition.value = 0;
-  window.scrollTo(0, 0);
 };
 
 // 暴露刷新方法给父组件使用
