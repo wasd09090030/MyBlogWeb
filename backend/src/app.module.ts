@@ -8,6 +8,7 @@ import { Like } from './like/like.entity';
 import { ArticleModule } from './article/article.module';
 import { CommentModule } from './comment/comment.module';
 import { LikeModule } from './like/like.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { LikeModule } from './like/like.module';
     ArticleModule,
     CommentModule,
     LikeModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],

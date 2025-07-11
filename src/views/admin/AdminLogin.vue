@@ -51,15 +51,20 @@ const login = async () => {
   isLoggingIn.value = true
   error.value = ''
   
-  const result = authStore.login('admin', password.value)
-  
-  if (result.success) {
-    router.push({ name: 'AdminDashboard' })
-  } else {
-    error.value = result.message
+  try {
+    const result = await authStore.login('admin', password.value)
+    
+    if (result.success) {
+      router.push({ name: 'AdminDashboard' })
+    } else {
+      error.value = result.message
+    }
+  } catch (err) {
+    console.error('Login error:', err)
+    error.value = '登录过程中发生错误，请稍后重试'
+  } finally {
+    isLoggingIn.value = false
   }
-  
-  isLoggingIn.value = false
 }
 </script>
 

@@ -9,6 +9,7 @@ const AdminLogin = () => import('./views/admin/AdminLogin.vue')
 const AdminDashboard = () => import('./views/admin/AdminDashboard.vue')
 const ArticleManager = () => import('./views/admin/ArticleManager.vue')
 const ArticleEditor = () => import('./views/admin/ArticleEditor.vue')
+const PasswordChange = () => import('./views/admin/PasswordChange.vue')
 
 const routes = [
   // 前端展示路由 - 保持不变
@@ -60,6 +61,11 @@ const routes = [
         path: 'comments',
         name: 'CommentManager',
         component: () => import('./views/admin/CommentManager.vue')
+      },
+      {
+        path: 'password',
+        name: 'PasswordChange',
+        component: PasswordChange
       }
     ]
   }

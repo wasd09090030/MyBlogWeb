@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import { authAPI } from '../services/authService'
 
 // 用户角色枚举
 export const UserRoles = {
@@ -21,10 +22,8 @@ export const useAuthStore = defineStore('auth', {
   },
 
   actions: {
-    // 验证管理员密码
-    verifyAdminPassword(password) {
-      const ADMIN_PASSWORD = '86280630qq'
-      
+    // 验证管理员密码 - 现在通过API调用
+    async verifyAdminPassword(password) {
       // 检查是否在锁定时间内
       const now = Date.now()
       if (this.lockoutUntil > now) {
@@ -35,10 +34,10 @@ export const useAuthStore = defineStore('auth', {
         }
       }
       
-      // 验证密码
-      const isValid = password === ADMIN_PASSWORD
+      // 通过API验证密码
+      const result = await authAPI.login('admin', password)
       
-      if (isValid) {
+      if (result.success) {
         // 重置错误尝试次数
         this.loginAttempts = 0
         return {
@@ -60,13 +59,13 @@ export const useAuthStore = defineStore('auth', {
         
         return {
           success: false,
-          message: `密码错误，还有${5 - this.loginAttempts}次尝试机会`
+          message: result.message || `密码错误，还有${5 - this.loginAttempts}次尝试机会`
         }
       }
     },
 
     // 设置用户角色
-    setUserRole(role, password = null) {
+    async setUserRole(role, password = null) {
       // 如果尝试设置为管理员角色，需要验证密码
       if (role === UserRoles.ADMIN) {
         if (!this.isAuthenticated) {
@@ -77,8 +76,8 @@ export const useAuthStore = defineStore('auth', {
             }
           }
           
-          // 验证密码
-          const verifyResult = this.verifyAdminPassword(password)
+          // 验证密码 - 现在是异步的
+          const verifyResult = await this.verifyAdminPassword(password)
           if (!verifyResult.success) {
             return verifyResult // 返回验证结果（包含错误信息）
           }
@@ -110,7 +109,7 @@ export const useAuthStore = defineStore('auth', {
     },
 
     // 管理员登录
-    login(username, password) {
+    async login(username, password) {
       // 简单验证用户名
       if (username !== 'admin') {
         return {
@@ -119,7 +118,7 @@ export const useAuthStore = defineStore('auth', {
         }
       }
 
-      const result = this.setUserRole(UserRoles.ADMIN, password)
+      const result = await this.setUserRole(UserRoles.ADMIN, password)
       return result
     },
 

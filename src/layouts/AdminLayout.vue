@@ -11,6 +11,7 @@
               管理员
             </a>
             <ul class="dropdown-menu dropdown-menu-end">
+              <li><router-link to="/admin/password" class="dropdown-item">修改密码</router-link></li>
               <li><a class="dropdown-item" href="/" target="_blank">查看前台</a></li>
               <li><hr class="dropdown-divider"></li>
               <li><a class="dropdown-item" href="#" @click="logout">退出登录</a></li>
@@ -32,6 +33,9 @@
           </router-link>
           <router-link to="/admin/comments" class="nav-link" active-class="active">
             <i class="bi bi-chat-left-text me-2"></i>评论管理
+          </router-link>
+          <router-link to="/admin/password" class="nav-link" active-class="active">
+            <i class="bi bi-key me-2"></i>修改密码
           </router-link>
         </nav>
       </aside>

@@ -1,5 +1,5 @@
 <template>
-  <div class="article-editor animate__animated animate__fadeIn">
+  <div class="article-editor">
     <div class="d-flex justify-content-between align-items-center mb-4">
       <h2>{{ isEdit ? '编辑文章' : '创建文章' }}</h2>
       <button class="btn btn-outline-secondary" @click="goBack">
@@ -13,7 +13,7 @@
           <div class="spinner-border text-primary" role="status"></div>
         </div>
         
-        <form v-else @submit.prevent="saveArticle" class="animate__animated animate__fadeIn">      
+        <form v-else @submit.prevent="saveArticle">      
               <div class="mb-3">
             <label for="title" class="form-label">标题</label>
             <input 
