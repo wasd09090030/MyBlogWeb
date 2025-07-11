@@ -1,13 +1,16 @@
 // 文章服务 - 处理与后端API的通信
 import axios from 'axios';
+import { API_CONFIG } from '../config/api.js';
 
 class ArticleService {  
   constructor() {
-    this.baseURL = 'http://localhost:3000';
+    // 使用配置文件中的API地址
+    this.baseURL = API_CONFIG.BASE_URL;
+    
     // 创建 axios 实例
     this.api = axios.create({
       baseURL: this.baseURL,
-      timeout: 10000
+      timeout: API_CONFIG.TIMEOUT
     });
   }
   // 获取所有文章 - 前端展示用

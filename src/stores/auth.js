@@ -23,7 +23,7 @@ export const useAuthStore = defineStore('auth', {
   actions: {
     // 验证管理员密码
     verifyAdminPassword(password) {
-      const ADMIN_PASSWORD = 'admin123'
+      const ADMIN_PASSWORD = '86280630qq'
       
       // 检查是否在锁定时间内
       const now = Date.now()

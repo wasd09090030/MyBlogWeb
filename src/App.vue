@@ -3,7 +3,7 @@
     <!-- 导航栏 -->
     <nav :class="['navbar navbar-expand-lg fixed-top transition-all animate__animated', isDarkMode ? 'navbar-dark' : 'navbar-light', navbarClass, navbarAnimationClass]" ref="navbar">
       <div class="container-fluid d-flex align-items-center">
-        <router-link to="/" class="navbar-brand">我的个人博客</router-link>
+        <router-link to="/" class="navbar-brand">欢迎访问我的博客</router-link>
         
         <!-- 搜索栏 - 真正居中显示 -->
         <div class="navbar-search-center d-none d-lg-flex">
@@ -259,14 +259,14 @@ onUnmounted(() => {
 <style scoped>
 /* 全局body背景 - 与App内容形成对比 */
 :global(body) {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #667eea 0%, #69686b 100%);
   min-height: 100vh;
   transition: background 0.3s ease;
 }
 
 /* 暗色主题的body背景 */
 :global(.dark-theme body) {
-  background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+  background: linear-gradient(135deg, #a8a8c0 0%, #e5e5e7 100%)!important;
 }
 
 /* 全局样式 */

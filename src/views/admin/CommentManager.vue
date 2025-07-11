@@ -178,6 +178,7 @@
 
 <script setup>
 import { ref, onMounted, computed, watch } from 'vue'
+import { getApiUrl, API_CONFIG } from '../../config/api.js'
 
 const comments = ref([])
 const loading = ref(true)
@@ -196,8 +197,8 @@ const fetchComments = async () => {
   loading.value = true
   try {
     const endpoint = currentTab.value === 'pending' 
-      ? 'http://localhost:3000/comments/admin/pending'
-      : 'http://localhost:3000/comments/admin/all'
+      ? getApiUrl(API_CONFIG.ENDPOINTS.COMMENTS_ADMIN_PENDING)
+      : getApiUrl(API_CONFIG.ENDPOINTS.COMMENTS_ADMIN_ALL)
     
     const response = await fetch(endpoint)
     if (response.ok) {
@@ -214,7 +215,7 @@ const fetchComments = async () => {
 const updateCommentStatus = async (commentId, status) => {
   updating.value = true
   try {
-    const response = await fetch(`http://localhost:3000/comments/admin/${commentId}/status`, {
+    const response = await fetch(getApiUrl(API_CONFIG.ENDPOINTS.COMMENT_ADMIN_STATUS(commentId)), {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
@@ -244,7 +245,7 @@ const deleteComment = async () => {
   
   deleting.value = true
   try {
-    const response = await fetch(`http://localhost:3000/comments/admin/${commentToDelete.value.id}`, {
+    const response = await fetch(getApiUrl(API_CONFIG.ENDPOINTS.COMMENT_DELETE(commentToDelete.value.id)), {
       method: 'DELETE',
     })
       if (response.ok) {

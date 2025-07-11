@@ -61,6 +61,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
+import { getApiUrl, API_CONFIG } from '../config/api.js';
 import { useRoute, useRouter } from 'vue-router';
 import LazyCommentSection from './LazyCommentSection.vue';
 
@@ -119,7 +120,7 @@ async function fetchArticle() {
   error.value = null;
 
   try {
-    const response = await fetch(`http://localhost:3000/articles/${id}`);
+    const response = await fetch(getApiUrl(API_CONFIG.ENDPOINTS.ARTICLE_BY_ID(id)));
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }

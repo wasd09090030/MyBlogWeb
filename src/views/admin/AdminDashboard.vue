@@ -99,6 +99,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+import { getApiUrl, API_CONFIG } from '../../config/api.js';
 import articleService from '../../services/articleService';
 
 const router = useRouter();
@@ -139,14 +140,14 @@ const fetchDashboardData = async () => {
 const fetchCommentStats = async () => {
   try {
     // 获取所有评论
-    const allCommentsResponse = await fetch('http://localhost:3000/comments/admin/all');
+    const allCommentsResponse = await fetch(getApiUrl(API_CONFIG.ENDPOINTS.COMMENTS_ADMIN_ALL));
     if (allCommentsResponse.ok) {
       const allComments = await allCommentsResponse.json();
       commentStats.value.total = allComments.length;
     }
 
     // 获取待审核评论
-    const pendingCommentsResponse = await fetch('http://localhost:3000/comments/admin/pending');
+    const pendingCommentsResponse = await fetch(getApiUrl(API_CONFIG.ENDPOINTS.COMMENTS_ADMIN_PENDING));
     if (pendingCommentsResponse.ok) {
       const pendingComments = await pendingCommentsResponse.json();
       commentStats.value.pending = pendingComments.length;

@@ -125,6 +125,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { getApiUrl, API_CONFIG } from '../config/api.js'
 
 const props = defineProps({
   articleId: {
@@ -152,7 +153,7 @@ const newComment = ref({
 const fetchComments = async () => {
   try {
     loadingComments.value = true
-    const response = await fetch(`http://localhost:3000/comments/article/${props.articleId}`)
+    const response = await fetch(getApiUrl(API_CONFIG.ENDPOINTS.COMMENTS_BY_ARTICLE(props.articleId)))
     if (response.ok) {
       comments.value = await response.json()
     }
@@ -166,7 +167,7 @@ const fetchComments = async () => {
 // 获取点赞状态
 const fetchLikeStatus = async () => {
   try {
-    const response = await fetch(`http://localhost:3000/likes/article/${props.articleId}/status`)
+    const response = await fetch(getApiUrl(API_CONFIG.ENDPOINTS.LIKES_STATUS(props.articleId)))
     if (response.ok) {
       const data = await response.json()
       likeCount.value = data.count
@@ -183,7 +184,7 @@ const toggleLike = async () => {
   
   likingInProgress.value = true
   try {
-    const response = await fetch(`http://localhost:3000/likes/article/${props.articleId}`, {
+    const response = await fetch(getApiUrl(API_CONFIG.ENDPOINTS.LIKES_TOGGLE(props.articleId)), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -210,7 +211,7 @@ const submitComment = async () => {
   submitSuccess.value = false
   
   try {
-    const response = await fetch('http://localhost:3000/comments', {
+    const response = await fetch(getApiUrl(API_CONFIG.ENDPOINTS.COMMENTS), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -244,7 +245,7 @@ const submitComment = async () => {
 // 点赞评论
 const likeComment = async (commentId) => {
   try {
-    const response = await fetch(`http://localhost:3000/comments/${commentId}/like`, {
+    const response = await fetch(getApiUrl(API_CONFIG.ENDPOINTS.COMMENT_LIKE(commentId)), {
       method: 'POST'
     })
     
