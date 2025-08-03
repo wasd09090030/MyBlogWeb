@@ -437,13 +437,25 @@ async function fetchArticles() {
     const articleService = (await import('../services/articleService.js')).default;
     // 直接使用导入的服务实例，无需再次实例化
     
+    let fetchedArticles = [];
+    
     // 如果存在类别参数，使用它过滤文章
     if (route.query.category) {
-      articles.value = await articleService.getArticlesByCategory(route.query.category);
+      fetchedArticles = await articleService.getArticlesByCategory(route.query.category);
     } else {
       // 否则获取所有文章
-      articles.value = await articleService.getArticles();
+      fetchedArticles = await articleService.getArticles();
     }
+    
+    // 按ID倒序排列，让新文章（ID更大的）显示在前面
+    articles.value = fetchedArticles.sort((a, b) => {
+      // 确保ID是数字类型进行比较
+      const idA = parseInt(a.id) || 0;
+      const idB = parseInt(b.id) || 0;
+      return idB - idA; // 倒序：大的在前
+    });
+    
+    console.log('文章已按ID倒序排列，总数:', articles.value.length);
   } catch (e) {
     error.value = e;
     console.error("获取文章失败:", e);
