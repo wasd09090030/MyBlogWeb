@@ -486,7 +486,7 @@ main {
   background: linear-gradient(135deg, #ffffff 0%, #cacaca 100%);
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   padding: 2rem 0;
-  margin-top: 3rem;
+  margin-top: 1rem;
   border-top: 1px solid rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
 }
