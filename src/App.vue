@@ -5,6 +5,7 @@
       <div class="container-fluid d-flex align-items-center">
         <router-link to="/" class="navbar-brand">WyrmKk</router-link>
         <router-link to="/" class="nav-link" active-class="active">首页</router-link>
+        
         <!-- 搜索栏 - 真正居中显示 -->
         <div class="navbar-search-center d-none d-lg-flex">
           <SearchBar />
@@ -23,7 +24,7 @@
           <ul class="navbar-nav ms-auto align-items-center">
             <li class="nav-item dropdown">
               <a class="nav-link dropdown-toggle" href="#" id="categoryDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                文章分类
+                分类
               </a>
               <ul class="dropdown-menu" aria-labelledby="categoryDropdown">
                 <li><a class="dropdown-item" href="#" @click="filterByCategory(null)">全部</a></li>
@@ -79,6 +80,21 @@
       </div>
     </div>
     </div>
+    
+    <!-- Footer 底部信息 -->
+    <footer class="blog-footer" v-if="!isAdminRoute">
+      <div class="footer-content">
+        <!-- 底部版权 -->
+        <div class="footer-copyright">
+          <p class="copyright-text">
+            © 2025 WyrmKk Blog. Built with ❤️ using Vue.js & NestJS.
+          </p>
+          <p class="slogan-text">
+            用心分享，共同成长 | 让知识传播得更远
+          </p>
+        </div>
+      </div>
+    </footer>
     
     <!-- 移动端个人信息按钮 -->
     <div class="mobile-personal-info d-lg-none" v-if="!isAdminRoute">
@@ -344,11 +360,11 @@ onUnmounted(() => {
 }
 
 .navbar-nav .nav-link {
-    font-weight: 500; 
-    padding-top: 0.5rem; /* 减少内边距 */
+    font-weight: 400; 
+    padding: 0.5rem 0.8rem; /* 减少内边距 */
     margin: 0 0.2rem; /* 减少外边距 */
     position: relative;
-    font-size: 1.2rem; /* 稍微减小字体 */
+    font-size: 1.1rem; /* 稍微减小字体 */
     border-radius: 4px; 
 }
 
@@ -426,9 +442,9 @@ main {
 
 /* 侧边栏样式 */
 .sidebar-content {
-  padding: 1.5rem 1rem;
+  padding: 2rem 1rem;
   position: sticky;
-  top: 65px; /* 调整为导航栏高度+间距 */
+  top: 80px; /* 调整为导航栏高度+间距 */
   height: fit-content;
 }
 
@@ -463,6 +479,60 @@ main {
   border-radius: 25px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
   backdrop-filter: blur(10px);
+}
+
+/* Footer 样式 */
+.blog-footer {
+  background: linear-gradient(135deg, #ffffff 0%, #cacaca 100%);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  padding: 2rem 0;
+  margin-top: 3rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.footer-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 15px;
+}
+
+.footer-copyright {
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  padding-top: 0.5rem;
+  text-align: center;
+}
+
+.copyright-text {
+  margin: 0;
+  color: rgba(0, 0, 0, 0.8);
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.slogan-text {
+  margin: 0.5rem 0 0 0;
+  color: rgba(6, 5, 5, 0.6);
+  font-size: 0.8rem;
+  font-weight: 400;
+}
+
+/* 暗色主题下的 Footer 样式 */
+.dark-theme .blog-footer {
+  background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.dark-theme .footer-copyright {
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.dark-theme .copyright-text {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.dark-theme .slogan-text {
+  color: rgba(255, 255, 255, 0.7);
 }
 
 /* 暗色主题下的移动端音乐播放器 */
@@ -516,6 +586,25 @@ main {
     display: none;
   }
   
+  /* 移动端 Footer 样式调整 */
+  .blog-footer {
+    padding: 1.5rem 0;
+    margin-top: 2rem;
+    margin-bottom: 100px; /* 为移动端音乐播放器留出空间 */
+  }
+  
+  .footer-content {
+    padding: 0 10px;
+  }
+  
+  .copyright-text {
+    font-size: 0.8rem;
+  }
+  
+  .slogan-text {
+    font-size: 0.75rem;
+  }
+  
   /* 移动端音乐播放器适配 */
   .mobile-music-player {
     bottom: 60px;
@@ -545,6 +634,20 @@ main {
   .main-content {
     padding-bottom: 110px;
   }
+  
+  /* 小屏幕 Footer 调整 */
+  .blog-footer {
+    padding: 1rem 0;
+    margin-bottom: 80px;
+  }
+  
+  .copyright-text {
+    font-size: 0.75rem;
+  }
+  
+  .slogan-text {
+    font-size: 0.7rem;
+  }
 }
 
 /* 极小屏幕或横屏手机优化 */
@@ -561,6 +664,24 @@ main {
   
   .main-content {
     padding-bottom: 100px;
+  }
+  
+  /* 极小屏幕 Footer 调整 */
+  .blog-footer {
+    padding: 0.8rem 0;
+    margin-bottom: 70px;
+  }
+  
+  .footer-content {
+    padding: 0 8px;
+  }
+  
+  .copyright-text {
+    font-size: 0.7rem;
+  }
+  
+  .slogan-text {
+    font-size: 0.65rem;
   }
 }
 
