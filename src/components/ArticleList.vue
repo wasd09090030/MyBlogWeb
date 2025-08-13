@@ -1,7 +1,8 @@
 <template>
   <div class="article-list-page" ref="articleListContainer">
-    <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
-      <h2 class="mb-0">{{ pageTitle }}</h2>
+    <div class="d-flex align-items-center mb-4 pb-2 border-bottom pagetitle">
+      <img src="../assets/icon/IcBaselineLibraryBooks.svg" alt="icon" style="height: 28px;" />
+      <h3 class="mb-0 ms-2">{{ pageTitle }}</h3>
     </div>
     
     <div v-if="error" class="alert alert-danger" role="alert">
@@ -199,6 +200,7 @@ const pageTitle = computed(() => {
   if (route.query.category === 'study') return '学习';
   if (route.query.category === 'game') return '游戏';
   if (route.query.category === 'work') return '个人作品';
+  if (route.query.category === 'resource') return '资源分享';
   return '文章列表';
 });
 

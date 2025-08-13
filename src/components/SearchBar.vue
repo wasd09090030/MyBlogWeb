@@ -74,23 +74,23 @@ const onBlur = (event) => {
 /* 暗色主题和默认样式（导航栏为深色时） */
 .search-input {
   border-radius: 20px 0 0 20px;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(147, 147, 147, 0.3);
   background-color: rgba(255, 255, 255, 0.1);
-  color: white;
+  color: rgb(84, 81, 81);
   padding-left: 16px;
   box-shadow: none;
   transition: all 0.3s ease;
 }
 
 .search-input::placeholder {
-  color: rgba(255, 255, 255, 0.7);
+  color: rgba(44, 44, 44, 0.7);
   transition: all 0.3s ease;
 }
 
 .search-input:focus {
   background-color: rgba(255, 255, 255, 0.2);
-  border-color: rgba(255, 255, 255, 0.5);
-  color: white;
+  border-color: rgba(168, 168, 168, 0.5);
+  color: rgb(151, 151, 151);
   box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.25);
   transform: translateY(-1px);
 }
@@ -99,8 +99,8 @@ const onBlur = (event) => {
   border-radius: 0 20px 20px 0;
   border: 1px solid rgba(255, 255, 255, 0.3);
   border-left: none;
-  background-color: rgba(255, 255, 255, 0.1);
-  color: white;
+  background-color: rgba(52, 44, 44, 0.1);
+  color: rgb(86, 85, 85);
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
@@ -124,7 +124,7 @@ const onBlur = (event) => {
 .search-btn:hover {
   background-color: rgba(255, 255, 255, 0.2);
   border-color: rgba(255, 255, 255, 0.5);
-  color: white;
+  color: rgb(125, 125, 125);
   transform: translateY(-1px);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
@@ -137,58 +137,71 @@ const onBlur = (event) => {
   box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.25);
 }
 
-/* 亮色主题适配（导航栏为天蓝色时） */
+/* 亮色主题适配 - 统一使用 .light-theme 选择器 */
 :global(.light-theme) .search-input {
-  background-color: rgba(255, 255, 255, 0.2);
-  border-color: rgba(255, 255, 255, 0.4);
-  color: #ffffff;
+  background-color: #ffffff !important;
+  border-color: rgba(0, 0, 0, 0.4) !important;
+  color: #333333 !important;
 }
 
 :global(.light-theme) .search-input::placeholder {
-  color: rgba(255, 255, 255, 0.8);
+  color: rgba(0, 0, 0, 0.6) !important;
 }
 
 :global(.light-theme) .search-input:focus {
-  background-color: rgba(255, 255, 255, 0.3);
-  border-color: rgba(255, 255, 255, 0.6);
-  color: #ffffff;
-  box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.25);
+  background-color: #ffffff !important;
+  border-color: rgba(0, 0, 0, 0.6) !important;
+  color: #333333 !important;
+  box-shadow: 0 0 0 0.2rem rgba(69, 85, 210, 0.25) !important;
 }
 
 :global(.light-theme) .search-btn {
-  background-color: rgba(255, 255, 255, 0.2);
-  border-color: rgba(255, 255, 255, 0.4);
-  color: #ffffff;
+  background-color: #ffffff !important;
+  border-color: rgba(0, 0, 0, 0.4) !important;
+  color: #333333 !important;
 }
 
 :global(.light-theme) .search-btn:hover {
-  background-color: rgba(255, 255, 255, 0.3);
-  border-color: rgba(255, 255, 255, 0.6);
-  color: #ffffff;
+  background-color: #f8f9fa !important;
+  border-color: rgba(0, 0, 0, 0.6) !important;
+  color: #333333 !important;
 }
 
 :global(.light-theme) .search-btn:focus {
-  box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.25);
+  box-shadow: 0 0 0 0.2rem rgba(69, 85, 210, 0.25) !important;
 }
 
-/* 暗色主题适配 */
-:global([data-bs-theme="dark"]) .search-input {
-  background-color: rgba(0, 0, 0, 0.3);
-  border-color: rgba(255, 255, 255, 0.2);
+/* 暗色主题适配 - 统一使用 .dark-theme 选择器 */
+:global(.dark-theme) .search-input {
+  background-color: rgba(0, 0, 0, 0.3) !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+  color: #ffffff !important;
 }
 
-:global([data-bs-theme="dark"]) .search-input:focus {
-  background-color: rgba(0, 0, 0, 0.4);
-  border-color: rgba(255, 255, 255, 0.4);
+:global(.dark-theme) .search-input::placeholder {
+  color: rgba(255, 255, 255, 0.6) !important;
 }
 
-:global([data-bs-theme="dark"]) .search-btn {
-  background-color: rgba(0, 0, 0, 0.3);
-  border-color: rgba(255, 255, 255, 0.2);
+:global(.dark-theme) .search-input:focus {
+  background-color: rgba(0, 0, 0, 0.4) !important;
+  border-color: rgba(255, 255, 255, 0.5) !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.25) !important;
 }
 
-:global([data-bs-theme="dark"]) .search-btn:hover {
-  background-color: rgba(0, 0, 0, 0.4);
-  border-color: rgba(255, 255, 255, 0.4);
+:global(.dark-theme) .search-btn {
+  background-color: rgba(0, 0, 0, 0.3) !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+  color: #ffffff !important;
+}
+
+:global(.dark-theme) .search-btn:hover {
+  background-color: rgba(0, 0, 0, 0.4) !important;
+  border-color: rgba(255, 255, 255, 0.5) !important;
+  color: #ffffff !important;
+}
+
+:global(.dark-theme) .search-btn:focus {
+  box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.25) !important;
 }
 </style>

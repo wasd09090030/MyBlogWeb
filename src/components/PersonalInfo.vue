@@ -24,6 +24,21 @@
         <div class="date-display">{{ currentDate }}</div>
       </div>
 
+      <!-- 名言名句展示 -->
+      <div class="quote-section animate__animated animate__fadeInUp animate__delay-2s">
+        <div class="quote-container" @click="refreshQuote">
+          <div class="quote-icon">
+            <i class="bi bi-quote"></i>
+          </div>
+          <div class="quote-text">{{ currentQuote.text }}</div>
+          <div class="quote-author">— {{ currentQuote.author }}</div>
+          <div class="quote-refresh">
+            <i class="bi bi-arrow-clockwise"></i>
+            <span>点击换一句</span>
+          </div>
+        </div>
+      </div>
+
        <div class="contact-info mt-4 animate__animated animate__fadeInUp animate__delay-2.8s">
         <h5>联系我：</h5>
         <div class="contact-icons">
@@ -65,6 +80,21 @@
           <div class="date-display">{{ currentDate }}</div>
         </div>
 
+        <!-- 移动端名言名句 -->
+        <div class="quote-section">
+          <div class="quote-container" @click="refreshQuote">
+            <div class="quote-icon">
+              <i class="bi bi-quote"></i>
+            </div>
+            <div class="quote-text">{{ currentQuote.text }}</div>
+            <div class="quote-author">— {{ currentQuote.author }}</div>
+            <div class="quote-refresh">
+              <i class="bi bi-arrow-clockwise"></i>
+              <span>点击换一句</span>
+            </div>
+          </div>
+        </div>
+
          <div class="contact-info mt-4">
           <h5>联系我：</h5>
           <div class="contact-icons">
@@ -97,6 +127,65 @@ const currentTime = ref('');
 const currentDate = ref('');
 const currentStatus = ref('在线中');
 const statusClass = ref('status-online');
+const currentQuote = ref({ text: '', author: '' });
+
+// 名言名句数据库
+const quotes = [
+  // 名人名言
+  { text: "生活就像编程，你永远不知道下一个bug在哪里。", author: "程序员的自我修养" },
+  { text: "代码如诗，bug如人生，总有意想不到的惊喜。", author: "代码诗人" },
+  { text: "最好的代码是没有代码，最好的bug是没有bug。", author: "极简主义程序员" },
+  { text: "程序员的三大美德：懒惰、急躁和傲慢。", author: "Larry Wall" },
+  { text: "调试代码比写代码难一倍，所以如果你写代码时竭尽全力，你就无法调试它。", author: "Brian Kernighan" },
+  
+  // 二次元名梗
+  { text: "我全都要！", author: "鱼塘主" },
+  { text: "真正的勇士敢于直面惨淡的人生。", author: "鲁迅（并不是）" },
+  { text: "只要心中有爱，哪里都是二次元！", author: "宅文化信仰者" },
+  { text: "今天也是和平的一天呢~", author: "日常系少女" },
+  { text: "努力不一定成功，但放弃一定失败！", author: "热血番主角" },
+  { text: "这一定是命运石之门的选择！", author: "冈部伦太郎" },
+  { text: "人类的赞歌就是勇气的赞歌！", author: "JOJO" },
+  { text: "即使全世界都是敌人，我也要保护重要的人。", author: "某中二少年" },
+  { text: "只有失去过的人，才会真正珍惜拥有的一切。", author: "治愈系作品" },
+  { text: "梦想不会逃跑，逃跑的永远是自己。", author: "追梦少年" },
+  
+  // 编程相关的有趣名言
+  { text: "如果调试是去除bug的过程，那么编程就是把bug放进去的过程。", author: "Edsger Dijkstra" },
+  { text: "计算机科学只不过是包含了计算机的科学，就像天文学包含了望远镜一样。", author: "Edsger Dijkstra" },
+  { text: "代码写得越多，bug就越多，所以最优雅的代码就是没有代码。", author: "禅宗程序员" },
+  { text: "编程是一门艺术，而程序员是艺术家。", author: "代码艺术家" },
+  { text: "好的程序员会写人类能读懂的代码。", author: "Martin Fowler" }
+];
+
+// 随机获取名言
+const getRandomQuote = () => {
+  const randomIndex = Math.floor(Math.random() * quotes.length);
+  return quotes[randomIndex];
+};
+
+// 刷新名言
+const refreshQuote = () => {
+  currentQuote.value = getRandomQuote();
+  
+  // 添加点击动画效果
+  const quoteContainers = document.querySelectorAll('.quote-container');
+  quoteContainers.forEach(container => {
+    container.classList.add('quote-clicked');
+    
+    // 创建波纹效果
+    const ripple = document.createElement('div');
+    ripple.classList.add('quote-ripple');
+    container.appendChild(ripple);
+    
+    setTimeout(() => {
+      container.classList.remove('quote-clicked');
+      if (container.contains(ripple)) {
+        container.removeChild(ripple);
+      }
+    }, 600);
+  });
+};
 
 // 切换侧边栏
 const toggleCollapse = () => {
@@ -175,8 +264,10 @@ onMounted(() => {
   // 开始时间更新
   updateTime();
   updateStatus();
+  refreshQuote(); // 初始化名言
   setInterval(updateTime, 1000);
   setInterval(updateStatus, 60000); // 每分钟检查状态
+  setInterval(refreshQuote, 300000); // 每5分钟自动更换名言
 });
 
 onBeforeUnmount(() => {
@@ -374,6 +465,144 @@ onBeforeUnmount(() => {
   opacity: 0.9;
 }
 
+/* 名言名句样式 */
+.quote-section {
+  margin: 1.5rem 0;
+}
+
+.quote-container {
+  background: linear-gradient(135deg, #ff6b6b 0%, #feca57 100%);
+  color: white;
+  border-radius: 12px;
+  padding: 1.2rem;
+  text-align: center;
+  box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.quote-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.quote-container:hover::before {
+  left: 100%;
+}
+
+.quote-container:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(255, 107, 107, 0.4);
+}
+
+.quote-container:active {
+  transform: translateY(0);
+}
+
+.quote-container.quote-clicked {
+  background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%) !important;
+  animation: quoteClickPulse 0.6s ease-out;
+}
+
+[data-bs-theme="dark"] .quote-container.quote-clicked {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  animation: quoteClickPulse 0.6s ease-out;
+}
+
+/* 波纹效果 */
+.quote-ripple {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.4);
+  transform: translate(-50%, -50%);
+  animation: quoteRipple 0.6s ease-out;
+  pointer-events: none;
+}
+
+@keyframes quoteRipple {
+  0% {
+    width: 0;
+    height: 0;
+    opacity: 1;
+  }
+  100% {
+    width: 300px;
+    height: 300px;
+    opacity: 0;
+  }
+}
+
+.quote-icon {
+  font-size: 1.5rem;
+  margin-bottom: 0.8rem;
+  opacity: 0.8;
+}
+
+.quote-text {
+  font-size: 0.95rem;
+  line-height: 1.5;
+  margin-bottom: 0.8rem;
+  font-style: italic;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  min-height: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.quote-author {
+  font-size: 0.8rem;
+  opacity: 0.9;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.quote-refresh {
+  font-size: 0.75rem;
+  opacity: 0.7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  transition: opacity 0.3s ease;
+}
+
+.quote-container:hover .quote-refresh {
+  opacity: 1;
+}
+
+.quote-refresh i {
+  font-size: 0.8rem;
+  animation: none;
+}
+
+.quote-container:hover .quote-refresh i {
+  animation: spin 0.6s ease-in-out;
+}
+
+/* 点击时的即时反馈效果 */
+.quote-container:active {
+  transform: translateY(1px) scale(0.98);
+  background: linear-gradient(135deg, #48cae4 0%, #0077b6 100%) !important;
+  transition: all 0.1s ease;
+}
+
+[data-bs-theme="dark"] .quote-container:active {
+  background: linear-gradient(135deg, #5a67d8 0%, #667eea 100%) !important;
+}
+
 /* 技能展示样式 */
 .skills-section {
   margin: 1.5rem 0;
@@ -555,6 +784,16 @@ onBeforeUnmount(() => {
   box-shadow: 0 10px 25px rgba(36, 41, 46, 0.6);
 }
 
+/* 暗色主题下的名言样式 */
+[data-bs-theme="dark"] .quote-container {
+  background: linear-gradient(135deg, #6a5acd 0%, #9370db 100%);
+  box-shadow: 0 4px 15px rgba(106, 90, 205, 0.3);
+}
+
+[data-bs-theme="dark"] .quote-container:hover {
+  box-shadow: 0 8px 25px rgba(106, 90, 205, 0.5);
+}
+
 /* 动画效果 */
 @keyframes emailBounce {
   0%, 100% { transform: translateY(0) rotate(0deg); }
@@ -616,6 +855,39 @@ onBeforeUnmount(() => {
   transform: translateY(-2px) scale(0.95);
 }
 
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes sparkle {
+  0%, 100% { transform: scale(1) rotate(0deg); }
+  50% { transform: scale(1.1) rotate(180deg); }
+}
+
+@keyframes quoteClickPulse {
+  0% {
+    transform: translateY(0) scale(1);
+    box-shadow: 0 4px 15px rgba(78, 205, 196, 0.3);
+  }
+  25% {
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 8px 25px rgba(78, 205, 196, 0.5);
+  }
+  50% {
+    transform: translateY(-1px) scale(1.01);
+    box-shadow: 0 12px 35px rgba(78, 205, 196, 0.6);
+  }
+  75% {
+    transform: translateY(-2px) scale(1.01);
+    box-shadow: 0 8px 25px rgba(78, 205, 196, 0.4);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+    box-shadow: 0 4px 15px rgba(78, 205, 196, 0.3);
+  }
+}
+
 /* 移动端适配 */
 @media (max-width: 576px) {
   .contact-icons {
@@ -629,6 +901,23 @@ onBeforeUnmount(() => {
   
   .contact-icon i {
     font-size: 1.3rem;
+  }
+  
+  .quote-container {
+    padding: 1rem;
+  }
+  
+  .quote-text {
+    font-size: 0.9rem;
+    min-height: 2rem;
+  }
+  
+  .quote-author {
+    font-size: 0.75rem;
+  }
+  
+  .quote-refresh {
+    font-size: 0.7rem;
   }
 }
 

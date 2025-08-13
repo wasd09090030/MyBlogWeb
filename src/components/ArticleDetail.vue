@@ -158,6 +158,7 @@ onMounted(() => {
 /* 响应式容器样式 */
 .article-container {
   width: 100%;
+  padding-top: 70px;
   margin: 0 auto;
   background-color: #fff;
   border-radius: 0.5rem;

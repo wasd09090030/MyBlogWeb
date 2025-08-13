@@ -3,7 +3,9 @@
   max-width: 100%;
   margin: 0 auto;
 }
-
+.pagetitle {
+  padding-top: 10px;
+}
 /* 文章卡片样式 */
 .article-card {
   display: flex;

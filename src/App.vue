@@ -1,10 +1,10 @@
 <template>
   <div id="app" :class="['min-vh-100', isDarkMode ? 'dark-theme' : 'light-theme']">
     <!-- 导航栏 -->
-    <nav :class="['navbar navbar-expand-lg fixed-top transition-all', isDarkMode ? 'navbar-dark' : 'navbar-light', navbarClass, navbarAnimationClass]" ref="navbar">
+    <nav :class="['navbar navbar-expand-lg transition-all', isDarkMode ? 'navbar-dark' : 'navbar-light', navbarClass, navbarAnimationClass]" ref="navbar">
       <div class="container-fluid d-flex align-items-center">
-        <router-link to="/" class="navbar-brand">欢迎访问我的博客</router-link>
-        
+        <router-link to="/" class="navbar-brand">WyrmKk</router-link>
+        <router-link to="/" class="nav-link" active-class="active">首页</router-link>
         <!-- 搜索栏 - 真正居中显示 -->
         <div class="navbar-search-center d-none d-lg-flex">
           <SearchBar />
@@ -23,7 +23,7 @@
           <ul class="navbar-nav ms-auto align-items-center">
             <li class="nav-item dropdown">
               <a class="nav-link dropdown-toggle" href="#" id="categoryDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                分类
+                文章分类
               </a>
               <ul class="dropdown-menu" aria-labelledby="categoryDropdown">
                 <li><a class="dropdown-item" href="#" @click="filterByCategory(null)">全部</a></li>
@@ -32,9 +32,6 @@
                 <li><a class="dropdown-item" href="#" @click="filterByCategory('work')">个人作品</a></li>
                 <li><a class="dropdown-item" href="#" @click="filterByCategory('resource')">资源分享</a></li>
               </ul>
-            </li>
-            <li class="nav-item">
-              <router-link to="/" class="nav-link" active-class="active">首页</router-link>
             </li>
             <li class="nav-item">
               <button class="btn btn-link nav-link border-0 bg-transparent" @click="toggleDarkMode">
@@ -46,10 +43,13 @@
       </div>
     </nav>
     
-    <!-- 欢迎区域 - 全屏显示 -->
+    <!-- 欢迎区域 - 仅在首页和文章列表页显示 -->
+     <div class="welcome-section-container" v-if="shouldShowWelcomeSection">
     <WelcomeSection />
+    </div>
+ 
     
-    <!-- 主内容区 - 可以覆盖欢迎区域 -->
+    <!-- 主内容区 -->
   <div class="main-container">
     <div class="main-content" :class="{ 'admin-full-width': isAdminRoute }">
       <div class="container-fluid">
@@ -119,21 +119,23 @@ const isAdminRoute = computed(() => {
   return route.path.startsWith('/admin');
 });
 
+// 判断是否显示WelcomeSection
+const shouldShowWelcomeSection = computed(() => {
+  // 只在文章列表页（首页）显示，在文章详情页和admin页面不显示
+  return route.name === 'ArticleList';
+});
+
 // 导航栏样式类
 const navbarClass = computed(() => {
-  const shouldShow = isNavbarVisible.value || mouseAtTop.value || isAtTop.value;
   return {
     'navbar-transparent': isAtTop.value,
-    'navbar-solid': !isAtTop.value,
-    'navbar-hidden': !shouldShow,
-    'navbar-visible': shouldShow
+    'navbar-solid': !isAtTop.value
   };
 });
 
 // 导航栏动画类
 const navbarAnimationClass = computed(() => {
-  const shouldShow = isNavbarVisible.value || mouseAtTop.value || isAtTop.value;
-  return shouldShow ? 'navbar-slide-in' : 'navbar-slide-out';
+  return 'navbar-visible';
 });
 
 // 处理滚动事件
@@ -231,16 +233,18 @@ const initTheme = () => {
 
 onMounted(() => {
   initTheme();
-  window.addEventListener('scroll', handleScroll);
-  window.addEventListener('mousemove', handleMouseMove);
+  // 移除滚动和鼠标事件监听器，因为导航栏现在是静态的
+  // window.addEventListener('scroll', handleScroll);
+  // window.addEventListener('mousemove', handleMouseMove);
   
   // 初始化滚动位置
   handleScroll();
 });
 
 onUnmounted(() => {
-  window.removeEventListener('scroll', handleScroll);
-  window.removeEventListener('mousemove', handleMouseMove);
+  // 移除滚动和鼠标事件监听器
+  // window.removeEventListener('scroll', handleScroll);
+  // window.removeEventListener('mousemove', handleMouseMove);
   
   // 清除定时器
   if (hideTimeout.value) {
@@ -286,15 +290,17 @@ onUnmounted(() => {
   -webkit-backdrop-filter: blur(10px);
   z-index: 1030;
   transition: all 0.3s ease-in-out;
-}
-
-.navbar-hidden {
-  transform: translateY(-100%);
-  opacity: 0.8;
+  position: fixed; /* 固定定位 */
+  top: 0; /* 顶部对齐 */
+  left: 0; /* 左对齐 */
+  right: 0; /* 右对齐，实现全宽 */
+  width: 100%; /* 确保全宽 */
+  padding: 0.3rem 1rem; /* 减少上下内边距，让导航栏更窄 */
+  min-height: 50px; /* 设置最小高度 */
 }
 
 .navbar-visible {
-  transform: translateY(0);
+  /* 保留类名但移除动画，因为导航栏现在固定显示 */
   opacity: 1;
 }
 
@@ -304,12 +310,12 @@ onUnmounted(() => {
 
 /* 亮色主题导航栏 - 天蓝色 */
 .light-theme .navbar-transparent {
-  background: linear-gradient(rgba(69, 85, 210, 0.85), rgba(69, 85, 210, 0.85)) !important;
+  background: linear-gradient(rgb(255, 255, 255), rgb(255, 255, 255));
   box-shadow: none;
 }
 
 .light-theme .navbar-solid {
-  background: linear-gradient(rgba(69, 85, 210, 0.85), rgba(69, 85, 210, 0.85)) !important;
+  background: linear-gradient(rgba(69, 85, 210, 0.85), rgba(69, 85, 210, 0.85));
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
@@ -325,8 +331,12 @@ onUnmounted(() => {
 }
 
 .navbar-brand {
-  font-weight: bold;
-  letter-spacing: 0.5px;
+  font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #4eaaf6;
+  padding-left: 10%;
+  padding-top: 0.5rem; /* 调整上内边距 */
+  padding-bottom: 0.5rem; /* 调整下内边距 */
+  font-size: 1.2rem; /* 稍微减小字体 */
 }
 
 .nav-link.active {
@@ -334,11 +344,11 @@ onUnmounted(() => {
 }
 
 .navbar-nav .nav-link {
-    font-weight: 400; 
-    padding: 0.85rem 1.1rem; 
-    margin: 0 0.25rem; 
+    font-weight: 500; 
+    padding-top: 0.5rem; /* 减少内边距 */
+    margin: 0 0.2rem; /* 减少外边距 */
     position: relative;
-    font-size: 1.1rem;
+    font-size: 1.2rem; /* 稍微减小字体 */
     border-radius: 4px; 
 }
 
@@ -372,6 +382,10 @@ onUnmounted(() => {
   background-color: rgba(13, 110, 253, 0.1);
 }
 
+.welcome-section-container {
+  padding-top: 70px;
+}
+
 .main-container {
   width: 100%;
   margin: 0 auto;
@@ -382,13 +396,12 @@ onUnmounted(() => {
   z-index: 10;
   background-color: var(--bs-body-bg, #ffffff);
   min-height: 100vh;
-  padding: 2rem 0;
-  margin-top: -20px; /* 轻微重叠 */
+  padding: 0;
+  margin-top: 0;
   box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.1), 0 8px 32px rgba(0, 0, 0, 0.15);
   border-radius: 12px 12px 0 0;
   /* 大屏幕限制宽度为70% */
-  max-width: 70%;
-  margin-top: auto;
+  max-width: 75%;
   margin-left: auto;
   margin-right: auto;
 }
@@ -413,9 +426,9 @@ main {
 
 /* 侧边栏样式 */
 .sidebar-content {
-  padding: 2rem 1rem;
+  padding: 1.5rem 1rem;
   position: sticky;
-  top: 100px; /* 导航栏高度 + 间距 */
+  top: 65px; /* 调整为导航栏高度+间距 */
   height: fit-content;
 }
 
@@ -466,9 +479,27 @@ main {
     max-width: 100%;
   }
   
+  .navbar {
+    padding: 0.25rem 0.75rem; /* 移动端进一步减少内边距 */
+    min-height: 45px; /* 移动端更小的最小高度 */
+  }
+  
+  .navbar-brand {
+    font-size: 1rem; /* 移动端更小的字体 */
+  }
+  
+  .navbar-nav .nav-link {
+    padding: 0.4rem 0.6rem; /* 移动端更小的内边距 */
+    font-size: 0.95rem; /* 移动端更小的字体 */
+  }
+  
+  .main-container {
+    padding-top: 55px; /* 移动端调整顶部间距 */
+  }
+  
   .main-content {
     padding: 1rem 0;
-    margin-top: -10px;
+    margin-top: 0;
     /* 移动端恢复全宽 */
     max-width: 100%;
     margin-left: 0;
@@ -525,7 +556,7 @@ main {
   
   .mobile-personal-info {
     right: 10px;
-    top: 80px;
+    bottom: 50%;
   }
   
   .main-content {
@@ -545,36 +576,13 @@ main {
   }
 }
 
-/* 亮色主题导航栏文字颜色 - 适配天蓝色背景 */
-.light-theme .navbar-brand,
+/* 亮色主题导航栏文字颜色 - 适配白色背景 */
 .light-theme .nav-link {
-  color: #ffffff !important;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  color: #333333;
 }
 
 .light-theme .nav-link:hover {
-  color: #f8f9fa !important;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-}
-
-.light-theme .dropdown-toggle::after {
-  border-top-color: #ffffff;
-}
-
-/* 亮色主题下拉菜单 - 适配天蓝色主题 */
-.light-theme .dropdown-menu {
-  background-color: rgba(65, 81, 255, 0.95);
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-}
-
-.light-theme .dropdown-item {
-  color: #ffffff;
-}
-
-.light-theme .dropdown-item:hover {
-  background-color: rgba(255, 255, 255, 0.2);
-  color: #ffffff;
+  color: #555555;
 }
 
 /* 暗色主题下的特殊样式 */
