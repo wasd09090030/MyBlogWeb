@@ -5,44 +5,72 @@
       <button 
         class="carousel-nav-btn carousel-nav-prev" 
         @click="prevSlide"
-        :disabled="currentSlide === 0"
         aria-label="上一张"
       >
         <i class="bi bi-chevron-left"></i>
       </button>
 
       <!-- 幻灯片轨道 -->
-      <div class="carousel-track" :style="{ transform: `translateX(${centerOffset})` }">
+      <div class="carousel-track" :style="{ transform: `translateX(${centerOffset})` }" :class="{ 'no-transition': !isTransitioning }">
+        <!-- 克隆最后一张（放在开头） -->
         <div 
-          v-for="(slide, index) in slides" 
+          v-if="originalSlides.length > 0"
+          class="carousel-slide clone-slide"
+          @click="goToArticle(originalSlides[originalSlides.length - 1].id)"
+        >
+          <div class="slide-card">
+            <div 
+              class="slide-background"
+              :style="{ backgroundImage: `url(${originalSlides[originalSlides.length - 1].coverImage})` }"
+            ></div>
+            <div class="slide-gradient"></div>
+            <div class="slide-content">
+              <div class="slide-category">{{ getCategoryName(originalSlides[originalSlides.length - 1].category) }}</div>
+              <h3 class="slide-title">{{ originalSlides[originalSlides.length - 1].title }}</h3>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 原始幻灯片 -->
+        <div 
+          v-for="(slide, index) in originalSlides" 
           :key="slide.id"
           class="carousel-slide"
           :class="{
-            'active': index === currentSlide,
-            'prev': index === currentSlide - 1,
-            'next': index === currentSlide + 1
+            'active': index === currentSlide - 1 && !isTransitioning
           }"
           @click="goToArticle(slide.id)"
         >
-          <!-- 卡片容器 -->
           <div class="slide-card">
-            <!-- 背景图片 -->
             <div 
               class="slide-background"
               :style="{ backgroundImage: `url(${slide.coverImage})` }"
             ></div>
-            
-            <!-- 渐变遮罩 -->
             <div class="slide-gradient"></div>
-            
-            <!-- 内容区域 -->
             <div class="slide-content">
               <div class="slide-category">{{ getCategoryName(slide.category) }}</div>
               <h3 class="slide-title">{{ slide.title }}</h3>
             </div>
-            
-            <!-- 活跃状态指示器 -->
-            <div class="active-indicator" v-if="index === currentSlide"></div>
+            <div class="active-indicator" v-if="index === currentSlide - 1 && !isTransitioning"></div>
+          </div>
+        </div>
+        
+        <!-- 克隆第一张（放在末尾） -->
+        <div 
+          v-if="originalSlides.length > 0"
+          class="carousel-slide clone-slide"
+          @click="goToArticle(originalSlides[0].id)"
+        >
+          <div class="slide-card">
+            <div 
+              class="slide-background"
+              :style="{ backgroundImage: `url(${originalSlides[0].coverImage})` }"
+            ></div>
+            <div class="slide-gradient"></div>
+            <div class="slide-content">
+              <div class="slide-category">{{ getCategoryName(originalSlides[0].category) }}</div>
+              <h3 class="slide-title">{{ originalSlides[0].title }}</h3>
+            </div>
           </div>
         </div>
       </div>
@@ -51,7 +79,6 @@
       <button 
         class="carousel-nav-btn carousel-nav-next" 
         @click="nextSlide"
-        :disabled="currentSlide === slides.length - 1"
         aria-label="下一张"
       >
         <i class="bi bi-chevron-right"></i>
@@ -69,7 +96,9 @@ const router = useRouter();
 
 // 响应式数据
 const slides = ref([]);
+const originalSlides = ref([]); // 存储原始幻灯片数据
 const currentSlide = ref(0);
+const isTransitioning = ref(false); // 是否正在过渡中
 let autoPlayInterval = null;
 
 // 计算幻灯片宽度
@@ -86,13 +115,14 @@ const slideWidth = computed(() => {
 
 // 计算居中偏移
 const centerOffset = computed(() => {
-  if (typeof window !== 'undefined') {
+  if (typeof window !== 'undefined' && originalSlides.value.length > 0) {
     if (window.innerWidth >= 768) {
       // 大屏幕：每张幻灯片40vw + 10px间距
-      return `calc(50% - ${(currentSlide.value + 0.5) * 40}vw - ${currentSlide.value * 10}px)`;
+      // currentSlide从1开始（因为索引0是克隆的最后一张）
+      return `calc(50% - ${currentSlide.value * 40}vw - ${(currentSlide.value - 0.5) * 10}px)`;
     } else {
       // 小屏幕：每张幻灯片90vw + 10px间距
-      return `calc(50% - ${(currentSlide.value + 0.5) * 90}vw - ${currentSlide.value * 10}px)`;
+      return `calc(50% - ${currentSlide.value * 90}vw - ${(currentSlide.value - 0.5) * 10}px)`;
     }
   }
   return 'translateX(0)';
@@ -107,41 +137,89 @@ const fetchFeaturedArticles = async () => {
     if (articlesWithCover.length > 0) {
       // 随机打乱并取前5个
       const shuffled = articlesWithCover.sort(() => 0.5 - Math.random());
-      slides.value = shuffled.slice(0, Math.min(5, shuffled.length));
+      originalSlides.value = shuffled.slice(0, Math.min(5, shuffled.length));
     } else {
       // 如果没有封面图，使用默认背景
-      slides.value = articles.slice(0, 3).map(article => ({
+      originalSlides.value = articles.slice(0, 3).map(article => ({
         ...article,
         coverImage: '/src/assets/BlogPicture/background.webp'
       }));
     }
+    // 初始化当前幻灯片索引（从1开始，因为0是克隆的最后一张）
+    currentSlide.value = 1;
   } catch (error) {
     console.error('获取推荐文章失败:', error);
     // 设置默认幻灯片
-    slides.value = [{
+    originalSlides.value = [{
       id: 0,
       title: '欢迎访问我的博客',
       category: 'other',
       coverImage: '/src/assets/BlogPicture/background.webp'
     }];
+    currentSlide.value = 1;
   }
 };
 
 // 幻灯片导航
 const nextSlide = () => {
-  if (currentSlide.value < slides.value.length - 1) {
-    currentSlide.value++;
+  if (originalSlides.value.length === 0 || isTransitioning.value) return;
+  
+  isTransitioning.value = true;
+  currentSlide.value++;
+  
+  // 如果到达克隆的第一张（在末尾），瞬间重置到真正的第一张
+  if (currentSlide.value > originalSlides.value.length) {
+    setTimeout(() => {
+      const track = document.querySelector('.carousel-track');
+      if (track) {
+        track.classList.add('no-transition');
+        currentSlide.value = 1;
+        setTimeout(() => {
+          track.classList.remove('no-transition');
+          isTransitioning.value = false;
+        }, 50);
+      }
+    }, 600);
+  } else {
+    setTimeout(() => {
+      isTransitioning.value = false;
+    }, 600);
   }
 };
 
 const prevSlide = () => {
-  if (currentSlide.value > 0) {
-    currentSlide.value--;
+  if (originalSlides.value.length === 0 || isTransitioning.value) return;
+  
+  isTransitioning.value = true;
+  currentSlide.value--;
+  
+  // 如果到达克隆的最后一张（在开头），瞬间重置到真正的最后一张
+  if (currentSlide.value < 1) {
+    setTimeout(() => {
+      const track = document.querySelector('.carousel-track');
+      if (track) {
+        track.classList.add('no-transition');
+        currentSlide.value = originalSlides.value.length;
+        setTimeout(() => {
+          track.classList.remove('no-transition');
+          isTransitioning.value = false;
+        }, 50);
+      }
+    }, 600);
+  } else {
+    setTimeout(() => {
+      isTransitioning.value = false;
+    }, 600);
   }
 };
 
 const goToSlide = (index) => {
-  currentSlide.value = index;
+  if (originalSlides.value.length === 0) return;
+  isTransitioning.value = true;
+  currentSlide.value = index + 1; // 加1是因为索引0是克隆的最后一张
+  setTimeout(() => {
+    isTransitioning.value = false;
+  }, 600);
 };
 
 // 跳转到文章详情
@@ -166,10 +244,8 @@ const getCategoryName = (category) => {
 // 自动播放
 const startAutoPlay = () => {
   autoPlayInterval = setInterval(() => {
-    if (currentSlide.value < slides.value.length - 1) {
+    if (originalSlides.value.length > 0 && !isTransitioning.value) {
       nextSlide();
-    } else {
-      currentSlide.value = 0; // 回到第一张
     }
   }, 4000); // 每4秒切换
 };
@@ -221,6 +297,10 @@ onUnmounted(() => {
   justify-content: flex-start;
 }
 
+.carousel-track.no-transition {
+  transition: none;
+}
+
 /* 单个幻灯片 */
 .carousel-slide {
   flex-shrink: 0;
@@ -228,7 +308,7 @@ onUnmounted(() => {
   height: 100%;
   cursor: pointer;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  opacity: 0.6;
+  opacity: 1; /* 所有幻灯片都保持完全不透明 */
 }
 
 .carousel-slide.active {
@@ -238,7 +318,12 @@ onUnmounted(() => {
 
 .carousel-slide.prev,
 .carousel-slide.next {
-  opacity: 0.8;
+  opacity: 1; /* 移除透明度差异 */
+}
+
+/* 克隆幻灯片样式 */
+.carousel-slide.clone-slide {
+  opacity: 1; /* 克隆幻灯片也保持完全不透明 */
 }
 
 /* 卡片容器 */
@@ -380,18 +465,6 @@ onUnmounted(() => {
   transform: translateY(-50%) scale(0.95);
 }
 
-.carousel-nav-btn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-  transform: translateY(-50%) scale(0.9);
-}
-
-.carousel-nav-btn:disabled:hover {
-  background: rgba(255, 255, 255, 0.9);
-  transform: translateY(-50%) scale(0.9);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
 .carousel-nav-prev {
   left: 20px;
 }
@@ -493,9 +566,5 @@ onUnmounted(() => {
 
 :global(.dark-theme) .carousel-nav-btn:hover {
   background: rgba(26, 26, 26, 1);
-}
-
-:global(.dark-theme) .carousel-nav-btn:disabled {
-  background: rgba(26, 26, 26, 0.6);
 }
 </style>
