@@ -24,23 +24,7 @@
         <div class="date-display">{{ currentDate }}</div>
       </div>
 
-      <!-- 个人技能展示 -->
-      <div class="skills-section animate__animated animate__fadeInUp animate__delay-1.7s">
-        <h5 class="section-title">
-          <i class="bi bi-gear me-2"></i>技能等级
-        </h5>
-        <div class="skills-list">
-          <div v-for="skill in skills" :key="skill.name" class="skill-item" @click="animateSkill(skill)">
-            <div class="skill-header">
-              <span class="skill-name">{{ skill.name }}</span>
-              <span class="skill-level">{{ skill.level }}%</span>
-            </div>
-            <div class="skill-bar">
-              <div class="skill-progress" :style="{ width: skill.level + '%' }" :class="skill.color"></div>
-            </div>
-          </div>
-        </div>
-      </div>      <div class="contact-info mt-4 animate__animated animate__fadeInUp animate__delay-2.8s">
+       <div class="contact-info mt-4 animate__animated animate__fadeInUp animate__delay-2.8s">
         <h5>联系我：</h5>
         <div class="contact-icons">
           <a href="mailto:qq86280630qq@163.com" class="contact-icon email-icon" title="发送邮件: qq86280630qq@163.com">
@@ -81,23 +65,6 @@
           <div class="date-display">{{ currentDate }}</div>
         </div>
 
-        <div class="skills-section">
-          <h5 class="section-title">
-            <i class="bi bi-gear me-2"></i>技能等级
-          </h5>
-          <div class="skills-list">
-            <div v-for="skill in skills" :key="skill.name" class="skill-item" @click="animateSkill(skill)">
-              <div class="skill-header">
-                <span class="skill-name">{{ skill.name }}</span>
-                <span class="skill-level">{{ skill.level }}%</span>
-              </div>
-              <div class="skill-bar">
-                <div class="skill-progress" :style="{ width: skill.level + '%' }" :class="skill.color"></div>
-              </div>
-            </div>
-          </div>
-        </div>       
-
          <div class="contact-info mt-4">
           <h5>联系我：</h5>
           <div class="contact-icons">
@@ -130,12 +97,6 @@ const currentTime = ref('');
 const currentDate = ref('');
 const currentStatus = ref('在线中');
 const statusClass = ref('status-online');
-
-// 技能数据
-const skills = ref([
-  { name: 'JavaScript', level: 35, color: 'js-color' },
-  { name: 'Vue.js', level: 33, color: 'vue-color' },  { name: 'Python', level: 26, color: 'python-color' },
-]);
 
 // 切换侧边栏
 const toggleCollapse = () => {
