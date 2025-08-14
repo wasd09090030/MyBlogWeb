@@ -11,33 +11,13 @@
       </button>
 
       <!-- 幻灯片轨道 -->
-      <div class="carousel-track" :style="{ transform: `translateX(${centerOffset})` }" :class="{ 'no-transition': !isTransitioning }">
-        <!-- 克隆最后一张（放在开头） -->
-        <div 
-          v-if="originalSlides.length > 0"
-          class="carousel-slide clone-slide"
-          @click="goToArticle(originalSlides[originalSlides.length - 1].id)"
-        >
-          <div class="slide-card">
-            <div 
-              class="slide-background"
-              :style="{ backgroundImage: `url(${originalSlides[originalSlides.length - 1].coverImage})` }"
-            ></div>
-            <div class="slide-gradient"></div>
-            <div class="slide-content">
-              <div class="slide-category">{{ getCategoryName(originalSlides[originalSlides.length - 1].category) }}</div>
-              <h3 class="slide-title">{{ originalSlides[originalSlides.length - 1].title }}</h3>
-            </div>
-          </div>
-        </div>
-        
-        <!-- 原始幻灯片 -->
+      <div class="carousel-track" :style="{ transform: `translateX(${centerOffset})` }">
         <div 
           v-for="(slide, index) in originalSlides" 
           :key="slide.id"
           class="carousel-slide"
           :class="{
-            'active': index === currentSlide - 1 && !isTransitioning
+            'active': index === currentSlide
           }"
           @click="goToArticle(slide.id)"
         >
@@ -51,26 +31,7 @@
               <div class="slide-category">{{ getCategoryName(slide.category) }}</div>
               <h3 class="slide-title">{{ slide.title }}</h3>
             </div>
-            <div class="active-indicator" v-if="index === currentSlide - 1 && !isTransitioning"></div>
-          </div>
-        </div>
-        
-        <!-- 克隆第一张（放在末尾） -->
-        <div 
-          v-if="originalSlides.length > 0"
-          class="carousel-slide clone-slide"
-          @click="goToArticle(originalSlides[0].id)"
-        >
-          <div class="slide-card">
-            <div 
-              class="slide-background"
-              :style="{ backgroundImage: `url(${originalSlides[0].coverImage})` }"
-            ></div>
-            <div class="slide-gradient"></div>
-            <div class="slide-content">
-              <div class="slide-category">{{ getCategoryName(originalSlides[0].category) }}</div>
-              <h3 class="slide-title">{{ originalSlides[0].title }}</h3>
-            </div>
+            <div class="active-indicator" v-if="index === currentSlide"></div>
           </div>
         </div>
       </div>
@@ -95,10 +56,8 @@ import articleService from '../services/articleService.js';
 const router = useRouter();
 
 // 响应式数据
-const slides = ref([]);
 const originalSlides = ref([]); // 存储原始幻灯片数据
 const currentSlide = ref(0);
-const isTransitioning = ref(false); // 是否正在过渡中
 let autoPlayInterval = null;
 
 // 计算幻灯片宽度
@@ -118,11 +77,10 @@ const centerOffset = computed(() => {
   if (typeof window !== 'undefined' && originalSlides.value.length > 0) {
     if (window.innerWidth >= 768) {
       // 大屏幕：每张幻灯片40vw + 10px间距
-      // currentSlide从1开始（因为索引0是克隆的最后一张）
-      return `calc(50% - ${currentSlide.value * 40}vw - ${(currentSlide.value - 0.5) * 10}px)`;
+      return `calc(50% - ${(currentSlide.value + 0.5) * 40}vw - ${currentSlide.value * 10}px)`;
     } else {
       // 小屏幕：每张幻灯片90vw + 10px间距
-      return `calc(50% - ${currentSlide.value * 90}vw - ${(currentSlide.value - 0.5) * 10}px)`;
+      return `calc(50% - ${(currentSlide.value + 0.5) * 90}vw - ${currentSlide.value * 10}px)`;
     }
   }
   return 'translateX(0)';
@@ -145,8 +103,8 @@ const fetchFeaturedArticles = async () => {
         coverImage: '/src/assets/BlogPicture/background.webp'
       }));
     }
-    // 初始化当前幻灯片索引（从1开始，因为0是克隆的最后一张）
-    currentSlide.value = 1;
+    // 初始化当前幻灯片索引（从0开始）
+    currentSlide.value = 0;
   } catch (error) {
     console.error('获取推荐文章失败:', error);
     // 设置默认幻灯片
@@ -156,71 +114,30 @@ const fetchFeaturedArticles = async () => {
       category: 'other',
       coverImage: '/src/assets/BlogPicture/background.webp'
     }];
-    currentSlide.value = 1;
+    currentSlide.value = 0;
   }
 };
 
 // 幻灯片导航
 const nextSlide = () => {
-  if (originalSlides.value.length === 0 || isTransitioning.value) return;
+  if (originalSlides.value.length === 0) return;
   
-  isTransitioning.value = true;
-  currentSlide.value++;
-  
-  // 如果到达克隆的第一张（在末尾），瞬间重置到真正的第一张
-  if (currentSlide.value > originalSlides.value.length) {
-    setTimeout(() => {
-      const track = document.querySelector('.carousel-track');
-      if (track) {
-        track.classList.add('no-transition');
-        currentSlide.value = 1;
-        setTimeout(() => {
-          track.classList.remove('no-transition');
-          isTransitioning.value = false;
-        }, 50);
-      }
-    }, 600);
-  } else {
-    setTimeout(() => {
-      isTransitioning.value = false;
-    }, 600);
-  }
+  currentSlide.value = (currentSlide.value + 1) % originalSlides.value.length;
 };
 
 const prevSlide = () => {
-  if (originalSlides.value.length === 0 || isTransitioning.value) return;
+  if (originalSlides.value.length === 0) return;
   
-  isTransitioning.value = true;
-  currentSlide.value--;
-  
-  // 如果到达克隆的最后一张（在开头），瞬间重置到真正的最后一张
-  if (currentSlide.value < 1) {
-    setTimeout(() => {
-      const track = document.querySelector('.carousel-track');
-      if (track) {
-        track.classList.add('no-transition');
-        currentSlide.value = originalSlides.value.length;
-        setTimeout(() => {
-          track.classList.remove('no-transition');
-          isTransitioning.value = false;
-        }, 50);
-      }
-    }, 600);
-  } else {
-    setTimeout(() => {
-      isTransitioning.value = false;
-    }, 600);
-  }
+  currentSlide.value = currentSlide.value === 0 
+    ? originalSlides.value.length - 1 
+    : currentSlide.value - 1;
 };
 
 const goToSlide = (index) => {
   if (originalSlides.value.length === 0) return;
-  isTransitioning.value = true;
-  currentSlide.value = index + 1; // 加1是因为索引0是克隆的最后一张
-  setTimeout(() => {
-    isTransitioning.value = false;
-  }, 600);
+  currentSlide.value = index;
 };
+
 
 // 跳转到文章详情
 const goToArticle = (articleId) => {
@@ -244,7 +161,7 @@ const getCategoryName = (category) => {
 // 自动播放
 const startAutoPlay = () => {
   autoPlayInterval = setInterval(() => {
-    if (originalSlides.value.length > 0 && !isTransitioning.value) {
+    if (originalSlides.value.length > 0) {
       nextSlide();
     }
   }, 4000); // 每4秒切换
@@ -297,10 +214,6 @@ onUnmounted(() => {
   justify-content: flex-start;
 }
 
-.carousel-track.no-transition {
-  transition: none;
-}
-
 /* 单个幻灯片 */
 .carousel-slide {
   flex-shrink: 0;
@@ -314,16 +227,6 @@ onUnmounted(() => {
 .carousel-slide.active {
   opacity: 1;
   z-index: 2;
-}
-
-.carousel-slide.prev,
-.carousel-slide.next {
-  opacity: 1; /* 移除透明度差异 */
-}
-
-/* 克隆幻灯片样式 */
-.carousel-slide.clone-slide {
-  opacity: 1; /* 克隆幻灯片也保持完全不透明 */
 }
 
 /* 卡片容器 */
