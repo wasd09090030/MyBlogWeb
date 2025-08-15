@@ -413,7 +413,7 @@ onUnmounted(() => {
   background-color: var(--bs-body-bg, #ffffff);
   min-height: 100vh;
   padding: 0;
-  margin-top: 0;
+  margin-top: 20px;
   box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.1), 0 8px 32px rgba(0, 0, 0, 0.15);
   border-radius: 12px 12px 0 0;
   /* 大屏幕限制宽度为70% */

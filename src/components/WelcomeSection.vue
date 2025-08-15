@@ -1,5 +1,9 @@
 <template>
-  <div class="carousel-section">
+  <div 
+    class="carousel-section" 
+    @mouseenter="stopAutoPlay" 
+    @mouseleave="startAutoPlay"
+  >
     <div class="carousel-container">
       <!-- 左侧导航按钮 -->
       <button 
@@ -11,14 +15,12 @@
       </button>
 
       <!-- 幻灯片轨道 -->
-      <div class="carousel-track" :style="{ transform: `translateX(${centerOffset})` }">
+      <div class="carousel-track" ref="trackRef" :style="trackStyle">
         <div 
-          v-for="(slide, index) in originalSlides" 
-          :key="slide.id"
+          v-for="(slide, index) in slides" 
+          :key="index"
           class="carousel-slide"
-          :class="{
-            'active': index === currentSlide
-          }"
+          :class="{ 'active': index === currentIndex }"
           @click="goToArticle(slide.id)"
         >
           <div class="slide-card">
@@ -31,7 +33,7 @@
               <div class="slide-category">{{ getCategoryName(slide.category) }}</div>
               <h3 class="slide-title">{{ slide.title }}</h3>
             </div>
-            <div class="active-indicator" v-if="index === currentSlide"></div>
+            <div class="active-indicator" v-if="index === currentIndex"></div>
           </div>
         </div>
       </div>
@@ -54,88 +56,116 @@ import { useRouter } from 'vue-router';
 import articleService from '../services/articleService.js';
 
 const router = useRouter();
+const trackRef = ref(null);
 
 // 响应式数据
-const originalSlides = ref([]); // 存储原始幻灯片数据
-const currentSlide = ref(0);
+const slides = ref([]);
+const currentIndex = ref(0);
+const isTransitioning = ref(false);
 let autoPlayInterval = null;
 
-// 计算幻灯片宽度
-const slideWidth = computed(() => {
-  // 大屏幕：40% 屏幕宽度，小屏幕：90% 屏幕宽度
-  if (typeof window !== 'undefined') {
-    if (window.innerWidth >= 768) {
-      return window.innerWidth * 0.4; // 40% 屏幕宽度
-    }
-    return window.innerWidth * 0.9; // 小屏幕90%宽度
-  }
-  return 400; // 默认值
-});
-
-// 计算居中偏移
-const centerOffset = computed(() => {
-  if (typeof window !== 'undefined' && originalSlides.value.length > 0) {
-    if (window.innerWidth >= 768) {
-      // 大屏幕：每张幻灯片40vw + 10px间距
-      return `calc(50% - ${(currentSlide.value + 0.5) * 40}vw - ${currentSlide.value * 10}px)`;
-    } else {
-      // 小屏幕：每张幻灯片90vw + 10px间距
-      return `calc(50% - ${(currentSlide.value + 0.5) * 90}vw - ${currentSlide.value * 10}px)`;
-    }
-  }
-  return 'translateX(0)';
+// 轨道样式
+const trackStyle = computed(() => {
+  if (slides.value.length === 0) return {};
+  
+  const slideWidthVW = window.innerWidth >= 768 ? 40 : 90;
+  const gap = 10; // in pixels
+  
+  // 计算偏移量，使当前幻灯片居中
+  const offset = `calc(50% - ${currentIndex.value * slideWidthVW}vw - ${currentIndex.value * gap}px - ${slideWidthVW / 2}vw)`;
+  
+  return {
+    transform: `translateX(${offset})`,
+    transition: isTransitioning.value ? 'transform 0.8s cubic-bezier(0.55, 0.085, 0.68, 0.53)' : 'none'
+  };
 });
 
 // 获取文章数据
 const fetchFeaturedArticles = async () => {
   try {
     const articles = await articleService.getArticles();
-    // 过滤有封面图的文章，随机选择5篇
     const articlesWithCover = articles.filter(article => article.coverImage);
+    let originalSlides = [];
     if (articlesWithCover.length > 0) {
-      // 随机打乱并取前5个
       const shuffled = articlesWithCover.sort(() => 0.5 - Math.random());
-      originalSlides.value = shuffled.slice(0, Math.min(5, shuffled.length));
+      originalSlides = shuffled.slice(0, Math.min(5, shuffled.length));
     } else {
-      // 如果没有封面图，使用默认背景
-      originalSlides.value = articles.slice(0, 3).map(article => ({
+      originalSlides = articles.slice(0, 3).map(article => ({
         ...article,
         coverImage: '/src/assets/BlogPicture/background.webp'
       }));
     }
-    // 初始化当前幻灯片索引（从0开始）
-    currentSlide.value = 0;
+
+    if (originalSlides.length > 1) {
+      // 创建循环数组：[..., last, first, second, ..., last, first, ...]
+      const cloneCount = Math.ceil(5 / originalSlides.length) * originalSlides.length; // 确保足够多的克隆
+      const clonedSlides = [];
+      for (let i = 0; i < cloneCount * 3; i++) {
+        clonedSlides.push(originalSlides[i % originalSlides.length]);
+      }
+      slides.value = clonedSlides;
+      currentIndex.value = cloneCount; // 从中间的真实幻灯片开始
+    } else {
+      slides.value = originalSlides;
+      currentIndex.value = 0;
+    }
   } catch (error) {
     console.error('获取推荐文章失败:', error);
-    // 设置默认幻灯片
-    originalSlides.value = [{
+    slides.value = [{
       id: 0,
       title: '欢迎访问我的博客',
       category: 'other',
       coverImage: '/src/assets/BlogPicture/background.webp'
     }];
-    currentSlide.value = 0;
   }
 };
 
 // 幻灯片导航
-const nextSlide = () => {
-  if (originalSlides.value.length === 0) return;
+const moveTo = (newIndex, direction) => {
+  if (isTransitioning.value || slides.value.length <= 1) return;
+
+  isTransitioning.value = true;
+  currentIndex.value = newIndex;
+
+  const transitionEndHandler = () => {
+    trackRef.value.removeEventListener('transitionend', transitionEndHandler);
+    
+    const originalLength = slides.value.length / 3;
+    let newCurrentIndex = currentIndex.value;
+
+    if (direction === 'next' && currentIndex.value >= originalLength * 2) {
+      newCurrentIndex = currentIndex.value - originalLength;
+    } else if (direction === 'prev' && currentIndex.value < originalLength) {
+      newCurrentIndex = currentIndex.value + originalLength;
+    }
+    
+    if (newCurrentIndex !== currentIndex.value) {
+      isTransitioning.value = false;
+      currentIndex.value = newCurrentIndex;
+    }
+    
+    // 确保在下一次渲染后才重新启用过渡
+    setTimeout(() => {
+      isTransitioning.value = false;
+    }, 50);
+  };
+
+  trackRef.value.addEventListener('transitionend', transitionEndHandler);
   
-  currentSlide.value = (currentSlide.value + 1) % originalSlides.value.length;
+  // Fallback in case transitionend doesn't fire
+  setTimeout(() => {
+    transitionEndHandler();
+  }, 850); // 略大于动画时间
+};
+
+const nextSlide = () => {
+  resetAutoPlay();
+  moveTo(currentIndex.value + 1, 'next');
 };
 
 const prevSlide = () => {
-  if (originalSlides.value.length === 0) return;
-  
-  currentSlide.value = currentSlide.value === 0 
-    ? originalSlides.value.length - 1 
-    : currentSlide.value - 1;
-};
-
-const goToSlide = (index) => {
-  if (originalSlides.value.length === 0) return;
-  currentSlide.value = index;
+  resetAutoPlay();
+  moveTo(currentIndex.value - 1, 'prev');
 };
 
 
@@ -160,8 +190,9 @@ const getCategoryName = (category) => {
 
 // 自动播放
 const startAutoPlay = () => {
+  stopAutoPlay(); // 先停止，防止重复
   autoPlayInterval = setInterval(() => {
-    if (originalSlides.value.length > 0) {
+    if (slides.value.length > 1 && !isTransitioning.value) {
       nextSlide();
     }
   }, 4000); // 每4秒切换
@@ -172,6 +203,11 @@ const stopAutoPlay = () => {
     clearInterval(autoPlayInterval);
     autoPlayInterval = null;
   }
+};
+
+const resetAutoPlay = () => {
+  stopAutoPlay();
+  startAutoPlay();
 };
 
 // 生命周期
@@ -207,8 +243,7 @@ onUnmounted(() => {
 /* 幻灯片轨道 */
 .carousel-track {
   display: flex;
-  gap: 10px; /* 统一10px间距 */
-  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  gap: 20px; /* 统一10px间距 */
   width: 100%;
   height: 100%;
   justify-content: flex-start;
