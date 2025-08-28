@@ -41,7 +41,7 @@
 
         <div class="article-content">
           <!-- eslint-disable-next-line vue/no-v-html -->
-          <div v-html="article.content" class="article-content-html"></div>        </div>        <!-- 评论和点赞区域 -->
+          <div v-html="article.content" class="article-content-html markdown-body"></div>        </div>        <!-- 评论和点赞区域 -->
         <LazyCommentSection :article-id="article.id" />
           <!-- 底部返回按钮 -->
         <div class="article-bottom-actions mt-5 pt-4 border-top text-center">
@@ -222,76 +222,156 @@ onMounted(() => {
   box-shadow: 0 6px 20px rgba(13, 110, 253, 0.3);
 }
 
-/* 文章内容样式 */
+/* 文章内容样式 - 基于 GitHub Markdown */
 .article-content-html {
-  line-height: 1.8;
-  font-size: 1.1rem;
-  color: #333;
+  line-height: 1.6;
+  font-size: 16px;
+  color: #24292f;
   transition: color 0.3s ease;
 }
 
-/* 富文本内容样式 */
-.article-content-html ::v-deep(h1),
-.article-content-html ::v-deep(h2),
-.article-content-html ::v-deep(h3) {
-  margin-top: 1.5rem;
-  margin-bottom: 1rem;
+/* GitHub Markdown 样式覆盖 */
+.article-content-html.markdown-body {
+  box-sizing: border-box;
+  min-width: 200px;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans",Helvetica,Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji";
+  background-color: transparent;
+}
+
+.article-content-html.markdown-body h1,
+.article-content-html.markdown-body h2,
+.article-content-html.markdown-body h3,
+.article-content-html.markdown-body h4,
+.article-content-html.markdown-body h5,
+.article-content-html.markdown-body h6 {
+  margin-top: 24px;
+  margin-bottom: 16px;
   font-weight: 600;
+  line-height: 1.25;
 }
 
-.article-content-html ::v-deep(h1) {
-  font-size: 1.75rem;
+.article-content-html.markdown-body h1 {
+  font-size: 2em;
+  border-bottom: 1px solid #d0d7de;
+  padding-bottom: .3em;
 }
 
-.article-content-html ::v-deep(h2) {
-  font-size: 1.5rem;
+.article-content-html.markdown-body h2 {
+  font-size: 1.5em;
+  border-bottom: 1px solid #d0d7de;
+  padding-bottom: .3em;
 }
 
-.article-content-html ::v-deep(h3) {
-  font-size: 1.25rem;
+.article-content-html.markdown-body h3 {
+  font-size: 1.25em;
 }
 
-.article-content-html ::v-deep(p) {
-  margin-bottom: 1rem;
+.article-content-html.markdown-body p {
+  margin-top: 0;
+  margin-bottom: 16px;
 }
 
-.article-content-html ::v-deep(img) {
-  max-width: 100%;
-  height: auto;
-  margin: 1rem 0;
+.article-content-html.markdown-body blockquote {
+  margin: 0;
+  padding: 0 1em;
+  color: #656d76;
+  border-left: .25em solid #d0d7de;
 }
 
-.article-content-html ::v-deep(pre) {
-  background-color: #f5f5f5;
-  padding: 1rem;
-  border-radius: 0.25rem;
-  margin: 1rem 0;
+.article-content-html.markdown-body code {
+  padding: .2em .4em;
+  margin: 0;
+  font-size: 85%;
+  background-color: rgba(175,184,193,0.2);
+  border-radius: 6px;
+  font-family: ui-monospace,SFMono-Regular,"SF Mono",Consolas,"Liberation Mono",Menlo,monospace;
+}
+
+.article-content-html.markdown-body pre {
+  padding: 16px;
   overflow: auto;
+  font-size: 85%;
+  line-height: 1.45;
+  background-color: #f6f8fa;
+  border-radius: 6px;
+  margin: 16px 0;
 }
 
-.article-content-html ::v-deep(blockquote) {
-  border-left: 0.25rem solid #adb5bd;
-  padding-left: 1rem;
-  color: #6c757d;
-  margin: 1rem 0;
+.article-content-html.markdown-body pre code {
+  background-color: transparent;
+  border: 0;
+  display: inline;
+  line-height: inherit;
+  margin: 0;
+  overflow: visible;
+  padding: 0;
+  word-wrap: normal;
 }
 
-.article-content-html ::v-deep(ul),
-.article-content-html ::v-deep(ol) {
-  margin-bottom: 1rem;
-  padding-left: 2rem;
+.article-content-html.markdown-body table {
+  border-spacing: 0;
+  border-collapse: collapse;
+  display: block;
+  width: max-content;
+  max-width: 100%;
+  overflow: auto;
+  margin: 16px 0;
 }
 
-.article-content-html ::v-deep(a) {
-  color: #0d6efd;
+.article-content-html.markdown-body table th,
+.article-content-html.markdown-body table td {
+  padding: 6px 13px;
+  border: 1px solid #d0d7de;
+}
+
+.article-content-html.markdown-body table th {
+  font-weight: 600;
+  background-color: #f6f8fa;
+}
+
+.article-content-html.markdown-body table tr:nth-child(2n) {
+  background-color: #f6f8fa;
+}
+
+.article-content-html.markdown-body ul,
+.article-content-html.markdown-body ol {
+  margin-top: 0;
+  margin-bottom: 16px;
+  padding-left: 2em;
+}
+
+.article-content-html.markdown-body li {
+  margin: 0.25em 0;
+}
+
+.article-content-html.markdown-body a {
+  color: #0969da;
   text-decoration: none;
 }
 
-.article-content-html ::v-deep(a:hover) {
+.article-content-html.markdown-body a:hover {
   text-decoration: underline;
 }
 
-/* 暗色主题支持 */
+.article-content-html.markdown-body img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 6px;
+  margin: 16px 0;
+}
+
+.article-content-html.markdown-body hr {
+  height: .25em;
+  padding: 0;
+  margin: 24px 0;
+  background-color: #d0d7de;
+  border: 0;
+}
+
+/* 暗色主题支持 - GitHub 风格 */
 [data-bs-theme="dark"] .article-container {
   background-color: var(--bs-dark);
   color: #ffffff;
@@ -315,35 +395,73 @@ onMounted(() => {
 }
 
 [data-bs-theme="dark"] .article-content-html {
-  color: #dee2e6;
+  color: #c9d1d9;
 }
 
-[data-bs-theme="dark"] .article-content-html ::v-deep(h1),
-[data-bs-theme="dark"] .article-content-html ::v-deep(h2),
-[data-bs-theme="dark"] .article-content-html ::v-deep(h3) {
-  color: #ffffff;
+[data-bs-theme="dark"] .article-content-html.markdown-body h1,
+[data-bs-theme="dark"] .article-content-html.markdown-body h2 {
+  border-bottom-color: #21262d;
+  color: #f0f6fc;
 }
 
-[data-bs-theme="dark"] .article-content-html ::v-deep(p) {
-  color: #dee2e6;
+[data-bs-theme="dark"] .article-content-html.markdown-body h3,
+[data-bs-theme="dark"] .article-content-html.markdown-body h4,
+[data-bs-theme="dark"] .article-content-html.markdown-body h5 {
+  color: #f0f6fc;
 }
 
-[data-bs-theme="dark"] .article-content-html ::v-deep(pre) {
-  background-color: #2d3748;
-  color: #e2e8f0;
+[data-bs-theme="dark"] .article-content-html.markdown-body h6 {
+  color: #8b949e;
 }
 
-[data-bs-theme="dark"] .article-content-html ::v-deep(blockquote) {
-  border-left-color: #6c757d;
-  color: #adb5bd;
+[data-bs-theme="dark"] .article-content-html.markdown-body p {
+  color: #c9d1d9;
 }
 
-[data-bs-theme="dark"] .article-content-html ::v-deep(a) {
-  color: #60a5fa;
+[data-bs-theme="dark"] .article-content-html.markdown-body blockquote {
+  color: #8b949e;
+  border-left-color: #3d444d;
 }
 
-[data-bs-theme="dark"] .article-content-html ::v-deep(a:hover) {
-  color: #93c5fd;
+[data-bs-theme="dark"] .article-content-html.markdown-body code {
+  background-color: rgba(110,118,129,0.4);
+  color: #e6edf3;
+}
+
+[data-bs-theme="dark"] .article-content-html.markdown-body pre {
+  background-color: #161b22;
+  color: #e6edf3;
+}
+
+[data-bs-theme="dark"] .article-content-html.markdown-body pre code {
+  background-color: transparent;
+  color: #e6edf3;
+}
+
+[data-bs-theme="dark"] .article-content-html.markdown-body table th,
+[data-bs-theme="dark"] .article-content-html.markdown-body table td {
+  border-color: #30363d;
+}
+
+[data-bs-theme="dark"] .article-content-html.markdown-body table th {
+  background-color: #161b22;
+  color: #f0f6fc;
+}
+
+[data-bs-theme="dark"] .article-content-html.markdown-body table tr:nth-child(2n) {
+  background-color: #161b22;
+}
+
+[data-bs-theme="dark"] .article-content-html.markdown-body a {
+  color: #58a6ff;
+}
+
+[data-bs-theme="dark"] .article-content-html.markdown-body a:hover {
+  color: #79c0ff;
+}
+
+[data-bs-theme="dark"] .article-content-html.markdown-body hr {
+  background-color: #21262d;
 }
 
 /* 自定义动画类 */

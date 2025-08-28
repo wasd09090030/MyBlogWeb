@@ -90,6 +90,9 @@
               code-theme="github"
               language="zh-CN"
               @onChange="handleContentChange"
+              :previewCssText="githubMarkdownCss"
+              :htmlCopyable="true"
+              :mdPreviewClass="'markdown-body'"
               required
             />
           </div>
@@ -173,6 +176,213 @@ const loading = ref(false);
 const isSaving = ref(false);
 const isValidImageUrl = ref(false);
 const isEdit = computed(() => !!route.params.id);
+
+// GitHub Markdown CSS 样式配置
+const githubMarkdownCss = `
+  .markdown-body {
+    box-sizing: border-box;
+    min-width: 200px;
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 45px;
+    font-family: -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans",Helvetica,Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji";
+    font-size: 16px;
+    line-height: 1.5;
+    color: #24292f;
+    background-color: #ffffff;
+  }
+  
+  .markdown-body h1,
+  .markdown-body h2,
+  .markdown-body h3,
+  .markdown-body h4,
+  .markdown-body h5,
+  .markdown-body h6 {
+    margin-top: 24px;
+    margin-bottom: 16px;
+    font-weight: 600;
+    line-height: 1.25;
+  }
+  
+  .markdown-body h1 {
+    font-size: 2em;
+    border-bottom: 1px solid #d0d7de;
+    padding-bottom: .3em;
+  }
+  
+  .markdown-body h2 {
+    font-size: 1.5em;
+    border-bottom: 1px solid #d0d7de;
+    padding-bottom: .3em;
+  }
+  
+  .markdown-body h3 {
+    font-size: 1.25em;
+  }
+  
+  .markdown-body h4 {
+    font-size: 1em;
+  }
+  
+  .markdown-body h5 {
+    font-size: .875em;
+  }
+  
+  .markdown-body h6 {
+    font-size: .85em;
+    color: #656d76;
+  }
+  
+  .markdown-body p {
+    margin-top: 0;
+    margin-bottom: 16px;
+  }
+  
+  .markdown-body blockquote {
+    margin: 0;
+    padding: 0 1em;
+    color: #656d76;
+    border-left: .25em solid #d0d7de;
+  }
+  
+  .markdown-body code {
+    padding: .2em .4em;
+    margin: 0;
+    font-size: 85%;
+    background-color: rgba(175,184,193,0.2);
+    border-radius: 6px;
+    font-family: ui-monospace,SFMono-Regular,"SF Mono",Consolas,"Liberation Mono",Menlo,monospace;
+  }
+  
+  .markdown-body pre {
+    padding: 16px;
+    overflow: auto;
+    font-size: 85%;
+    line-height: 1.45;
+    background-color: #f6f8fa;
+    border-radius: 6px;
+  }
+  
+  .markdown-body pre code {
+    background-color: transparent;
+    border: 0;
+    display: inline;
+    line-height: inherit;
+    margin: 0;
+    overflow: visible;
+    padding: 0;
+    word-wrap: normal;
+  }
+  
+  .markdown-body table {
+    border-spacing: 0;
+    border-collapse: collapse;
+    display: block;
+    width: max-content;
+    max-width: 100%;
+    overflow: auto;
+  }
+  
+  .markdown-body table th,
+  .markdown-body table td {
+    padding: 6px 13px;
+    border: 1px solid #d0d7de;
+  }
+  
+  .markdown-body table th {
+    font-weight: 600;
+    background-color: #f6f8fa;
+  }
+  
+  .markdown-body table tr:nth-child(2n) {
+    background-color: #f6f8fa;
+  }
+  
+  .markdown-body ul,
+  .markdown-body ol {
+    margin-top: 0;
+    margin-bottom: 16px;
+    padding-left: 2em;
+  }
+  
+  .markdown-body li {
+    margin: 0.25em 0;
+  }
+  
+  .markdown-body a {
+    color: #0969da;
+    text-decoration: none;
+  }
+  
+  .markdown-body a:hover {
+    text-decoration: underline;
+  }
+  
+  .markdown-body img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 6px;
+  }
+  
+  .markdown-body hr {
+    height: .25em;
+    padding: 0;
+    margin: 24px 0;
+    background-color: #d0d7de;
+    border: 0;
+  }
+  
+  /* 暗色主题适配 */
+  @media (prefers-color-scheme: dark) {
+    .markdown-body {
+      color: #c9d1d9;
+      background-color: #0d1117;
+    }
+    
+    .markdown-body h1,
+    .markdown-body h2 {
+      border-bottom-color: #21262d;
+    }
+    
+    .markdown-body h6 {
+      color: #8b949e;
+    }
+    
+    .markdown-body blockquote {
+      color: #8b949e;
+      border-left-color: #3d444d;
+    }
+    
+    .markdown-body code {
+      background-color: rgba(110,118,129,0.4);
+    }
+    
+    .markdown-body pre {
+      background-color: #161b22;
+    }
+    
+    .markdown-body table th,
+    .markdown-body table td {
+      border-color: #30363d;
+    }
+    
+    .markdown-body table th {
+      background-color: #161b22;
+    }
+    
+    .markdown-body table tr:nth-child(2n) {
+      background-color: #161b22;
+    }
+    
+    .markdown-body a {
+      color: #58a6ff;
+    }
+    
+    .markdown-body hr {
+      background-color: #21262d;
+    }
+  }
+`;
 
 // 定义编辑器工具栏
 const toolbars = [
@@ -392,6 +602,18 @@ onMounted(() => {
   padding: 16px;
   font-size: 16px;
   line-height: 1.6;
+  font-family: -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans",Helvetica,Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji";
+}
+
+/* 确保预览区域使用 GitHub 样式 */
+:deep(.md-editor-preview-wrapper) {
+  padding: 0;
+}
+
+:deep(.md-editor-preview .markdown-body) {
+  max-width: none;
+  margin: 0;
+  padding: 16px;
 }
 
 :deep(.md-editor-input) {

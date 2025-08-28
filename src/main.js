@@ -5,6 +5,7 @@ import './style.css'
 import 'bootstrap/dist/css/bootstrap.min.css'; // 导入 Bootstrap CSS
 import 'bootstrap/dist/js/bootstrap.bundle.min.js'; // 导入 Bootstrap JS (包含 Popper)
 import 'bootstrap-icons/font/bootstrap-icons.css'; // 导入 Bootstrap 图标
+import 'github-markdown-css/github-markdown.css'; // 导入 GitHub Markdown 样式
 
 import router from './router'; // 导入路由
 import { lazyLoad } from './utils/lazyLoad.js'; // 导入懒加载指令
