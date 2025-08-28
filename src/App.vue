@@ -21,7 +21,7 @@
             <SearchBar />
           </div>
           
-          <ul class="navbar-nav ms-auto align-items-center">
+          <ul class="navbar-nav ms-auto align-items-center navbar-right-items">
             <li class="nav-item dropdown">
               <a class="nav-link dropdown-toggle" href="#" id="categoryDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                 分类
@@ -35,7 +35,7 @@
               </ul>
             </li>
             <li class="nav-item">
-              <button class="btn btn-link nav-link border-0 bg-transparent" @click="toggleDarkMode">
+              <button class="btn btn-link nav-link border-0 bg-transparent theme-toggle-btn" @click="toggleDarkMode">
                 <i :class="isDarkMode ? 'bi bi-sun-fill' : 'bi bi-moon-fill'"></i>
               </button>
             </li>
@@ -388,6 +388,50 @@ onUnmounted(() => {
     position: relative;
     font-size: 1.1rem; /* 稍微减小字体 */
     border-radius: 4px; 
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+}
+
+/* nav-link 悬停效果 */
+.navbar-nav .nav-link:hover {
+    transform: translateY(-2px);
+    background-color: rgba(13, 110, 253, 0.1);
+    box-shadow: 0 4px 15px rgba(13, 110, 253, 0.2);
+}
+
+/* nav-link 点击效果 */
+.navbar-nav .nav-link:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(13, 110, 253, 0.3);
+}
+
+/* nav-link 底部滑动条效果 */
+.navbar-nav .nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    width: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #667eea, #764ba2);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transform: translateX(-50%);
+}
+
+.navbar-nav .nav-link:hover::after {
+    width: 80%;
+}
+
+/* 活跃状态样式 */
+.navbar-nav .nav-link.active {
+    background-color: rgba(13, 110, 253, 0.15);
+    color: #0d6efd !important;
+    font-weight: 600;
+}
+
+.navbar-nav .nav-link.active::after {
+    width: 80%;
+    background: linear-gradient(90deg, #0d6efd, #6610f2);
 }
 
 /* 搜索栏样式 */
@@ -404,20 +448,104 @@ onUnmounted(() => {
   width: 100%;
 }
 
+/* 右侧导航项容器 - 距离右边界10% */
+.navbar-right-items {
+  margin-right: 10% !important;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* 主题切换按钮特殊样式 */
+.theme-toggle-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50% !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.theme-toggle-btn:hover {
+  background-color: rgba(13, 110, 253, 0.1) !important;
+  transform: scale(1.1) rotate(10deg);
+  box-shadow: 0 4px 15px rgba(13, 110, 253, 0.2);
+}
+
+.theme-toggle-btn:active {
+  transform: scale(0.95);
+}
+
+.theme-toggle-btn i {
+  font-size: 1.2rem;
+  transition: all 0.3s ease;
+}
+
+/* 主题切换动画效果 */
+.theme-toggle-btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: radial-gradient(circle, rgba(13, 110, 253, 0.3), transparent);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: all 0.4s ease;
+  z-index: -1;
+}
+
+.theme-toggle-btn:hover::before {
+  width: 60px;
+  height: 60px;
+}
+
 /* 下拉菜单样式 */
 .dropdown-menu {
   border: none;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
   border-radius: 8px;
+  opacity: 0;
+  transform: translateY(-10px) scale(0.95);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: dropdownSlideIn 0.3s ease-out forwards;
+}
+
+.dropdown-menu.show {
+  opacity: 1;
+  transform: translateY(0) scale(1);
 }
 
 .dropdown-item {
   padding: 0.5rem 1rem;
-  transition: background-color 0.2s ease;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.dropdown-item::before {
+  content: '';
+  position: absolute;
+  left: -100%;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(13, 110, 253, 0.1), transparent);
+  transition: left 0.3s ease;
 }
 
 .dropdown-item:hover {
   background-color: rgba(13, 110, 253, 0.1);
+  transform: translateX(5px);
+  padding-left: 1.2rem;
+}
+
+.dropdown-item:hover::before {
+  left: 100%;
 }
 
 .welcome-section-container {
@@ -585,6 +713,27 @@ main {
     font-size: 0.95rem; /* 移动端更小的字体 */
   }
   
+  /* 移动端右侧导航项调整 */
+  .navbar-right-items {
+    margin-right: 5% !important; /* 移动端减少右边距 */
+    gap: 0.3rem;
+  }
+  
+  .theme-toggle-btn {
+    width: 35px;
+    height: 35px;
+  }
+  
+  .theme-toggle-btn i {
+    font-size: 1rem;
+  }
+  
+  /* 移动端dropdown样式调整 */
+  .dropdown-menu {
+    margin-right: 5%;
+    transform: translateY(-5px) scale(0.98);
+  }
+  
   .main-container {
     padding-top: 55px; /* 移动端调整顶部间距 */
   }
@@ -745,6 +894,7 @@ main {
 :global(.dark-theme) .dropdown-menu {
   background-color: #2d3748;
   border: 1px solid #4a5568;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
 }
 
 :global(.dark-theme) .dropdown-item {
@@ -754,6 +904,35 @@ main {
 :global(.dark-theme) .dropdown-item:hover {
   background-color: rgba(66, 153, 225, 0.2);
   color: #ffffff;
+}
+
+/* 暗色主题下的 nav-link 样式 */
+:global(.dark-theme) .navbar-nav .nav-link:hover {
+  background-color: rgba(66, 153, 225, 0.15);
+  box-shadow: 0 4px 15px rgba(66, 153, 225, 0.2);
+}
+
+:global(.dark-theme) .navbar-nav .nav-link::after {
+  background: linear-gradient(90deg, #4299e1, #9f7aea);
+}
+
+:global(.dark-theme) .navbar-nav .nav-link.active {
+  background-color: rgba(66, 153, 225, 0.2);
+  color: #4299e1 !important;
+}
+
+:global(.dark-theme) .navbar-nav .nav-link.active::after {
+  background: linear-gradient(90deg, #4299e1, #9f7aea);
+}
+
+/* 暗色主题下的主题切换按钮 */
+:global(.dark-theme) .theme-toggle-btn:hover {
+  background-color: rgba(66, 153, 225, 0.15) !important;
+  box-shadow: 0 4px 15px rgba(66, 153, 225, 0.2);
+}
+
+:global(.dark-theme) .theme-toggle-btn::before {
+  background: radial-gradient(circle, rgba(66, 153, 225, 0.3), transparent);
 }
 
 /* 自定义动画类替换animate.css */
@@ -847,6 +1026,31 @@ main {
   }
   to {
     opacity: 1;
+  }
+}
+
+/* Dropdown 动画 */
+@keyframes dropdownSlideIn {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Nav-link 脉冲效果 */
+@keyframes navPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(13, 110, 253, 0.3);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(13, 110, 253, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(13, 110, 253, 0);
   }
 }
 </style>

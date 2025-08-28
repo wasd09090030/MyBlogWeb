@@ -69,7 +69,7 @@ button:focus-visible {
 }
 
 [data-bs-theme="light"] {
-  --bs-body-bg: #f8f9fa;
+  --bs-body-bg: rgba(255, 255, 255, 0.3);
   --bs-body-color: #212529;
   --bs-border-color: #dee2e6;
   --bs-secondary-bg: #ffffff;
