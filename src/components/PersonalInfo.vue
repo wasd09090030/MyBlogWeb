@@ -15,15 +15,6 @@
         </div>
       </div>
       
-      <!-- 实时时钟 -->
-      <div class="live-clock animate__animated animate__fadeInUp animate__delay-1.5s">
-        <div class="clock-display">
-          <i class="bi bi-clock me-2"></i>
-          {{ currentTime }}
-        </div>
-        <div class="date-display">{{ currentDate }}</div>
-      </div>
-
       <!-- 名言名句展示 -->
       <div class="quote-section animate__animated animate__fadeInUp animate__delay-2s">
         <div class="quote-container" @click="refreshQuote">
@@ -71,15 +62,6 @@
           </div>
         </div>
         
-        <!-- 移动端也包含同样的功能 -->
-        <div class="live-clock">
-          <div class="clock-display">
-            <i class="bi bi-clock me-2"></i>
-            {{ currentTime }}
-          </div>
-          <div class="date-display">{{ currentDate }}</div>
-        </div>
-
         <!-- 移动端名言名句 -->
         <div class="quote-section">
           <div class="quote-container" @click="refreshQuote">
@@ -123,8 +105,6 @@ import { useRouter } from 'vue-router';
 const router = useRouter();
 const isCollapsed = ref(true);
 const avatarClicked = ref(false);
-const currentTime = ref('');
-const currentDate = ref('');
 const currentStatus = ref('在线中');
 const statusClass = ref('status-online');
 const currentQuote = ref({ text: '', author: '' });
@@ -209,23 +189,6 @@ const animateSkill = (skill) => {
     skill.level = originalLevel;  }, 100);
 };
 
-// 更新时间
-const updateTime = () => {
-  const now = new Date();
-  currentTime.value = now.toLocaleTimeString('zh-CN', { 
-    hour12: false,
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit'
-  });
-  currentDate.value = now.toLocaleDateString('zh-CN', { 
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    weekday: 'long'
-  });
-};
-
 // 更新状态
 const updateStatus = () => {
   const hour = new Date().getHours();
@@ -261,11 +224,9 @@ onMounted(() => {
     isCollapsed.value = savedState === 'collapsed';
   }
   
-  // 开始时间更新
-  updateTime();
+  // 开始状态和名言更新
   updateStatus();
   refreshQuote(); // 初始化名言
-  setInterval(updateTime, 1000);
   setInterval(updateStatus, 60000); // 每分钟检查状态
   setInterval(refreshQuote, 300000); // 每5分钟自动更换名言
 });
@@ -441,28 +402,6 @@ onBeforeUnmount(() => {
   font-size: 0.85rem;
   color: var(--bs-text-muted);
   font-weight: 500;
-}
-
-/* 实时时钟样式 */
-.live-clock {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border-radius: 12px;
-  padding: 1rem;
-  margin: 1.5rem 0;
-  text-align: center;
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-}
-
-.clock-display {
-  font-size: 1.2rem;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-}
-
-.date-display {
-  font-size: 0.85rem;
-  opacity: 0.9;
 }
 
 /* 名言名句样式 */

@@ -255,7 +255,7 @@ onUnmounted(() => {
   width: 40vw; /* 大屏幕40%屏幕宽度 */
   height: 100%;
   cursor: pointer;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
   opacity: 1; /* 所有幻灯片都保持完全不透明 */
 }
 
@@ -272,7 +272,7 @@ onUnmounted(() => {
   position: relative;
   overflow: hidden;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .carousel-slide.active .slide-card {
@@ -289,7 +289,7 @@ onUnmounted(() => {
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  transition: transform 0.6s ease;
+  transition: transform 0.8s ease;
 }
 
 .carousel-slide:hover .slide-background {
@@ -388,7 +388,7 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
 }

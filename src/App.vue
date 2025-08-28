@@ -271,11 +271,33 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-/* 全局body背景 - 与App内容形成对比 */
+/* 自定义鼠标指针样式 */
 :global(body) {
+  cursor: url('./pointer/default.cur'), auto;
   background: linear-gradient(135deg, #667eea 0%, #69686b 100%);
   min-height: 100vh;
   transition: background 0.3s ease;
+}
+
+/* 可点击元素使用指针样式 */
+:global(a), 
+:global(button), 
+:global(.btn), 
+:global([role="button"]), 
+:global(input[type="button"]), 
+:global(input[type="submit"]), 
+:global(input[type="reset"]), 
+:global(.nav-link), 
+:global(.dropdown-item), 
+:global(.navbar-brand), 
+:global(.contact-icon), 
+:global(.avatar-container), 
+:global(.quote-container), 
+:global(.toggle-button), 
+:global(.skill-item), 
+:global([onclick]), 
+:global(.cursor-pointer) {
+  cursor: url('./pointer/pointer.cur'), pointer;
 }
 
 /* 暗色主题的body背景 */
