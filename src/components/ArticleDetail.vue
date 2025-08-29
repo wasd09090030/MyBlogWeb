@@ -225,7 +225,7 @@ onMounted(() => {
 /* 文章内容样式 - 基于 GitHub Markdown */
 .article-content-html {
   line-height: 1.6;
-  font-size: 16px;
+  font-size: 18px !important;
   color: #24292f;
   transition: color 0.3s ease;
 }
@@ -237,7 +237,9 @@ onMounted(() => {
   max-width: none;
   margin: 0;
   padding: 0;
-  font-family: -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans",Helvetica,Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji";
+  font-family: -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans",Helvetica,Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji" !important;
+  font-size: 18px !important;
+  line-height: 1.5;
   background-color: transparent;
 }
 
@@ -254,24 +256,38 @@ onMounted(() => {
 }
 
 .article-content-html.markdown-body h1 {
-  font-size: 2em;
+  font-size: 2.1em !important;
   border-bottom: 1px solid #d0d7de;
   padding-bottom: .3em;
 }
 
 .article-content-html.markdown-body h2 {
-  font-size: 1.5em;
+  font-size: 1.6em !important;
   border-bottom: 1px solid #d0d7de;
   padding-bottom: .3em;
 }
 
 .article-content-html.markdown-body h3 {
-  font-size: 1.25em;
+  font-size: 1.4em !important;
+}
+
+.article-content-html.markdown-body h4 {
+  font-size: 1.2em !important;
+}
+
+.article-content-html.markdown-body h5 {
+  font-size: 1.05em !important;
+}
+
+.article-content-html.markdown-body h6 {
+  font-size: 1em !important;
+  color: #656d76;
 }
 
 .article-content-html.markdown-body p {
   margin-top: 0;
-  margin-bottom: 16px;
+  margin-bottom: 18px;
+  font-size: 19.2px !important;
 }
 
 .article-content-html.markdown-body blockquote {
@@ -279,12 +295,13 @@ onMounted(() => {
   padding: 0 1em;
   color: #656d76;
   border-left: .25em solid #d0d7de;
+  font-size: 19.2px !important;
 }
 
 .article-content-html.markdown-body code {
   padding: .2em .4em;
   margin: 0;
-  font-size: 85%;
+  font-size: 16px !important;
   background-color: rgba(175,184,193,0.2);
   border-radius: 6px;
   font-family: ui-monospace,SFMono-Regular,"SF Mono",Consolas,"Liberation Mono",Menlo,monospace;
@@ -293,7 +310,7 @@ onMounted(() => {
 .article-content-html.markdown-body pre {
   padding: 16px;
   overflow: auto;
-  font-size: 85%;
+  font-size: 16px !important;
   line-height: 1.45;
   background-color: #f6f8fa;
   border-radius: 6px;
@@ -325,6 +342,7 @@ onMounted(() => {
 .article-content-html.markdown-body table td {
   padding: 6px 13px;
   border: 1px solid #d0d7de;
+  font-size: 18px !important;
 }
 
 .article-content-html.markdown-body table th {
@@ -341,10 +359,12 @@ onMounted(() => {
   margin-top: 0;
   margin-bottom: 16px;
   padding-left: 2em;
+  font-size: 19.2px !important;
 }
 
 .article-content-html.markdown-body li {
   margin: 0.25em 0;
+  font-size: 19.2px !important;
 }
 
 .article-content-html.markdown-body a {
@@ -396,6 +416,7 @@ onMounted(() => {
 
 [data-bs-theme="dark"] .article-content-html {
   color: #c9d1d9;
+  font-size: 19.2px !important;
 }
 
 [data-bs-theme="dark"] .article-content-html.markdown-body h1,
@@ -416,31 +437,37 @@ onMounted(() => {
 
 [data-bs-theme="dark"] .article-content-html.markdown-body p {
   color: #c9d1d9;
+  font-size: 19.2px !important;
 }
 
 [data-bs-theme="dark"] .article-content-html.markdown-body blockquote {
   color: #8b949e;
   border-left-color: #3d444d;
+  font-size: 19.2px !important;
 }
 
 [data-bs-theme="dark"] .article-content-html.markdown-body code {
   background-color: rgba(110,118,129,0.4);
   color: #e6edf3;
+  font-size: 16px !important;
 }
 
 [data-bs-theme="dark"] .article-content-html.markdown-body pre {
   background-color: #161b22;
   color: #e6edf3;
+  font-size: 16px !important;
 }
 
 [data-bs-theme="dark"] .article-content-html.markdown-body pre code {
   background-color: transparent;
   color: #e6edf3;
+  font-size: 16px !important;
 }
 
 [data-bs-theme="dark"] .article-content-html.markdown-body table th,
 [data-bs-theme="dark"] .article-content-html.markdown-body table td {
   border-color: #30363d;
+  font-size: 18px !important;
 }
 
 [data-bs-theme="dark"] .article-content-html.markdown-body table th {
@@ -450,6 +477,15 @@ onMounted(() => {
 
 [data-bs-theme="dark"] .article-content-html.markdown-body table tr:nth-child(2n) {
   background-color: #161b22;
+}
+
+[data-bs-theme="dark"] .article-content-html.markdown-body ul,
+[data-bs-theme="dark"] .article-content-html.markdown-body ol {
+  font-size: 19.2px !important;
+}
+
+[data-bs-theme="dark"] .article-content-html.markdown-body li {
+  font-size: 19.2px !important;
 }
 
 [data-bs-theme="dark"] .article-content-html.markdown-body a {

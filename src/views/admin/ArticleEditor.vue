@@ -90,9 +90,26 @@
               code-theme="github"
               language="zh-CN"
               @onChange="handleContentChange"
+              @onSave="handleSave"
+              @onUploadImg="handleUploadImg"
               :previewCssText="githubMarkdownCss"
               :htmlCopyable="true"
               :mdPreviewClass="'markdown-body'"
+              :scrollAuto="true"
+              :autoFocus="true"
+              :autoDetectCode="true"
+              :noPrettier="false"
+              :tabSize="2"
+              :tableShape="[6, 4]"
+              :showCodeRowNumber="true"
+              :previewOnly="false"
+              :editorId="'article-editor'"
+              :noMermaid="false"
+              :noKatex="false"
+              :sanitize="sanitizeHtml"
+              :maxLength="100000"
+              :autoSave="true"
+              :placeholder="'请输入文章内容...支持 Markdown 语法'"
               required
             />
           </div>
@@ -142,19 +159,69 @@ config({
           link: '链接',
           image: '图片',
           table: '表格',
-          mermaid: 'Mermaid图',
-          katex: 'Katex公式',
+          mermaid: 'Mermaid图表',
+          katex: 'KaTeX数学公式',
           revoke: '撤销',
           next: '重做',
           save: '保存',
-          prettier: '美化',
-          pageFullscreen: '浏览器全屏',
-          fullscreen: '全屏',
-          catalog: '目录',
-          preview: '预览',
-          htmlPreview: 'HTML预览',
+          prettier: '美化代码',
+          pageFullscreen: '页面全屏',
+          fullscreen: '编辑器全屏',
+          catalog: '目录导航',
+          preview: '预览模式',
+          htmlPreview: 'HTML源码预览',
           github: 'GitHub',
-          help: '帮助'
+          help: '帮助文档'
+        },
+        titleItem: {
+          h1: '一级标题',
+          h2: '二级标题',
+          h3: '三级标题',
+          h4: '四级标题',
+          h5: '五级标题',
+          h6: '六级标题'
+        },
+        imgTitleItem: {
+          link: '添加链接',
+          upload: '上传图片',
+          clip2upload: '剪贴板上传'
+        },
+        linkModalTips: {
+          linkTitle: '添加链接',
+          imageTitle: '添加图片',
+          descLabel: '链接描述：',
+          descLabelPlaceHolder: '请输入描述...',
+          urlLabel: '链接地址：',
+          urlLabelPlaceHolder: '请输入链接地址...',
+          buttonOK: '确定',
+          buttonCancel: '取消'
+        },
+        clipModalTips: {
+          title: '剪贴板图片上传',
+          buttonUpload: '上传'
+        },
+        copyCode: {
+          text: '复制代码',
+          successTips: '已复制！',
+          failTips: '复制失败！'
+        },
+        mermaid: {
+          flow: '流程图',
+          sequence: '时序图',
+          gantt: '甘特图',
+          class: '类图',
+          state: '状态图',
+          pie: '饼图',
+          relationship: '关系图',
+          journey: '旅程图'
+        },
+        katex: {
+          inline: '行内公式',
+          block: '块级公式'
+        },
+        footer: {
+          markdownTotal: '字数',
+          scrollAuto: '同步滚动'
         }
       }
     }
@@ -186,8 +253,8 @@ const githubMarkdownCss = `
     margin: 0 auto;
     padding: 45px;
     font-family: -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans",Helvetica,Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji";
-    font-size: 16px;
-    line-height: 1.5;
+    font-size: 19.2px; /* 16px * 1.2 */
+    line-height: 1.6;
     color: #24292f;
     background-color: #ffffff;
   }
@@ -198,69 +265,73 @@ const githubMarkdownCss = `
   .markdown-body h4,
   .markdown-body h5,
   .markdown-body h6 {
-    margin-top: 24px;
-    margin-bottom: 16px;
+    margin-top: 28px;
+    margin-bottom: 18px;
     font-weight: 600;
-    line-height: 1.25;
+    line-height: 1.3;
   }
   
   .markdown-body h1 {
-    font-size: 2em;
+    font-size: 2.4em; /* 增大标题 */
     border-bottom: 1px solid #d0d7de;
-    padding-bottom: .3em;
+    padding-bottom: .4em;
   }
   
   .markdown-body h2 {
-    font-size: 1.5em;
+    font-size: 1.8em; /* 增大标题 */
     border-bottom: 1px solid #d0d7de;
-    padding-bottom: .3em;
+    padding-bottom: .4em;
   }
   
   .markdown-body h3 {
-    font-size: 1.25em;
+    font-size: 1.5em; /* 增大标题 */
   }
   
   .markdown-body h4 {
-    font-size: 1em;
+    font-size: 1.2em; /* 增大标题 */
   }
   
   .markdown-body h5 {
-    font-size: .875em;
+    font-size: 1.05em; /* 增大标题 */
   }
   
   .markdown-body h6 {
-    font-size: .85em;
+    font-size: 1em; /* 增大标题 */
     color: #656d76;
   }
   
   .markdown-body p {
     margin-top: 0;
-    margin-bottom: 16px;
+    margin-bottom: 18px; /* 增加段落间距 */
+    font-size: 19.2px; /* 确保正文大小 */
+    line-height: 1.6;
   }
   
   .markdown-body blockquote {
     margin: 0;
-    padding: 0 1em;
+    padding: 0 1.2em; /* 增加引用内边距 */
     color: #656d76;
-    border-left: .25em solid #d0d7de;
+    border-left: .3em solid #d0d7de; /* 增粗引用线 */
+    font-size: 18px; /* 引用字体稍小 */
+    line-height: 1.5;
   }
   
   .markdown-body code {
-    padding: .2em .4em;
+    padding: .3em .5em; /* 增加代码内边距 */
     margin: 0;
-    font-size: 85%;
+    font-size: 16px; /* 代码字体稍小但保持可读性 */
     background-color: rgba(175,184,193,0.2);
     border-radius: 6px;
     font-family: ui-monospace,SFMono-Regular,"SF Mono",Consolas,"Liberation Mono",Menlo,monospace;
   }
   
   .markdown-body pre {
-    padding: 16px;
+    padding: 20px; /* 增加代码块内边距 */
     overflow: auto;
-    font-size: 85%;
-    line-height: 1.45;
+    font-size: 16px; /* 代码块字体大小 */
+    line-height: 1.5;
     background-color: #f6f8fa;
-    border-radius: 6px;
+    border-radius: 8px; /* 增大圆角 */
   }
   
   .markdown-body pre code {
@@ -272,6 +343,7 @@ const githubMarkdownCss = `
     overflow: visible;
     padding: 0;
     word-wrap: normal;
+    font-size: 16px; /* 保持代码字体大小 */
   }
   
   .markdown-body table {
@@ -281,17 +353,19 @@ const githubMarkdownCss = `
     width: max-content;
     max-width: 100%;
     overflow: auto;
+    font-size: 18px; /* 表格字体 */
   }
   
   .markdown-body table th,
   .markdown-body table td {
-    padding: 6px 13px;
+    padding: 8px 16px; /* 增加表格单元格内边距 */
     border: 1px solid #d0d7de;
   }
   
   .markdown-body table th {
     font-weight: 600;
     background-color: #f6f8fa;
+    font-size: 18px; /* 表头字体 */
   }
   
   .markdown-body table tr:nth-child(2n) {
@@ -301,17 +375,20 @@ const githubMarkdownCss = `
   .markdown-body ul,
   .markdown-body ol {
     margin-top: 0;
-    margin-bottom: 16px;
-    padding-left: 2em;
+    margin-bottom: 18px; /* 增加列表间距 */
+    padding-left: 2.4em; /* 增加列表缩进 */
+    font-size: 19.2px; /* 列表字体大小 */
+    line-height: 1.6;
   }
   
   .markdown-body li {
-    margin: 0.25em 0;
+    margin: 0.4em 0; /* 增加列表项间距 */
   }
   
   .markdown-body a {
     color: #0969da;
     text-decoration: none;
+    font-size: inherit; /* 继承父元素字体大小 */
   }
   
   .markdown-body a:hover {
@@ -321,13 +398,13 @@ const githubMarkdownCss = `
   .markdown-body img {
     max-width: 100%;
     height: auto;
-    border-radius: 6px;
+    border-radius: 8px; /* 增大图片圆角 */
   }
   
   .markdown-body hr {
-    height: .25em;
+    height: .3em; /* 增粗分割线 */
     padding: 0;
-    margin: 24px 0;
+    margin: 28px 0; /* 增加分割线间距 */
     background-color: #d0d7de;
     border: 0;
   }
@@ -337,6 +414,8 @@ const githubMarkdownCss = `
     .markdown-body {
       color: #c9d1d9;
       background-color: #0d1117;
+      font-size: 19.2px; /* 保持大字体 */
+      line-height: 1.6;
     }
     
     .markdown-body h1,
@@ -351,14 +430,29 @@ const githubMarkdownCss = `
     .markdown-body blockquote {
       color: #8b949e;
       border-left-color: #3d444d;
+      font-size: 18px; /* 保持引用字体大小 */
     }
     
     .markdown-body code {
       background-color: rgba(110,118,129,0.4);
+      font-size: 16px; /* 保持代码字体大小 */
     }
     
     .markdown-body pre {
       background-color: #161b22;
+      font-size: 16px; /* 保持代码块字体大小 */
+    }
+    
+    .markdown-body pre code {
+      font-size: 16px; /* 保持代码字体大小 */
+    }
+    
+    .markdown-body table {
+      font-size: 18px; /* 保持表格字体大小 */
+    }
+    
+    .markdown-body table th {
+      font-size: 18px; /* 保持表头字体大小 */
     }
     
     .markdown-body table th,
@@ -374,6 +468,17 @@ const githubMarkdownCss = `
       background-color: #161b22;
     }
     
+    .markdown-body ul,
+    .markdown-body ol {
+      font-size: 19.2px; /* 保持列表字体大小 */
+      line-height: 1.6;
+    }
+    
+    .markdown-body p {
+      font-size: 19.2px; /* 保持正文字体大小 */
+      line-height: 1.6;
+    }
+    
     .markdown-body a {
       color: #58a6ff;
     }
@@ -384,12 +489,34 @@ const githubMarkdownCss = `
   }
 `;
 
-// 定义编辑器工具栏
+// 定义编辑器工具栏 - 完整配置
 const toolbars = [
-  'bold', 'italic', 'strikethrough', 'heading', 'quote', 
-  'code', 'link', 'image', 'table', 'list-ordered', 'list-unordered',
-  'check', 'line', 'revoke', 'next', 'save', 'prettier',
-  'preview', 'htmlPreview', 'fullscreen', 'pageFullscreen', 'catalog', 'help'
+  // 文本格式化
+  'bold', 'underline', 'italic', 'strikeThrough',
+  '-', // 分隔符
+  // 标题
+  'title', 'sub', 'sup',
+  '-',
+  // 引用和列表
+  'quote', 'unorderedList', 'orderedList', 'task',
+  '-',
+  // 代码
+  'codeRow', 'code',
+  '-',
+  // 链接和媒体
+  'link', 'image', 'table',
+  '-',
+  // 高级功能
+  'mermaid', 'katex',
+  '-',
+  // 操作
+  'revoke', 'next',
+  '-',
+  // 工具
+  'save', 'prettier',
+  '-',
+  // 视图
+  'pageFullscreen', 'fullscreen', 'preview', 'htmlPreview', 'catalog'
 ];
 
 // 转换Markdown为HTML的计算属性
@@ -400,6 +527,44 @@ const htmlPreview = computed(() => {
 // 处理编辑器内容变化
 const handleContentChange = (text) => {
   articleForm.value.contentMarkdown = text;
+};
+
+// 处理编辑器保存事件
+const handleSave = (text, html) => {
+  articleForm.value.contentMarkdown = text;
+  console.log('自动保存触发:', { textLength: text.length, htmlLength: html.length });
+};
+
+// 处理编辑器上传图片事件
+const handleUploadImg = async (files, callback) => {
+  try {
+    // 这里可以实现图片上传到服务器的逻辑
+    // 目前只是一个示例，实际需要根据后端API来实现
+    console.log('上传图片:', files);
+    
+    // 模拟上传成功，返回图片URL
+    // 实际项目中需要调用真实的上传API
+    const urls = files.map((file, index) => {
+      // 创建本地预览URL（仅用于演示）
+      return URL.createObjectURL(file);
+    });
+    
+    callback(urls);
+  } catch (error) {
+    console.error('图片上传失败:', error);
+    alert('图片上传失败，请稍后重试');
+  }
+};
+
+// HTML 内容净化函数（可选）
+const sanitizeHtml = (html) => {
+  // 基本的 HTML 净化，移除危险的标签和属性
+  return html
+    .replace(/<script[^>]*>.*?<\/script>/gi, '')
+    .replace(/<iframe[^>]*>.*?<\/iframe>/gi, '')
+    .replace(/on\w+\s*=\s*"[^"]*"/gi, '')
+    .replace(/on\w+\s*=\s*'[^']*'/gi, '')
+    .replace(/javascript:/gi, '');
 };
 
 // 验证图片URL是否有效
@@ -596,11 +761,29 @@ onMounted(() => {
 :deep(.md-editor-toolbar) {
   border-bottom: 1px solid #ced4da;
   background-color: #f8f9fa;
+  padding: 8px 16px;
+  flex-wrap: wrap;
+}
+
+:deep(.md-editor-toolbar-item) {
+  margin: 2px 1px;
+  transition: all 0.2s ease;
+}
+
+:deep(.md-editor-toolbar-item:hover) {
+  background-color: rgba(13, 110, 253, 0.1);
+  border-radius: 4px;
+}
+
+:deep(.md-editor-toolbar .toolbar-separator) {
+  margin: 0 4px;
+  border-left: 1px solid #dee2e6;
+  height: 20px;
 }
 
 :deep(.md-editor-preview) {
-  padding: 16px;
-  font-size: 16px;
+  padding: 20px; /* 增加内边距 */
+  font-size: 19.2px; /* 与正文保持一致 */
   line-height: 1.6;
   font-family: -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans",Helvetica,Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji";
 }
@@ -613,13 +796,79 @@ onMounted(() => {
 :deep(.md-editor-preview .markdown-body) {
   max-width: none;
   margin: 0;
-  padding: 16px;
+  padding: 20px; /* 增加内边距 */
+  font-size: 19.2px; /* 确保字体大小 */
+  line-height: 1.6;
 }
 
 :deep(.md-editor-input) {
   font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace !important;
-  font-size: 14px;
+  font-size: 16px; /* 编辑区字体稍小，便于编辑 */
   line-height: 1.6;
-  padding: 16px !important;
+  padding: 20px !important; /* 增加内边距 */
+}
+
+/* Mermaid 图表样式 */
+:deep(.md-editor-preview .mermaid) {
+  text-align: center;
+  margin: 16px 0;
+}
+
+/* KaTeX 数学公式样式 */
+:deep(.md-editor-preview .katex) {
+  font-size: 1.1em;
+}
+
+:deep(.md-editor-preview .katex-display) {
+  margin: 16px 0;
+  text-align: center;
+}
+
+/* 代码块样式增强 */
+:deep(.md-editor-preview pre) {
+  position: relative;
+  border-radius: 6px;
+  background-color: #f6f8fa;
+}
+
+:deep(.md-editor-preview pre code) {
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+}
+
+/* 表格样式增强 */
+:deep(.md-editor-preview table) {
+  margin: 16px 0;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+/* 任务列表样式 */
+:deep(.md-editor-preview .task-list-item) {
+  list-style: none;
+  margin: 4px 0;
+}
+
+:deep(.md-editor-preview .task-list-item input[type="checkbox"]) {
+  margin-right: 8px;
+}
+
+/* 引用块样式增强 */
+:deep(.md-editor-preview blockquote) {
+  border-left: 4px solid #0969da;
+  background-color: rgba(9, 105, 218, 0.05);
+  border-radius: 0 6px 6px 0;
+  margin: 16px 0;
+}
+
+/* 链接样式增强 */
+:deep(.md-editor-preview a) {
+  position: relative;
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: all 0.2s ease;
+}
+
+:deep(.md-editor-preview a:hover) {
+  border-bottom-color: #0969da;
 }
 </style>
