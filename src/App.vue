@@ -1,5 +1,8 @@
 <template>
   <div id="app" :class="['min-vh-100', isDarkMode ? 'dark-theme' : 'light-theme']">
+    <!-- 落樱效果 -->
+    <SakuraFalling />
+    
     <!-- 导航栏 -->
     <nav :class="['navbar navbar-expand-lg transition-all', isDarkMode ? 'navbar-dark' : 'navbar-light', navbarClass, navbarAnimationClass]" ref="navbar">
       <div class="container-fluid d-flex align-items-center">
@@ -116,6 +119,7 @@ import SearchBar from './components/SearchBar.vue';
 import WelcomeSection from './components/WelcomeSection.vue';
 import PersonalInfo from './components/PersonalInfo.vue';
 import MusicPlayer from './components/MusicPlayer.vue';
+import SakuraFalling from './components/SakuraFalling.vue';
 import { useKeepAliveManager } from './utils/keepAliveManager.js';
 
 const router = useRouter();
