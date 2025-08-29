@@ -22,7 +22,12 @@
     <div v-else-if="galleries.length > 0" class="gallery-sections">
       
       <!-- 第一部分：手风琴横向展示 -->
-      <section class="gallery-section mb-5">
+      <section class="gallery-sectio  .accordion-gallery,
+  .coverflow-gallery,
+  .loop-gallery {
+    height: 300px;
+    padding: 20px 0;
+  }5">
         <h2 class="section-title">手风琴展示</h2>
         <div class="accordion-gallery" ref="accordionContainer">
           <div class="swiper-wrapper">
@@ -153,6 +158,12 @@ import { galleryService } from '../services/articleService.js'
 // 动态导入Swiper以避免SSR问题
 let Swiper, Navigation, Pagination, Autoplay, EffectCoverflow
 
+// 导入Swiper CSS
+import 'swiper/css';
+import 'swiper/css/navigation';
+import 'swiper/css/pagination';
+import 'swiper/css/effect-coverflow';
+
 export default {
   name: 'Gallery',
   setup() {
@@ -258,23 +269,35 @@ export default {
         effect: 'coverflow',
         grabCursor: true,
         centeredSlides: true,
-        slidesPerView: 'auto',
+        slidesPerView: 3,
         loop: true,
+        speed: 600,
         coverflowEffect: {
-          rotate: 50,
+          rotate: 30,
           stretch: 0,
           depth: 100,
           modifier: 1,
           slideShadows: true,
         },
         pagination: {
-          el: '.swiper-pagination',
+          el: '.coverflow-gallery .swiper-pagination',
           clickable: true,
         },
         navigation: {
-          nextEl: '.swiper-button-next',
-          prevEl: '.swiper-button-prev',
+          nextEl: '.coverflow-gallery .swiper-button-next',
+          prevEl: '.coverflow-gallery .swiper-button-prev',
         },
+        breakpoints: {
+          320: {
+            slidesPerView: 1,
+          },
+          768: {
+            slidesPerView: 2,
+          },
+          1024: {
+            slidesPerView: 3,
+          }
+        }
       })
     }
 
@@ -292,7 +315,7 @@ export default {
           disableOnInteraction: false,
         },
         pagination: {
-          el: '.swiper-pagination',
+          el: '.loop-gallery .swiper-pagination',
           clickable: true,
         },
       })
@@ -497,35 +520,33 @@ export default {
 
 /* 3D 覆盖流样式 */
 .coverflow-gallery {
-  height: 350px;
-  padding: 30px 0;
+  height: 400px;
+  padding: 50px 0;
   margin: 0 auto;
   max-width: 100%;
+  position: relative;
 }
 
 .coverflow-slide {
-  width: 300px !important;
-  height: 300px !important;
+  /* 让Swiper自己控制宽度和高度 */
+  background: transparent;
 }
 
 .coverflow-item {
   position: relative;
-  height: 100%;
+  width: 100%;
+  height: 300px;
   border-radius: 15px;
   overflow: hidden;
   cursor: pointer;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-  transition: transform 0.3s ease;
-}
-
-.coverflow-item:hover {
-  transform: translateY(-10px);
+  /* 移除自定义的变换和阴影，让Swiper处理 */
 }
 
 .coverflow-image {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  border-radius: 15px;
 }
 
 .coverflow-info {
@@ -537,6 +558,7 @@ export default {
   color: white;
   padding: 1rem;
   text-align: center;
+  border-radius: 0 0 15px 15px;
 }
 
 .coverflow-info h3 {
@@ -605,6 +627,37 @@ export default {
 .loop-content p {
   font-size: 1rem;
   opacity: 0.9;
+}
+
+/* Swiper自定义样式 */
+.coverflow-gallery .swiper-button-next,
+.coverflow-gallery .swiper-button-prev {
+  color: #667eea;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  margin-top: -20px;
+}
+
+.coverflow-gallery .swiper-button-next::after,
+.coverflow-gallery .swiper-button-prev::after {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.coverflow-gallery .swiper-pagination {
+  bottom: 10px !important;
+}
+
+.coverflow-gallery .swiper-pagination-bullet {
+  background: #667eea;
+  opacity: 0.7;
+}
+
+.coverflow-gallery .swiper-pagination-bullet-active {
+  background: #667eea;
+  opacity: 1;
 }
 
 /* 全屏模态框样式 */
