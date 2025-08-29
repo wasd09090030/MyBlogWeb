@@ -567,7 +567,7 @@ onUnmounted(() => {
   box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.1), 0 8px 32px rgba(0, 0, 0, 0.15);
   border-radius: 12px 12px 0 0;
   /* 大屏幕限制宽度为70% */
-  max-width: 75%;
+  max-width: 80%;
   margin-left: auto;
   margin-right: auto;
 }
