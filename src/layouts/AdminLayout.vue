@@ -31,6 +31,9 @@
           <router-link to="/admin/articles" class="nav-link" active-class="active">
             <i class="bi bi-file-text me-2"></i>文章管理
           </router-link>
+          <router-link to="/admin/gallery" class="nav-link" active-class="active">
+            <i class="bi bi-images me-2"></i>画廊管理
+          </router-link>
           <router-link to="/admin/comments" class="nav-link" active-class="active">
             <i class="bi bi-chat-left-text me-2"></i>评论管理
           </router-link>

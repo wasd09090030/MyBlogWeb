@@ -1,24 +1,13 @@
 <template>
   <div class="welcome-section">
     <!-- 左侧幻灯片轮播区域 -->
-    <div class="carousel-section" @mouseenter="stopAutoPlay" @mouseleave="startAutoPlay">
-      <div class="carousel-container">
-        <!-- 左侧导航按钮 -->
-        <button 
-          class="carousel-nav-btn carousel-nav-prev" 
-          @click="prevSlide"
-          aria-label="上一张"
-        >
-          <i class="bi bi-chevron-left"></i>
-        </button>
-
-        <!-- 幻灯片轨道 -->
-        <div class="carousel-track" ref="trackRef" :style="trackStyle">
+    <div class="carousel-section">
+      <div class="swiper-container" ref="swiperContainer">
+        <div class="swiper-wrapper">
           <div 
             v-for="(slide, index) in slides" 
-            :key="index"
-            class="carousel-slide"
-            :class="{ 'active': index === currentIndex }"
+            :key="`slide-${slide.id}-${index}`"
+            class="swiper-slide carousel-slide"
             @click="goToArticle(slide.id)"
           >
             <div class="slide-card">
@@ -31,19 +20,20 @@
                 <div class="slide-category">{{ getCategoryName(slide.category) }}</div>
                 <h3 class="slide-title">{{ slide.title }}</h3>
               </div>
-              <div class="active-indicator" v-if="index === currentIndex"></div>
             </div>
           </div>
         </div>
-
-        <!-- 右侧导航按钮 -->
-        <button 
-          class="carousel-nav-btn carousel-nav-next" 
-          @click="nextSlide"
-          aria-label="下一张"
-        >
+        
+        <!-- 导航按钮 -->
+        <div class="swiper-button-next carousel-nav-btn carousel-nav-next">
           <i class="bi bi-chevron-right"></i>
-        </button>
+        </div>
+        <div class="swiper-button-prev carousel-nav-btn carousel-nav-prev">
+          <i class="bi bi-chevron-left"></i>
+        </div>
+        
+        <!-- 分页器 -->
+        <div class="swiper-pagination"></div>
       </div>
     </div>
 
@@ -89,7 +79,7 @@
             </div>
             <div class="card-content">
               <h5 class="card-title">画廊</h5>
-              <p class="card-stats">即将开放</p>
+              <p class="card-stats">精美图片</p>
             </div>
             <div class="card-arrow">
               <i class="bi bi-arrow-right"></i>
@@ -102,36 +92,40 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, computed } from 'vue';
+import { ref, onMounted, onUnmounted, nextTick } from 'vue';
 import { useRouter } from 'vue-router';
 import articleService from '../services/articleService.js';
+// 动态导入Swiper CSS
+import 'swiper/css';
+import 'swiper/css/navigation';
+import 'swiper/css/pagination';
 
 const router = useRouter();
-const trackRef = ref(null);
+const swiperContainer = ref(null);
 
 // 响应式数据
 const slides = ref([]);
-const currentIndex = ref(0);
-const isTransitioning = ref(false);
 const articleCount = ref(0);
-let autoPlayInterval = null;
+let swiperInstance = null;
 
-// 轨道样式
-const trackStyle = computed(() => {
-  if (slides.value.length === 0) return {};
-  
-  // 左侧幻灯片区域每个幻灯片占满整个容器宽度
-  const slideWidth = 100; // 100% 宽度
-  const gap = 0; // 没有间距，因为每次只显示一个
-  
-  // 计算偏移量，显示当前幻灯片
-  const offset = `${-currentIndex.value * slideWidth}%`;
-  
-  return {
-    transform: `translateX(${offset})`,
-    transition: isTransitioning.value ? 'transform 0.8s cubic-bezier(0.55, 0.085, 0.68, 0.53)' : 'none'
-  };
-});
+// 动态导入Swiper
+let Swiper, Navigation, Pagination, Autoplay;
+
+const loadSwiper = async () => {
+  try {
+    const swiperModule = await import('swiper');
+    const modulesModule = await import('swiper/modules');
+    
+    Swiper = swiperModule.Swiper;
+    Navigation = modulesModule.Navigation;
+    Pagination = modulesModule.Pagination;
+    Autoplay = modulesModule.Autoplay;
+    
+    console.log('Swiper modules loaded successfully');
+  } catch (err) {
+    console.error('Failed to load Swiper:', err);
+  }
+};
 
 // 获取文章数据
 const fetchFeaturedArticles = async () => {
@@ -139,30 +133,16 @@ const fetchFeaturedArticles = async () => {
     const articles = await articleService.getArticles();
     articleCount.value = articles.length; // 设置文章总数
     
+    // 获取有封面图的文章，如果没有则使用默认图片
     const articlesWithCover = articles.filter(article => article.coverImage);
-    let originalSlides = [];
     if (articlesWithCover.length > 0) {
       const shuffled = articlesWithCover.sort(() => 0.5 - Math.random());
-      originalSlides = shuffled.slice(0, Math.min(5, shuffled.length));
+      slides.value = shuffled.slice(0, Math.min(5, shuffled.length));
     } else {
-      originalSlides = articles.slice(0, 3).map(article => ({
+      slides.value = articles.slice(0, 3).map(article => ({
         ...article,
         coverImage: '/src/assets/BlogPicture/background.webp'
       }));
-    }
-
-    if (originalSlides.length > 1) {
-      // 创建循环数组：[..., last, first, second, ..., last, first, ...]
-      const cloneCount = Math.ceil(5 / originalSlides.length) * originalSlides.length; // 确保足够多的克隆
-      const clonedSlides = [];
-      for (let i = 0; i < cloneCount * 3; i++) {
-        clonedSlides.push(originalSlides[i % originalSlides.length]);
-      }
-      slides.value = clonedSlides;
-      currentIndex.value = cloneCount; // 从中间的真实幻灯片开始
-    } else {
-      slides.value = originalSlides;
-      currentIndex.value = 0;
     }
   } catch (error) {
     console.error('获取推荐文章失败:', error);
@@ -176,54 +156,39 @@ const fetchFeaturedArticles = async () => {
   }
 };
 
-// 幻灯片导航
-const moveTo = (newIndex, direction) => {
-  if (isTransitioning.value || slides.value.length <= 1) return;
-
-  isTransitioning.value = true;
-  currentIndex.value = newIndex;
-
-  const transitionEndHandler = () => {
-    trackRef.value.removeEventListener('transitionend', transitionEndHandler);
-    
-    const originalLength = slides.value.length / 3;
-    let newCurrentIndex = currentIndex.value;
-
-    if (direction === 'next' && currentIndex.value >= originalLength * 2) {
-      newCurrentIndex = currentIndex.value - originalLength;
-    } else if (direction === 'prev' && currentIndex.value < originalLength) {
-      newCurrentIndex = currentIndex.value + originalLength;
-    }
-    
-    if (newCurrentIndex !== currentIndex.value) {
-      isTransitioning.value = false;
-      currentIndex.value = newCurrentIndex;
-    }
-    
-    // 确保在下一次渲染后才重新启用过渡
-    setTimeout(() => {
-      isTransitioning.value = false;
-    }, 50);
-  };
-
-  trackRef.value.addEventListener('transitionend', transitionEndHandler);
+// 初始化Swiper
+const initSwiper = async () => {
+  await loadSwiper();
+  await nextTick();
   
-  // Fallback in case transitionend doesn't fire
-  setTimeout(() => {
-    transitionEndHandler();
-  }, 850); // 略大于动画时间
+  if (swiperContainer.value && Swiper && slides.value.length > 0) {
+    swiperInstance = new Swiper(swiperContainer.value, {
+      modules: [Navigation, Pagination, Autoplay],
+      loop: true, // 启用循环模式
+      autoplay: {
+        delay: 4000,
+        disableOnInteraction: false,
+        pauseOnMouseEnter: true,
+      },
+      speed: 800,
+      effect: 'slide',
+      navigation: {
+        nextEl: '.swiper-button-next',
+        prevEl: '.swiper-button-prev',
+      },
+      pagination: {
+        el: '.swiper-pagination',
+        clickable: true,
+        dynamicBullets: true,
+      },
+      on: {
+        slideChange: function () {
+          console.log('Slide changed to:', this.realIndex);
+        }
+      }
+    });
+  }
 };
-
-const nextSlide = () => {
-  resetAutoPlay();
-  moveTo(currentIndex.value + 1, 'next');
-};
-
-const prevSlide = () => {
-  resetAutoPlay();
-  moveTo(currentIndex.value - 1, 'prev');
-};
-
 
 // 跳转到文章详情
 const goToArticle = (articleId) => {
@@ -274,41 +239,25 @@ const goToArticles = () => {
 };
 
 const goToGallery = () => {
-  // 目前画廊功能未实现，可以显示提示或跳转到计划页面
-  alert('画廊功能即将上线，敬请期待！');
+  router.push('/gallery');
 };
 
-// 自动播放
-const startAutoPlay = () => {
-  stopAutoPlay(); // 先停止，防止重复
-  autoPlayInterval = setInterval(() => {
-    if (slides.value.length > 1 && !isTransitioning.value) {
-      nextSlide();
-    }
-  }, 4000); // 每4秒切换
-};
-
-const stopAutoPlay = () => {
-  if (autoPlayInterval) {
-    clearInterval(autoPlayInterval);
-    autoPlayInterval = null;
+// 销毁Swiper实例
+const destroySwiper = () => {
+  if (swiperInstance) {
+    swiperInstance.destroy(true, true);
+    swiperInstance = null;
   }
 };
 
-const resetAutoPlay = () => {
-  stopAutoPlay();
-  startAutoPlay();
-};
-
 // 生命周期
-onMounted(() => {
-  fetchFeaturedArticles().then(() => {
-    startAutoPlay();
-  });
+onMounted(async () => {
+  await fetchFeaturedArticles();
+  await initSwiper();
 });
 
 onUnmounted(() => {
-  stopAutoPlay();
+  destroySwiper();
 });
 </script>
 
@@ -334,37 +283,23 @@ onUnmounted(() => {
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
 }
 
-.carousel-container {
-  position: relative;
+.swiper-container {
   width: 100%;
   height: 100%;
+  border-radius: 12px;
   overflow: hidden;
-  display: flex;
+}
+
+.swiper-wrapper {
   align-items: center;
 }
 
-/* 幻灯片轨道 */
-.carousel-track {
-  display: flex;
-  gap: 0; /* 移除间距，因为只显示一张 */
-  width: 100%;
-  height: 100%;
-  justify-content: flex-start;
-}
-
 /* 单个幻灯片 */
-.carousel-slide {
-  flex-shrink: 0;
+.swiper-slide.carousel-slide {
   width: 100%;
   height: 100%;
   cursor: pointer;
-  transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-  opacity: 1;
-}
-
-.carousel-slide.active {
-  opacity: 1;
-  z-index: 2;
+  transition: all 0.3s ease;
 }
 
 /* 卡片容器 */
@@ -374,10 +309,10 @@ onUnmounted(() => {
   border-radius: 12px;
   position: relative;
   overflow: hidden;
-  transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.3s ease;
 }
 
-.carousel-slide.active .slide-card {
+.swiper-slide:hover .slide-card {
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
 }
 
@@ -391,10 +326,10 @@ onUnmounted(() => {
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  transition: transform 0.8s ease;
+  transition: transform 0.3s ease;
 }
 
-.carousel-slide:hover .slide-background {
+.swiper-slide:hover .slide-background {
   transform: scale(1.05);
 }
 
@@ -448,70 +383,66 @@ onUnmounted(() => {
   overflow: hidden;
 }
 
-/* 活跃状态指示器 */
-.active-indicator {
-  position: absolute;
-  top: 12px; /* 调整位置 */
-  right: 12px;
-  width: 6px; /* 减小大小 */
-  height: 6px;
-  border-radius: 50%;
-  background-color: #00ff88;
-  box-shadow: 0 0 8px rgba(0, 255, 136, 0.6); /* 减小发光效果 */
-  z-index: 3;
-  animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-  0%, 100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.7;
-    transform: scale(1.2);
-  }
-}
-
 /* 导航按钮样式 */
 .carousel-nav-btn {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 40px; /* 减小按钮大小 */
-  height: 40px;
+  width: 40px !important;
+  height: 40px !important;
   border: none;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.9);
-  color: #333;
-  font-size: 1rem; /* 减小图标大小 */
+  border-radius: 50% !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+  color: #333 !important;
+  font-size: 1rem;
   cursor: pointer;
-  z-index: 10;
-  display: flex;
+  display: flex !important;
   align-items: center;
   justify-content: center;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
+  margin-top: 0 !important;
 }
 
 .carousel-nav-btn:hover {
-  background: rgba(255, 255, 255, 1);
-  transform: translateY(-50%) scale(1.1);
+  background: rgba(255, 255, 255, 1) !important;
+  transform: scale(1.1);
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
 }
 
 .carousel-nav-btn:active {
-  transform: translateY(-50%) scale(0.95);
+  transform: scale(0.95);
+}
+
+.carousel-nav-btn::after {
+  display: none;
 }
 
 .carousel-nav-prev {
-  left: 15px; /* 减少与边缘的距离 */
+  left: 15px !important;
 }
 
 .carousel-nav-next {
-  right: 15px;
+  right: 15px !important;
+}
+
+/* Swiper分页器样式 */
+:deep(.swiper-pagination) {
+  bottom: 15px !important;
+}
+
+:deep(.swiper-pagination-bullet) {
+  background: rgba(255, 255, 255, 0.5) !important;
+  opacity: 1 !important;
+  width: 8px;
+  height: 8px;
+  margin: 0 4px !important;
+  transition: all 0.3s ease;
+}
+
+:deep(.swiper-pagination-bullet-active) {
+  background: #fff !important;
+  transform: scale(1.3);
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
 }
 
 /* 右侧信息区域 */
@@ -821,17 +752,17 @@ onUnmounted(() => {
   }
   
   .carousel-nav-btn {
-    width: 35px;
-    height: 35px;
+    width: 35px !important;
+    height: 35px !important;
     font-size: 0.9rem;
   }
   
   .carousel-nav-prev {
-    left: 10px;
+    left: 10px !important;
   }
   
   .carousel-nav-next {
-    right: 10px;
+    right: 10px !important;
   }
   
   .slide-content {
@@ -879,17 +810,17 @@ onUnmounted(() => {
   }
   
   .carousel-nav-btn {
-    width: 30px;
-    height: 30px;
+    width: 30px !important;
+    height: 30px !important;
     font-size: 0.8rem;
   }
   
   .carousel-nav-prev {
-    left: 8px;
+    left: 8px !important;
   }
   
   .carousel-nav-next {
-    right: 8px;
+    right: 8px !important;
   }
 }
 
@@ -940,12 +871,20 @@ onUnmounted(() => {
 }
 
 [data-bs-theme="dark"] .carousel-nav-btn {
-  background: rgba(26, 26, 26, 0.9);
-  color: #ffffff;
+  background: rgba(26, 26, 26, 0.9) !important;
+  color: #ffffff !important;
 }
 
 [data-bs-theme="dark"] .carousel-nav-btn:hover {
-  background: rgba(26, 26, 26, 1);
+  background: rgba(26, 26, 26, 1) !important;
+}
+
+[data-bs-theme="dark"] :deep(.swiper-pagination-bullet) {
+  background: rgba(255, 255, 255, 0.3) !important;
+}
+
+[data-bs-theme="dark"] :deep(.swiper-pagination-bullet-active) {
+  background: #fff !important;
 }
 
 [data-bs-theme="dark"] .slide-card {

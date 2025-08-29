@@ -5,6 +5,7 @@
       <div class="container-fluid d-flex align-items-center">
         <router-link to="/" class="navbar-brand">WyrmKk</router-link>
         <router-link to="/" class="nav-link" active-class="active">首页</router-link>
+        <router-link to="/gallery" class="nav-link" active-class="active">画廊</router-link>
         
         <!-- 搜索栏 - 真正居中显示 -->
         <div class="navbar-search-center d-none d-lg-flex">
@@ -56,7 +57,7 @@
       <div class="container-fluid">
         <div class="row">
           <!-- 文章内容区域 -->
-          <div class="col-12 col-lg-8 col-xl-9" :class="{ 'col-lg-12 col-xl-12': isAdminRoute }">
+          <div class="col-12 col-lg-8 col-xl-9" :class="{ 'col-lg-12 col-xl-12': isAdminRoute || isGalleryRoute }">
             <main>
               <!-- 使用 Vue Router 4 推荐的 slot props 语法 -->
               <router-view v-slot="{ Component, route }">
@@ -68,7 +69,7 @@
           </div>
           
           <!-- 侧边栏个人信息 - 大屏显示 -->
-          <div class="col-lg-4 col-xl-3 d-none d-lg-block sidebar-animate" v-if="!isAdminRoute">
+          <div class="col-lg-4 col-xl-3 d-none d-lg-block sidebar-animate" v-if="!isAdminRoute && !isGalleryRoute">
             <div class="sidebar-content">
               <PersonalInfo />
                 <div class="mobile-music-player-container">
@@ -82,7 +83,7 @@
     </div>
     
     <!-- Footer 底部信息 -->
-    <footer class="blog-footer" v-if="!isAdminRoute">
+    <footer class="blog-footer" v-if="!isAdminRoute && !isGalleryRoute">
       <div class="footer-content">
         <!-- 底部版权 -->
         <div class="footer-copyright">
@@ -97,7 +98,7 @@
     </footer>
     
     <!-- 移动端个人信息按钮 -->
-    <div class="mobile-personal-info d-lg-none" v-if="!isAdminRoute">
+    <div class="mobile-personal-info d-lg-none" v-if="!isAdminRoute && !isGalleryRoute">
       <PersonalInfo />
     </div>
 
@@ -139,6 +140,11 @@ const isAdminRoute = computed(() => {
 const shouldShowWelcomeSection = computed(() => {
   // 只在文章列表页（首页）显示，在文章详情页和admin页面不显示
   return route.name === 'ArticleList';
+});
+
+// 判断是否为画廊页面
+const isGalleryRoute = computed(() => {
+  return route.name === 'Gallery';
 });
 
 // 导航栏样式类

@@ -26,6 +26,13 @@ export const API_CONFIG = {
     // 点赞相关
     LIKES_STATUS: (articleId) => `/likes/article/${articleId}/status`,
     LIKES_TOGGLE: (articleId) => `/likes/article/${articleId}`,
+    
+    // 画廊相关
+    GALLERY: '/gallery',
+    GALLERY_ADMIN: '/gallery/admin',
+    GALLERY_BY_ID: (id) => `/gallery/${id}`,
+    GALLERY_TOGGLE_ACTIVE: (id) => `/gallery/${id}/toggle-active`,
+    GALLERY_SORT_ORDER: '/gallery/batch/sort-order',
   }
 };
 

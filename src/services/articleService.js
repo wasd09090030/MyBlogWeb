@@ -98,4 +98,95 @@ class ArticleService {
   }
 }
 
+// Gallery服务类
+class GalleryService {
+  constructor() {
+    // 使用配置文件中的API地址
+    this.baseURL = API_CONFIG.BASE_URL;
+    
+    // 创建 axios 实例
+    this.api = axios.create({
+      baseURL: this.baseURL,
+      timeout: API_CONFIG.TIMEOUT
+    });
+  }
+
+  // 获取所有激活的画廊图片 (公开接口)
+  async getGalleries() {
+    try {
+      const response = await this.api.get('/gallery');
+      return response.data;
+    } catch (error) {
+      console.error('获取画廊数据失败:', error);
+      throw error;
+    }
+  }
+
+  // 获取所有画廊图片 (管理员接口)
+  async getAllGalleries() {
+    try {
+      const response = await this.api.get('/gallery/admin', {
+        headers: {
+          'Authorization': this.getAuthHeader()
+        }
+      });
+      return response.data;
+    } catch (error) {
+      console.error('获取所有画廊数据失败:', error);
+      throw error;
+    }
+  }
+
+  // 创建画廊图片
+  async createGallery(galleryData) {
+    try {
+      const response = await this.api.post('/gallery', galleryData, {
+        headers: {
+          'Authorization': this.getAuthHeader()
+        }
+      });
+      return response.data;
+    } catch (error) {
+      console.error('创建画廊图片失败:', error);
+      throw error;
+    }
+  }
+
+  // 更新画廊图片
+  async updateGallery(id, galleryData) {
+    try {
+      const response = await this.api.patch(`/gallery/${id}`, galleryData, {
+        headers: {
+          'Authorization': this.getAuthHeader()
+        }
+      });
+      return response.data;
+    } catch (error) {
+      console.error('更新画廊图片失败:', error);
+      throw error;
+    }
+  }
+
+  // 删除画廊图片
+  async deleteGallery(id) {
+    try {
+      const response = await this.api.delete(`/gallery/${id}`, {
+        headers: {
+          'Authorization': this.getAuthHeader()
+        }
+      });
+      return response.data;
+    } catch (error) {
+      console.error('删除画廊图片失败:', error);
+      throw error;
+    }
+  }
+
+  // 获取授权头
+  getAuthHeader() {
+    return localStorage.getItem('isAuthenticated') === 'true' ? 'AdminToken' : '';
+  }
+}
+
 export default new ArticleService();
+export const galleryService = new GalleryService();

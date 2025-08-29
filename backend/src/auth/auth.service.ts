@@ -5,7 +5,10 @@ import * as path from 'path';
 
 @Injectable()
 export class AuthService {
-  private readonly adminPasswordFile = path.join(process.cwd(), 'admin-password.enc');
+  private readonly adminPasswordFile = path.join(
+    process.cwd(),
+    'admin-password.enc',
+  );
   private readonly defaultPassword = '86280630qq'; // 初始密码，仅用于首次设置
 
   constructor() {
@@ -29,7 +32,9 @@ export class AuthService {
    */
   private hashPassword(password: string): string {
     const salt = crypto.randomBytes(16).toString('hex');
-    const hash = crypto.pbkdf2Sync(password, salt, 10000, 64, 'sha256').toString('hex');
+    const hash = crypto
+      .pbkdf2Sync(password, salt, 10000, 64, 'sha256')
+      .toString('hex');
     return `${salt}:${hash}`;
   }
 
@@ -39,7 +44,9 @@ export class AuthService {
   private verifyPassword(password: string, storedHash: string): boolean {
     try {
       const [salt, hash] = storedHash.split(':');
-      const verifyHash = crypto.pbkdf2Sync(password, salt, 10000, 64, 'sha256').toString('hex');
+      const verifyHash = crypto
+        .pbkdf2Sync(password, salt, 10000, 64, 'sha256')
+        .toString('hex');
       return hash === verifyHash;
     } catch (error) {
       console.error('Error verifying password:', error);
@@ -65,7 +72,10 @@ export class AuthService {
   /**
    * 验证管理员登录
    */
-  async validateAdmin(username: string, password: string): Promise<{ success: boolean; message?: string }> {
+  validateAdmin(
+    username: string,
+    password: string,
+  ): { success: boolean; message?: string } {
     // 验证用户名
     if (username !== 'admin') {
       return { success: false, message: '用户名错误' };
@@ -89,9 +99,12 @@ export class AuthService {
   /**
    * 更改管理员密码
    */
-  async changePassword(currentPassword: string, newPassword: string): Promise<{ success: boolean; message?: string }> {
+  changePassword(
+    currentPassword: string,
+    newPassword: string,
+  ): { success: boolean; message?: string } {
     // 先验证当前密码
-    const validation = await this.validateAdmin('admin', currentPassword);
+    const validation = this.validateAdmin('admin', currentPassword);
     if (!validation.success) {
       return { success: false, message: '当前密码错误' };
     }

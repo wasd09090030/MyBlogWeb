@@ -2,6 +2,7 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import viteCompression from 'vite-plugin-compression'
 import { visualizer } from 'rollup-plugin-visualizer'
+import { resolve } from 'path'
 
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => ({
@@ -20,6 +21,14 @@ export default defineConfig(({ mode }) => ({
       brotliSize: true
     })
   ].filter(Boolean),
+  
+  // 路径别名配置
+  resolve: {
+    alias: {
+      '@': resolve(__dirname, 'src')
+    }
+  },
+  
   server: {
     port: 5174, 
   },

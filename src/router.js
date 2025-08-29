@@ -4,11 +4,13 @@ import { useAuthStore } from './stores/auth'
 // 使用动态导入实现路由级懒加载
 const ArticleList = () => import('./components/ArticleList.vue')
 const ArticleDetail = () => import('./components/ArticleDetail.vue')
+const Gallery = () => import('./components/Gallery.vue')
 const AdminLayout = () => import('./layouts/AdminLayout.vue')
 const AdminLogin = () => import('./views/admin/AdminLogin.vue')
 const AdminDashboard = () => import('./views/admin/AdminDashboard.vue')
 const ArticleManager = () => import('./views/admin/ArticleManager.vue')
 const ArticleEditor = () => import('./views/admin/ArticleEditor.vue')
+const GalleryManager = () => import('./views/admin/GalleryManager.vue')
 const PasswordChange = () => import('./views/admin/PasswordChange.vue')
 
 const routes = [
@@ -29,6 +31,14 @@ const routes = [
     props: true,
     meta: {
       title: '文章详情'
+    }
+  },
+  {
+    path: '/gallery',
+    name: 'Gallery',
+    component: Gallery,
+    meta: {
+      title: '图片画廊'
     }
   },
   
@@ -68,6 +78,11 @@ const routes = [
         path: 'comments',
         name: 'CommentManager',
         component: () => import('./views/admin/CommentManager.vue')
+      },
+      {
+        path: 'gallery',
+        name: 'GalleryManager',
+        component: GalleryManager
       },
       {
         path: 'password',

@@ -1,4 +1,10 @@
-import { Controller, Post, Body, HttpException, HttpStatus } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  HttpException,
+  HttpStatus,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto, ChangePasswordDto, AuthResponse } from './dto/auth.dto';
 
@@ -7,13 +13,13 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('login')
-  async login(@Body() loginDto: LoginDto): Promise<AuthResponse> {
+  login(@Body() loginDto: LoginDto): AuthResponse {
     try {
-      const result = await this.authService.validateAdmin(
+      const result = this.authService.validateAdmin(
         loginDto.username,
         loginDto.password,
       );
-      
+
       if (!result.success) {
         throw new HttpException(
           result.message || '登录失败',
@@ -26,7 +32,7 @@ export class AuthController {
       if (error instanceof HttpException) {
         throw error;
       }
-      
+
       throw new HttpException(
         '服务器内部错误',
         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -35,9 +41,9 @@ export class AuthController {
   }
 
   @Post('change-password')
-  async changePassword(@Body() changePasswordDto: ChangePasswordDto): Promise<AuthResponse> {
+  changePassword(@Body() changePasswordDto: ChangePasswordDto): AuthResponse {
     try {
-      const result = await this.authService.changePassword(
+      const result = this.authService.changePassword(
         changePasswordDto.currentPassword,
         changePasswordDto.newPassword,
       );
@@ -54,7 +60,7 @@ export class AuthController {
       if (error instanceof HttpException) {
         throw error;
       }
-      
+
       throw new HttpException(
         '服务器内部错误',
         HttpStatus.INTERNAL_SERVER_ERROR,
