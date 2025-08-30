@@ -58,27 +58,36 @@
         <!-- 第一部分：手风琴横向展示 -->
         <section class="gallery-section">
           <h2 class="section-title">立绘</h2>
-          <div class="accordion-gallery" ref="accordionContainer">
-            <div class="swiper-wrapper">
-              <div 
-                v-for="(gallery, index) in getGallerySlice(0, 5)" 
-                :key="`accordion-${gallery.id}`" 
-                class="swiper-slide accordion-slide"
-                :class="{ 'accordion-expanded': index === expandedAccordionIndex }"
-              >
+          <div class="accordion-container">
+            <div class="accordion-gallery" ref="accordionContainer">
+              <div class="swiper-wrapper">
                 <div 
-                  class="accordion-item"
-                  @click="openFullscreen(gallery)"
-                  @mouseenter="expandAccordion(index)"
-                  @mouseleave="resetAccordion"
+                  v-for="(gallery, index) in getGallerySlice(0, 5)" 
+                  :key="`accordion-${gallery.id}`" 
+                  class="swiper-slide accordion-slide"
+                  :class="{ 'accordion-expanded': index === expandedAccordionIndex }"
                 >
-                  <img 
-                    :src="gallery.imageUrl" 
-                    alt="画廊图片"
-                    class="accordion-image"
-                  />
+                  <div 
+                    class="accordion-item"
+                    @click="openFullscreen(gallery)"
+                    @mouseenter="expandAccordion(index)"
+                    @mouseleave="resetAccordion"
+                  >
+                    <img 
+                      :src="gallery.imageUrl" 
+                      alt="画廊图片"
+                      class="accordion-image"
+                    />
+                  </div>
                 </div>
               </div>
+            </div>
+            <div class="fixed-image-container">
+              <img 
+                :src="LinImage" 
+                alt="立绘图片"
+                class="fixed-side-image"
+              />
             </div>
           </div>
         </section>
@@ -152,6 +161,8 @@
 import { ref, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { galleryService } from '../services/articleService.js'
+// 导入静态图片
+import LinImage from '@/assets/Picture/LIN.webp'
 
 // 动态导入Swiper以避免SSR问题
 let Swiper, Navigation, Pagination, Autoplay, EffectCoverflow, EffectFade
@@ -397,6 +408,7 @@ export default {
       accordionContainer,
       coverflowContainer,
       loopContainer,
+      LinImage,
       getGallerySlice,
       openFullscreen,
       closeFullscreen,
@@ -457,23 +469,32 @@ export default {
   border-radius: 2px;
 }
 
+/* 手风琴容器样式 */
+.accordion-container {
+  display: flex;
+  gap: 2rem;
+  align-items: center;
+  height: 80vh;
+}
+
 /* 手风琴样式 */
 .accordion-gallery {
   height: 80vh;
   overflow: hidden;
-  margin: 0 auto;
-  max-width: 100%;
+  margin: 0;
+  flex: 1;
+  max-width: calc(100% - 300px); /* 为右侧图片预留空间 */
 }
 
 .accordion-slide {
-  width: 10vw !important;
+  width: 15% !important;
   transition: all 0.5s ease;
   cursor: pointer;
 }
 
 .accordion-slide:hover,
 .accordion-slide.accordion-expanded {
-  width: 35% !important;
+  width: 40% !important;
 }
 
 .accordion-item {
@@ -502,6 +523,30 @@ export default {
 }
 
 /* 移除不再需要的标题和描述样式 */
+
+/* 固定图片容器样式 */
+.fixed-image-container {
+  flex-shrink: 0;
+  width: 280px;
+  height: 80vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fixed-side-image {
+  width: 100%;
+  height: 80vh;
+  object-fit: cover;
+  border-radius: 15px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.fixed-side-image:hover {
+  transform: scale(1.02);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+}
 
 /* 3D 覆盖流样式 */
 .coverflow-gallery {
@@ -737,6 +782,27 @@ export default {
   
   .accordion-gallery,
   .coverflow-gallery {
+    height: 250px;
+  }
+  
+  /* 移动端手风琴容器调整 */
+  .accordion-container {
+    flex-direction: column;
+    height: auto;
+    gap: 1rem;
+  }
+  
+  .accordion-gallery {
+    max-width: 100%;
+    height: 250px;
+  }
+  
+  .fixed-image-container {
+    width: 100%;
+    height: 250px;
+  }
+  
+  .fixed-side-image {
     height: 250px;
   }
   
