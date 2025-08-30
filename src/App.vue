@@ -4,12 +4,26 @@
     <nav v-if="!isGalleryRoute" :class="['navbar navbar-expand-lg transition-all', isDarkMode ? 'navbar-dark' : 'navbar-light', navbarClass, navbarAnimationClass]" ref="navbar">
       <div class="container-fluid d-flex align-items-center">
         <router-link to="/" class="navbar-brand">WyrmKk</router-link>
-        <router-link to="/" class="nav-link" active-class="active">首页</router-link>
-        <router-link to="/gallery" class="nav-link" active-class="active">画廊</router-link>
         
-        <!-- 搜索按钮 - 居中显示 -->
-        <div class="navbar-search-center d-none d-lg-flex">
-          <SearchBar />
+        <!-- 中间导航项 - 居中显示 -->
+        <div class="navbar-nav-center d-none d-lg-flex">
+          <router-link to="/" class="nav-link" active-class="active">
+            <img src="./assets/icon/home.svg" alt="首页" class="nav-icon" />
+            首页
+          </router-link>
+          <div class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="categoryDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              分类
+            </a>
+            <ul class="dropdown-menu" aria-labelledby="categoryDropdown">
+              <li><a class="dropdown-item" href="#" @click="filterByCategory(null)">全部</a></li>
+              <li><a class="dropdown-item" href="#" @click="filterByCategory('study')">学习</a></li>
+              <li><a class="dropdown-item" href="#" @click="filterByCategory('game')">游戏</a></li>
+              <li><a class="dropdown-item" href="#" @click="filterByCategory('work')">个人作品</a></li>
+              <li><a class="dropdown-item" href="#" @click="filterByCategory('resource')">资源分享</a></li>
+            </ul>
+          </div>
+          <router-link to="/gallery" class="nav-link" active-class="active">画廊</router-link>
         </div>
         
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
@@ -17,30 +31,36 @@
         </button>
         
         <div class="collapse navbar-collapse" id="navbarNav">
-          <!-- 移动端搜索按钮 -->
-          <div class="d-lg-none my-3">
-            <SearchBar />
-          </div>
-          
-          <ul class="navbar-nav ms-auto align-items-center navbar-right-items">
-            <li class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="#" id="categoryDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+          <!-- 移动端导航项 -->
+          <div class="d-lg-none">
+            <router-link to="/" class="nav-link" active-class="active">
+              <img src="./assets/icon/home.svg" alt="首页" class="nav-icon" />
+              首页
+            </router-link>
+            <div class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" id="categoryDropdownMobile" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                 分类
               </a>
-              <ul class="dropdown-menu" aria-labelledby="categoryDropdown">
+              <ul class="dropdown-menu" aria-labelledby="categoryDropdownMobile">
                 <li><a class="dropdown-item" href="#" @click="filterByCategory(null)">全部</a></li>
                 <li><a class="dropdown-item" href="#" @click="filterByCategory('study')">学习</a></li>
                 <li><a class="dropdown-item" href="#" @click="filterByCategory('game')">游戏</a></li>
                 <li><a class="dropdown-item" href="#" @click="filterByCategory('work')">个人作品</a></li>
                 <li><a class="dropdown-item" href="#" @click="filterByCategory('resource')">资源分享</a></li>
               </ul>
-            </li>
-            <li class="nav-item">
-              <button class="btn btn-link nav-link border-0 bg-transparent theme-toggle-btn" @click="toggleDarkMode">
-                <i :class="isDarkMode ? 'bi bi-sun-fill' : 'bi bi-moon-fill'"></i>
-              </button>
-            </li>
-          </ul>
+            </div>
+            <router-link to="/gallery" class="nav-link" active-class="active">画廊</router-link>
+          </div>
+        </div>
+        
+        <!-- 右侧按钮组 -->
+        <div class="navbar-right-buttons">
+          <button class="btn btn-link nav-link border-0 bg-transparent theme-toggle-btn" @click="toggleDarkMode">
+            <i :class="isDarkMode ? 'bi bi-sun-fill' : 'bi bi-moon-fill'"></i>
+          </button>
+          <div class="search-btn-container">
+            <SearchBar />
+          </div>
         </div>
       </div>
     </nav>
@@ -280,7 +300,6 @@ onUnmounted(() => {
 /* 自定义鼠标指针样式 */
 :global(body) {
   cursor: url('./pointer/default.cur'), auto;
-  background: linear-gradient(135deg, #667eea 0%, #69686b 100%);
   min-height: 100vh;
   transition: background 0.3s ease;
 }
@@ -306,7 +325,7 @@ onUnmounted(() => {
   cursor: url('./pointer/pointer.cur'), pointer;
 }
 
-/* 暗色主题的body背景 */
+暗色主题的body背景
 :global(.dark-theme body) {
   background: linear-gradient(135deg, #a8a8c0 0%, #e5e5e7 100%)!important;
 }
@@ -441,25 +460,111 @@ onUnmounted(() => {
 }
 
 /* 搜索栏样式 */
-.navbar-search-center {
+.navbar-nav-center {
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
-  max-width: 400px;
-  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
 }
 
-.navbar-search {
-  max-width: 400px;
-  width: 100%;
-}
-
-/* 右侧导航项容器 - 距离右边界10% */
-.navbar-right-items {
-  margin-right: 10% !important;
+.navbar-nav-center .nav-link {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  font-weight: 400; 
+  padding: 0.5rem 0.8rem;
+  margin: 0 0.2rem;
+  position: relative;
+  font-size: 1.1rem;
+  border-radius: 4px; 
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+/* 中间导航项悬停效果 */
+.navbar-nav-center .nav-link:hover {
+    transform: translateY(-2px);
+    background-color: rgba(13, 110, 253, 0.1);
+    box-shadow: 0 4px 15px rgba(13, 110, 253, 0.2);
+}
+
+/* 中间导航项点击效果 */
+.navbar-nav-center .nav-link:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(13, 110, 253, 0.3);
+}
+
+/* 中间导航项底部滑动条效果 */
+.navbar-nav-center .nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    width: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #667eea, #764ba2);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transform: translateX(-50%);
+}
+
+.navbar-nav-center .nav-link:hover::after {
+    width: 80%;
+}
+
+/* 中间导航项活跃状态样式 */
+.navbar-nav-center .nav-link.active {
+    background-color: rgba(13, 110, 253, 0.15);
+    color: #0d6efd !important;
+    font-weight: 600;
+}
+
+.navbar-nav-center .nav-link.active::after {
+    width: 80%;
+    background: linear-gradient(90deg, #0d6efd, #6610f2);
+}
+
+.navbar-nav-center .nav-icon {
+  width: 20px;
+  height: 20px;
+  transition: all 0.3s ease;
+  filter: brightness(0) saturate(100%) invert(27%) sepia(51%) saturate(2878%) hue-rotate(346deg) brightness(104%) contrast(97%);
+}
+
+/* 悬停时图标颜色变化 */
+.navbar-nav-center .nav-link:hover .nav-icon {
+  filter: brightness(0) saturate(100%) invert(13%) sepia(100%) saturate(7426%) hue-rotate(233deg) brightness(103%) contrast(98%);
+  transform: scale(1.1);
+}
+
+/* 活跃状态图标颜色 */
+.navbar-nav-center .nav-link.active .nav-icon {
+  filter: brightness(0) saturate(100%) invert(13%) sepia(100%) saturate(7426%) hue-rotate(233deg) brightness(103%) contrast(98%);
+}
+
+/* 暗色主题下的图标颜色 */
+:global(.dark-theme) .navbar-nav-center .nav-icon {
+  filter: brightness(0) saturate(100%) invert(100%) sepia(0%) saturate(7500%) hue-rotate(109deg) brightness(119%) contrast(119%);
+}
+
+:global(.dark-theme) .navbar-nav-center .nav-link:hover .nav-icon,
+:global(.dark-theme) .navbar-nav-center .nav-link.active .nav-icon {
+  filter: brightness(0) saturate(100%) invert(26%) sepia(100%) saturate(2000%) hue-rotate(210deg) brightness(120%) contrast(120%);
+}
+
+/* 右侧按钮组样式 */
+.navbar-right-buttons {
+  margin-left: auto;
+  margin-right: 10%;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.search-btn-container {
+  display: flex;
+  align-items: center;
 }
 
 /* 主题切换按钮特殊样式 */
@@ -699,10 +804,17 @@ main {
 
 /* 响应式调整 */
 @media (max-width: 768px) {
-  .navbar-search-center {
+  .navbar-nav-center {
     position: static;
     transform: none;
-    max-width: 100%;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 1rem 0;
+  }
+  
+  .navbar-right-buttons {
+    margin-right: 5% !important;
+    gap: 0.3rem;
   }
   
   .navbar {
@@ -714,15 +826,10 @@ main {
     font-size: 1rem; /* 移动端更小的字体 */
   }
   
-  .navbar-nav .nav-link {
+  .navbar-nav .nav-link,
+  .navbar-nav-center .nav-link {
     padding: 0.4rem 0.6rem; /* 移动端更小的内边距 */
     font-size: 0.95rem; /* 移动端更小的字体 */
-  }
-  
-  /* 移动端右侧导航项调整 */
-  .navbar-right-items {
-    margin-right: 5% !important; /* 移动端减少右边距 */
-    gap: 0.3rem;
   }
   
   .theme-toggle-btn {
@@ -913,21 +1020,25 @@ main {
 }
 
 /* 暗色主题下的 nav-link 样式 */
-:global(.dark-theme) .navbar-nav .nav-link:hover {
+:global(.dark-theme) .navbar-nav .nav-link:hover,
+:global(.dark-theme) .navbar-nav-center .nav-link:hover {
   background-color: rgba(66, 153, 225, 0.15);
   box-shadow: 0 4px 15px rgba(66, 153, 225, 0.2);
 }
 
-:global(.dark-theme) .navbar-nav .nav-link::after {
+:global(.dark-theme) .navbar-nav .nav-link::after,
+:global(.dark-theme) .navbar-nav-center .nav-link::after {
   background: linear-gradient(90deg, #4299e1, #9f7aea);
 }
 
-:global(.dark-theme) .navbar-nav .nav-link.active {
+:global(.dark-theme) .navbar-nav .nav-link.active,
+:global(.dark-theme) .navbar-nav-center .nav-link.active {
   background-color: rgba(66, 153, 225, 0.2);
   color: #4299e1 !important;
 }
 
-:global(.dark-theme) .navbar-nav .nav-link.active::after {
+:global(.dark-theme) .navbar-nav .nav-link.active::after,
+:global(.dark-theme) .navbar-nav-center .nav-link.active::after {
   background: linear-gradient(90deg, #4299e1, #9f7aea);
 }
 

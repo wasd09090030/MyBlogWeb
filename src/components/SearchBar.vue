@@ -1,46 +1,50 @@
 <template>
   <div class="search-bar-container">
-    <!-- 搜索按钮 - 默认状态 -->
-    <button 
-      v-if="!isExpanded" 
-      class="search-toggle-btn"
-      @click="toggleSearchBar"
-      title="搜索文章"
-    >
-      <i class="bi bi-search"></i>
-    </button>
+    <!-- 搜索栏容器 -->
+    <div class="search-bar-wrapper" :class="{ 'expanded': isExpanded }">
+      <!-- 搜索按钮 -->
+      <button
+        class="search-toggle-btn"
+        @click="toggleSearchBar"
+        title="搜索文章"
+        ref="toggleBtn"
+      >
+        <i class="bi bi-search"></i>
+      </button>
 
-    <!-- 展开的搜索栏 -->
-    <div 
-      v-else 
-      class="search-bar-expanded" 
-      :class="{ 'animate-expand': isExpanded }"
-    >
-      <div class="input-group">
-        <input 
+      <!-- 输入框和按钮组 -->
+      <div class="input-section" :class="{ 'visible': isExpanded }">
+        <!-- 搜索输入框 -->
+        <input
           ref="searchInput"
-          type="text" 
-          class="form-control search-input" 
-          placeholder="搜索文章..." 
+          type="text"
+          class="search-input"
+          placeholder="搜索文章..."
           v-model="searchQuery"
           @keyup.enter="search"
           @keyup.esc="closeSearchBar"
           @blur="onBlur"
-        >
-        <button 
-          class="btn search-btn" 
-          type="button" 
-          @click="search"
-          :class="{ 'searching': isSearching }"
-        >
-          <i class="bi bi-search"></i>
-        </button>
-        <button 
-          class="btn close-btn" 
-          type="button" 
-          @click="closeSearchBar"
+        />
+
+        <!-- 清空按钮（有输入时显示） -->
+        <button
+          v-if="searchQuery && !isSearching"
+          class="btn clear-btn"
+          @click="clearInput"
+          title="清空"
         >
           <i class="bi bi-x"></i>
+        </button>
+
+        <!-- 搜索执行按钮 -->
+        <button
+          class="btn search-btn"
+          type="button"
+          @click="search"
+          :class="{ 'searching': isSearching }"
+          title="执行搜索"
+        >
+          <i class="bi" :class="isSearching ? 'bi-arrow-clockwise' : 'bi-search'"></i>
         </button>
       </div>
     </div>
@@ -56,15 +60,19 @@ const searchQuery = ref('');
 const isSearching = ref(false);
 const isExpanded = ref(false);
 const searchInput = ref(null);
+const toggleBtn = ref(null);
 
 // 切换搜索栏展开/收缩
 const toggleSearchBar = async () => {
+  console.log('Toggle search bar, current expanded:', isExpanded.value);
   isExpanded.value = !isExpanded.value;
-  
+
   if (isExpanded.value) {
-    // 展开后自动聚焦到输入框
     await nextTick();
+    console.log('Focusing input');
     searchInput.value?.focus();
+  } else {
+    searchQuery.value = '';
   }
 };
 
@@ -74,29 +82,40 @@ const closeSearchBar = () => {
   searchQuery.value = '';
 };
 
+// 清空输入
+const clearInput = (e) => {
+  searchQuery.value = '';
+  searchInput.value?.focus();
+  e.stopPropagation();
+};
+
 // 搜索方法
 const search = () => {
   if (searchQuery.value.trim()) {
     isSearching.value = true;
-    
+
+    // 模拟请求延迟
     setTimeout(() => {
-      // 跳转到搜索结果页面，携带搜索关键词
       router.push({
         name: 'ArticleList',
-        query: { search: searchQuery.value.trim() }
+        query: { search: searchQuery.value.trim() },
       });
       isSearching.value = false;
-      // 搜索后可以选择保持展开状态或关闭
-      // closeSearchBar(); // 取消注释这行可以在搜索后自动关闭
+      // 可选：搜索后自动收起
+      // closeSearchBar();
     }, 300);
   }
 };
 
-// 失焦事件处理 - 延迟关闭以便点击按钮
-const onBlur = () => {
-  // 短暂延迟以允许点击搜索或关闭按钮
+// 失焦处理：点击外部关闭
+const onBlur = (e) => {
+  // 延迟执行，确保点击事件先执行
   setTimeout(() => {
-    if (!document.activeElement?.closest('.search-bar-expanded')) {
+    const activeElement = document.activeElement;
+    const searchWrapper = e.target.closest('.search-bar-wrapper');
+    
+    // 如果焦点不在搜索栏内部，则关闭搜索栏
+    if (!activeElement?.closest('.search-bar-wrapper') && !searchWrapper?.contains(activeElement)) {
       closeSearchBar();
     }
   }, 150);
@@ -111,22 +130,45 @@ const onBlur = () => {
   justify-content: center;
 }
 
-/* 搜索切换按钮样式 */
+/* 搜索栏包装器 */
+.search-bar-wrapper {
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 25px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  min-width: 40px;
+  max-width: 40px;
+  height: 40px;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.search-bar-wrapper.expanded {
+  max-width: 300px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* 搜索切换按钮 */
 .search-toggle-btn {
   width: 40px;
   height: 40px;
   border: none;
   border-radius: 50%;
-  background: rgba(114, 177, 151, 0.1);
-  color: rgba(19, 18, 18, 0.8);
+  background: rgba(34, 28, 57, 0.05);
+  color: rgba(32, 24, 24, 0.8);
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.3s ease;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1.1rem;
-  backdrop-filter: blur(10px);
+  flex-shrink: 0;
   position: relative;
+  z-index: 2;
   overflow: hidden;
 }
 
@@ -138,167 +180,187 @@ const onBlur = () => {
   width: 100%;
   height: 100%;
   background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-  transition: left 0.5s;
-}
-
-.search-toggle-btn:hover {
-  background: rgba(27, 42, 54, 0.2);
-  color: rgb(0, 0, 0);
-  transform: scale(1.1);
-  box-shadow: 0 4px 15px rgba(255, 255, 255, 0.2);
+  transition: left 0.6s ease;
 }
 
 .search-toggle-btn:hover::before {
   left: 100%;
 }
 
+.search-toggle-btn:hover {
+  background: rgba(54, 24, 24, 0.1);
+  color: #000;
+  transform: scale(1.05);
+}
+
 .search-toggle-btn:active {
   transform: scale(0.95);
 }
 
-/* 展开的搜索栏容器 */
-.search-bar-expanded {
-  position: absolute;
-  right: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  min-width: 300px;
-  opacity: 0;
-  transform-origin: right center;
-}
-
-.search-bar-expanded.animate-expand {
-  animation: expandSearchBar 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-}
-
-@keyframes expandSearchBar {
-  0% {
-    opacity: 0;
-    transform: translateY(-50%) scaleX(0);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(-50%) scaleX(1);
-  }
-}
-
-/* 输入组样式 */
-.input-group {
+/* 输入区域：使用 visibility 控制显示 */
+.input-section {
   display: flex;
-  backdrop-filter: blur(10px);
-  border-radius: 25px;
-  overflow: hidden;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  align-items: center;
+  flex: 1;
+  gap: 4px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateX(-15px);
+  transition: opacity 0.3s ease, visibility 0.3s, transform 0.3s ease;
+  padding-right: 4px;
+  pointer-events: none; /* 隐藏时禁用点击 */
 }
 
-/* 搜索输入框样式 */
+.input-section.visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(0);
+  pointer-events: auto; /* 显示时启用点击 */
+}
+
+/* 搜索输入框 */
 .search-input {
+  flex: 1;
   border: none;
-  background: rgba(255, 255, 255, 0.9);
-  color: #333;
-  padding: 8px 16px;
+  background: transparent;
+  color: white;
+  padding: 8px 12px;
   font-size: 0.9rem;
-  min-width: 200px;
-  transition: all 0.3s ease;
-}
-
-.search-input:focus {
+  border-radius: 15px 0 0 15px;
   outline: none;
-  background: rgba(255, 255, 255, 1);
-  box-shadow: none;
+  transition: background 0.3s ease;
+  pointer-events: auto; /* 确保输入框可以点击 */
+  z-index: 1; /* 确保在上层 */
 }
 
 .search-input::placeholder {
-  color: rgba(0, 0, 0, 0.5);
+  color: rgba(255, 255, 255, 0.6);
 }
 
-/* 搜索按钮样式 */
+.search-input:focus {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* 清空按钮 */
+.clear-btn {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  padding: 6px 8px;
+  border-radius: 50%;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.clear-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.9);
+  transform: scale(1.1);
+}
+
+/* 搜索执行按钮 */
 .search-btn {
   border: none;
-  background: rgba(13, 110, 253, 0.8);
-  color: white;
-  padding: 8px 12px;
+  background: transparent;
+  color: rgba(13, 110, 253, 0.8);
+  padding: 8px 10px;
+  border-radius: 0 15px 15px 0;
+  font-size: 0.9rem;
+  cursor: pointer;
   transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   position: relative;
   overflow: hidden;
+  min-width: 36px;
+  width: 36px;
 }
 
 .search-btn:hover {
-  background: rgba(13, 110, 253, 1);
+  background: rgba(13, 110, 253, 0.15);
+  color: #0d6efd;
   transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(13, 110, 253, 0.2);
+}
+
+.search-btn:active::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 200%;
+  height: 200%;
+  background: rgba(13, 110, 253, 0.3);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  animation: ripple 0.6s ease-out;
+}
+
+@keyframes ripple {
+  0% { opacity: 0.8; transform: translate(-50%, -50%) scale(0); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(1); }
 }
 
 .search-btn.searching {
-  animation: searchPulse 1s infinite;
-}
-
-@keyframes searchPulse {
-  0%, 100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.05);
-  }
-}
-
-/* 关闭按钮样式 */
-.close-btn {
-  border: none;
-  background: rgba(220, 53, 69, 0.8);
+  pointer-events: none;
+  background: rgba(13, 110, 253, 0.8);
   color: white;
-  padding: 8px 12px;
-  transition: all 0.3s ease;
-}
-
-.close-btn:hover {
-  background: rgba(220, 53, 69, 1);
-  transform: translateY(-1px);
 }
 
 /* 亮色主题适配 */
-:global(.light-theme) .search-toggle-btn {
+:global(.light-theme) .search-bar-wrapper {
   background: rgba(0, 0, 0, 0.1) !important;
+  border: 1px solid rgba(0, 0, 0, 0.2) !important;
+}
+
+:global(.light-theme) .search-toggle-btn {
   color: rgba(0, 0, 0, 0.7) !important;
 }
 
 :global(.light-theme) .search-toggle-btn:hover {
-  background: rgba(0, 0, 0, 0.2) !important;
+  background: rgba(0, 0, 0, 0.1) !important;
   color: rgba(0, 0, 0, 0.9) !important;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1) !important;
-}
-
-:global(.light-theme) .input-group {
-  border: 1px solid rgba(0, 0, 0, 0.2) !important;
 }
 
 :global(.light-theme) .search-input {
-  background: rgba(255, 255, 255, 0.95) !important;
   color: #333 !important;
 }
 
 :global(.light-theme) .search-input::placeholder {
-  color: rgba(0, 0, 0, 0.6) !important;
+  color: rgba(0, 0, 0, 0.5) !important;
+}
+
+:global(.light-theme) .search-input:focus {
+  background: rgba(0, 0, 0, 0.05) !important;
+}
+
+:global(.light-theme) .clear-btn {
+  color: rgba(0, 0, 0, 0.5) !important;
+}
+
+:global(.light-theme) .clear-btn:hover {
+  color: rgba(0, 0, 0, 0.8) !important;
 }
 
 /* 暗色主题适配 */
-:global(.dark-theme) .search-toggle-btn {
+:global(.dark-theme) .search-bar-wrapper {
   background: rgba(255, 255, 255, 0.15) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+}
+
+:global(.dark-theme) .search-toggle-btn {
   color: rgba(255, 255, 255, 0.9) !important;
 }
 
 :global(.dark-theme) .search-toggle-btn:hover {
-  background: rgba(255, 255, 255, 0.25) !important;
+  background: rgba(255, 255, 255, 0.2) !important;
   color: white !important;
-  box-shadow: 0 4px 15px rgba(255, 255, 255, 0.2) !important;
-}
-
-:global(.dark-theme) .input-group {
-  border: 1px solid rgba(255, 255, 255, 0.3) !important;
 }
 
 :global(.dark-theme) .search-input {
-  background: rgba(0, 0, 0, 0.8) !important;
   color: white !important;
 }
 
@@ -306,39 +368,55 @@ const onBlur = () => {
   color: rgba(255, 255, 255, 0.6) !important;
 }
 
+:global(.dark-theme) .search-input:focus {
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
 /* 响应式调整 */
 @media (max-width: 768px) {
-  .search-bar-expanded {
-    min-width: 250px;
-    right: -10px;
+  .search-bar-wrapper.expanded {
+    max-width: 250px;
   }
-  
-  .search-input {
-    min-width: 150px;
+
+  .search-input,
+  .clear-btn,
+  .search-btn {
+    padding: 6px 8px;
     font-size: 0.85rem;
-    padding: 6px 12px;
   }
-  
-  .search-btn,
-  .close-btn {
-    padding: 6px 10px;
-  }
-  
+
   .search-toggle-btn {
     width: 35px;
     height: 35px;
     font-size: 1rem;
   }
+
+  .search-bar-wrapper {
+    width: 35px;
+    max-width: 35px;
+    height: 35px;
+  }
+
+  .search-btn {
+    min-width: 32px;
+    width: 32px;
+  }
 }
 
 @media (max-width: 480px) {
-  .search-bar-expanded {
-    min-width: 200px;
-    right: -20px;
+  .search-bar-wrapper.expanded {
+    max-width: 200px;
   }
-  
+
   .search-input {
-    min-width: 120px;
+    padding: 5px 8px;
+    font-size: 0.8rem;
+  }
+
+  .clear-btn,
+  .search-btn {
+    padding: 4px 6px;
+    font-size: 0.8rem;
   }
 }
 </style>
