@@ -1,15 +1,13 @@
 <template>
   <div id="app" :class="['min-vh-100', isDarkMode ? 'dark-theme' : 'light-theme']">
-    <!-- 落樱效果 -->
-    <SakuraFalling />
-    
-    <!-- 导航栏 -->
-    <nav :class="['navbar navbar-expand-lg transition-all', isDarkMode ? 'navbar-dark' : 'navbar-light', navbarClass, navbarAnimationClass]" ref="navbar">
+    <!-- 导航栏 - 在画廊页面隐藏 -->
+    <nav v-if="!isGalleryRoute" :class="['navbar navbar-expand-lg transition-all', isDarkMode ? 'navbar-dark' : 'navbar-light', navbarClass, navbarAnimationClass]" ref="navbar">
       <div class="container-fluid d-flex align-items-center">
         <router-link to="/" class="navbar-brand">WyrmKk</router-link>
         <router-link to="/" class="nav-link" active-class="active">首页</router-link>
+        <router-link to="/gallery" class="nav-link" active-class="active">画廊</router-link>
         
-        <!-- 搜索栏 - 真正居中显示 -->
+        <!-- 搜索按钮 - 居中显示 -->
         <div class="navbar-search-center d-none d-lg-flex">
           <SearchBar />
         </div>
@@ -19,7 +17,7 @@
         </button>
         
         <div class="collapse navbar-collapse" id="navbarNav">
-          <!-- 移动端搜索栏 -->
+          <!-- 移动端搜索按钮 -->
           <div class="d-lg-none my-3">
             <SearchBar />
           </div>
@@ -118,7 +116,6 @@ import SearchBar from './components/SearchBar.vue';
 import WelcomeSection from './components/WelcomeSection.vue';
 import PersonalInfo from './components/PersonalInfo.vue';
 import MusicPlayer from './components/MusicPlayer.vue';
-import SakuraFalling from './components/SakuraFalling.vue';
 import { useKeepAliveManager } from './utils/keepAliveManager.js';
 
 const router = useRouter();

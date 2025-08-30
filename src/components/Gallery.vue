@@ -1,97 +1,30 @@
 <template>
-  <div class="gallery-container container-fluid">
-    <!-- 页面标题 -->
-    <div class="gallery-header text-center mb-5">
-      <h1 class="gallery-title">图片画廊</h1>
-      <p class="gallery-subtitle text-muted">三种精美展示效果</p>
-    </div>
-
+  <div class="gallery-fullscreen">
     <!-- 加载状态 -->
-    <div v-if="loading" class="text-center py-5">
+    <div v-if="loading" class="loading-overlay">
       <div class="spinner-border text-primary" role="status">
         <span class="visually-hidden">加载中...</span>
       </div>
     </div>
 
     <!-- 错误状态 -->
-    <div v-else-if="error" class="alert alert-danger text-center" role="alert">
-      {{ error }}
+    <div v-else-if="error" class="error-overlay">
+      <div class="alert alert-danger text-center" role="alert">
+        {{ error }}
+      </div>
     </div>
 
-    <!-- 画廊内容 -->
-    <div v-else-if="galleries.length > 0" class="gallery-sections">
-      
-      <!-- 第一部分：手风琴横向展示 -->
-      <section class="gallery-sectio  .accordion-gallery,
-  .coverflow-gallery,
-  .loop-gallery {
-    height: 300px;
-    padding: 20px 0;
-  }5">
-        <h2 class="section-title">手风琴展示</h2>
-        <div class="accordion-gallery" ref="accordionContainer">
-          <div class="swiper-wrapper">
-            <div 
-              v-for="(gallery, index) in getGallerySlice(0, 5)" 
-              :key="`accordion-${gallery.id}`" 
-              class="swiper-slide accordion-slide"
-              :class="{ 'accordion-expanded': index === expandedAccordionIndex }"
-            >
-              <div 
-                class="accordion-item"
-                @click="openFullscreen(gallery)"
-                @mouseenter="expandAccordion(index)"
-                @mouseleave="resetAccordion"
-              >
-                <img 
-                  :src="gallery.imageUrl" 
-                  :alt="gallery.title"
-                  class="accordion-image"
-                />
-                <div class="accordion-overlay">
-                  <h3 class="accordion-title">{{ gallery.title }}</h3>
-                  <p class="accordion-description">{{ gallery.description }}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+    <!-- 空状态 -->
+    <div v-else-if="galleries.length === 0" class="empty-state">
+      <i class="bi bi-images display-1 text-muted mb-3"></i>
+      <h3 class="text-muted">暂无图片</h3>
+      <p class="text-muted">画廊中还没有任何图片</p>
+    </div>
 
-      <!-- 第二部分：3D 覆盖流效果 -->
-      <section class="gallery-section mb-5">
-        <h2 class="section-title">3D 覆盖流</h2>
-        <div class="coverflow-gallery" ref="coverflowContainer">
-          <div class="swiper-wrapper">
-            <div 
-              v-for="(gallery, index) in getGallerySlice(5, 10)" 
-              :key="`coverflow-${gallery.id}`" 
-              class="swiper-slide coverflow-slide"
-            >
-              <div 
-                class="coverflow-item"
-                @click="openFullscreen(gallery)"
-              >
-                <img 
-                  :src="gallery.imageUrl" 
-                  :alt="gallery.title"
-                  class="coverflow-image"
-                />
-                <div class="coverflow-info">
-                  <h3>{{ gallery.title }}</h3>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="swiper-pagination"></div>
-          <div class="swiper-button-next"></div>
-          <div class="swiper-button-prev"></div>
-        </div>
-      </section>
-
-      <!-- 第三部分：循环幻灯片效果 -->
-      <section class="gallery-section mb-5">
-        <h2 class="section-title">循环幻灯片</h2>
+    <!-- 有内容时显示所有画廊 -->
+    <div v-else class="gallery-content">
+      <!-- 循环幻灯片效果 - 全宽全高显示 -->
+      <section class="loop-section-fullwidth">
         <div class="loop-gallery" ref="loopContainer">
           <div class="swiper-wrapper">
             <div 
@@ -120,14 +53,75 @@
           <div class="swiper-pagination"></div>
         </div>
       </section>
+
+      <!-- 手风琴和3D覆盖流展示 -->
+      <div class="gallery-sections">
+        <!-- 第一部分：手风琴横向展示 -->
+        <section class="gallery-section">
+          <h2 class="section-title">手风琴展示</h2>
+          <div class="accordion-gallery" ref="accordionContainer">
+            <div class="swiper-wrapper">
+              <div 
+                v-for="(gallery, index) in getGallerySlice(0, 5)" 
+                :key="`accordion-${gallery.id}`" 
+                class="swiper-slide accordion-slide"
+                :class="{ 'accordion-expanded': index === expandedAccordionIndex }"
+              >
+                <div 
+                  class="accordion-item"
+                  @click="openFullscreen(gallery)"
+                  @mouseenter="expandAccordion(index)"
+                  @mouseleave="resetAccordion"
+                >
+                  <img 
+                    :src="gallery.imageUrl" 
+                    :alt="gallery.title"
+                    class="accordion-image"
+                  />
+                  <div class="accordion-overlay">
+                    <h3 class="accordion-title">{{ gallery.title }}</h3>
+                    <p class="accordion-description">{{ gallery.description }}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 第二部分：3D 覆盖流效果 -->
+        <section class="gallery-section mb-5">
+          <h2 class="section-title">3D 覆盖流</h2>
+          <div class="coverflow-gallery" ref="coverflowContainer">
+            <div class="swiper-wrapper">
+              <div 
+                v-for="(gallery, index) in getGallerySlice(5, 10)" 
+                :key="`coverflow-${gallery.id}`" 
+                class="swiper-slide coverflow-slide"
+              >
+                <div 
+                  class="coverflow-item"
+                  @click="openFullscreen(gallery)"
+                >
+                  <img 
+                    :src="gallery.imageUrl" 
+                    :alt="gallery.title"
+                    class="coverflow-image"
+                  />
+                  <div class="coverflow-info">
+                    <h3>{{ gallery.title }}</h3>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="swiper-pagination"></div>
+            <div class="swiper-button-next"></div>
+            <div class="swiper-button-prev"></div>
+          </div>
+        </section>
+      </div>
     </div>
 
-    <!-- 空状态 -->
-    <div v-else class="empty-state text-center py-5">
-      <i class="bi bi-images display-1 text-muted mb-3"></i>
-      <h3 class="text-muted">暂无图片</h3>
-      <p class="text-muted">画廊中还没有任何图片</p>
-    </div>
+
 
     <!-- 全屏查看模态框 (使用自定义实现) -->
     <div v-if="showFullscreen" class="fullscreen-modal" @click="closeFullscreen">
@@ -148,11 +142,21 @@
         </div>
       </div>
     </div>
+
+    <!-- 返回按钮 - 固定在右下角 -->
+    <button 
+      @click="goBack" 
+      class="return-button"
+      title="返回文章区域"
+    >
+      <i class="bi bi-arrow-left"></i>
+    </button>
   </div>
 </template>
 
 <script>
 import { ref, onMounted, onUnmounted, nextTick } from 'vue'
+import { useRouter } from 'vue-router'
 import { galleryService } from '../services/articleService.js'
 
 // 动态导入Swiper以避免SSR问题
@@ -167,6 +171,8 @@ import 'swiper/css/effect-coverflow';
 export default {
   name: 'Gallery',
   setup() {
+    const router = useRouter()
+    
     const galleries = ref([])
     const loading = ref(true)
     const error = ref(null)
@@ -349,6 +355,11 @@ export default {
       document.body.style.overflow = 'auto'
     }
 
+    // 返回文章区域
+    const goBack = () => {
+      router.push('/')
+    }
+
     // 销毁Swiper实例
     const destroySwipers = () => {
       if (accordionSwiper.value) {
@@ -390,45 +401,39 @@ export default {
       openFullscreen,
       closeFullscreen,
       expandAccordion,
-      resetAccordion
+      resetAccordion,
+      goBack
     }
   }
 }
 </script>
 
 <style scoped>
-/* 画廊容器样式 */
-.gallery-container {
-  padding: 1rem 1rem 2rem;
-  min-height: calc(100vh - 200px);
-  max-width: 100%;
+/* 画廊全屏容器样式 */
+.gallery-fullscreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  overflow-y: auto;
   overflow-x: hidden;
-}
-
-.gallery-header {
-  margin-bottom: 2rem;
-  padding: 0 1rem;
-}
-
-.gallery-title {
-  font-size: 2.5rem;
-  font-weight: 700;
-  color: #2c3e50;
-  margin-bottom: 0.5rem;
-}
-
-.gallery-subtitle {
-  font-size: 1.2rem;
+  z-index: 1;
 }
 
 .gallery-sections {
   max-width: 100%;
-  padding: 0 1rem;
+  padding: 2rem 2rem 4rem;
 }
 
 .gallery-section {
-  margin-bottom: 3rem;
-  padding: 0 0.5rem;
+  margin-bottom: 4rem;
+  padding: 2rem;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 20px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
 }
 
 .section-title {
@@ -567,21 +572,36 @@ export default {
   font-weight: 600;
 }
 
+/* 循环幻灯片全宽容器样式 */
+.loop-section-fullwidth {
+  position: relative;
+  width: 100vw;
+  left: 50%;
+  right: 50%;
+  margin-left: -50vw;
+  margin-right: -50vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(10px);
+}
+
 /* 循环幻灯片样式 */
 .loop-gallery {
-  height: 350px;
-  margin: 0 auto;
-  max-width: 100%;
+  height: 100vh;
+  width: 100vw;
+  margin: 0;
 }
 
 .loop-slide {
-  height: 100%;
+  height: 100vh;
+  width: 100vw;
 }
 
 .loop-item {
   position: relative;
-  height: 100%;
-  border-radius: 15px;
+  height: 100vh;
+  width: 100%;
+  border-radius: 0;
   overflow: hidden;
   cursor: pointer;
 }
@@ -627,6 +647,24 @@ export default {
 .loop-content p {
   font-size: 1rem;
   opacity: 0.9;
+}
+
+/* 状态覆盖层样式 */
+.loading-overlay,
+.error-overlay,
+.empty-state {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  color: white;
+  flex-direction: column;
 }
 
 /* Swiper自定义样式 */
@@ -734,35 +772,22 @@ export default {
 
 /* 响应式设计 */
 @media (max-width: 768px) {
-  .gallery-container {
-    padding: 0.5rem;
+  .gallery-sections {
+    padding: 1rem 1rem 3rem;
   }
   
-  .gallery-header {
-    margin-bottom: 1.5rem;
-    padding: 0 0.5rem;
-  }
-  
-  .gallery-title {
-    font-size: 2rem;
+  .gallery-section {
+    margin-bottom: 2rem;
+    padding: 1rem;
+    border-radius: 15px;
   }
   
   .section-title {
     font-size: 1.5rem;
   }
   
-  .gallery-sections {
-    padding: 0;
-  }
-  
-  .gallery-section {
-    margin-bottom: 2rem;
-    padding: 0;
-  }
-  
   .accordion-gallery,
-  .coverflow-gallery,
-  .loop-gallery {
+  .coverflow-gallery {
     height: 250px;
   }
   
@@ -814,5 +839,87 @@ export default {
 
 .empty-state {
   padding: 4rem 2rem;
+}
+
+/* 暗色主题适配 */
+:global(.dark-theme) .gallery-fullscreen {
+  background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
+}
+
+:global(.dark-theme) .gallery-section {
+  background: rgba(45, 55, 72, 0.8);
+  color: #ffffff;
+}
+
+:global(.dark-theme) .section-title {
+  color: #ffffff;
+}
+
+/* 循环幻灯片全宽暗色主题 */
+:global(.dark-theme) .loop-section-fullwidth {
+  background: rgba(45, 55, 72, 0.9);
+}
+
+/* 返回按钮样式 */
+.return-button {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  border-radius: 50%;
+  color: white;
+  font-size: 24px;
+  cursor: pointer;
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.return-button:hover {
+  transform: translateY(-5px) scale(1.1);
+  box-shadow: 0 15px 35px rgba(102, 126, 234, 0.6);
+  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+}
+
+.return-button:active {
+  transform: translateY(-2px) scale(1.05);
+}
+
+.return-button i {
+  transition: transform 0.3s ease;
+}
+
+.return-button:hover i {
+  transform: translateX(-2px);
+}
+
+/* 暗色主题下的返回按钮 */
+@media (prefers-color-scheme: dark) {
+  .return-button {
+    background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
+    box-shadow: 0 8px 25px rgba(74, 85, 104, 0.4);
+  }
+  
+  .return-button:hover {
+    background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
+    box-shadow: 0 15px 35px rgba(74, 85, 104, 0.6);
+  }
+}
+
+/* 移动端适配 */
+@media (max-width: 768px) {
+  .return-button {
+    bottom: 20px;
+    right: 20px;
+    width: 50px;
+    height: 50px;
+    font-size: 20px;
+  }
 }
 </style>
