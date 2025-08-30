@@ -11,15 +11,23 @@
     </div>    
     
     <div v-else-if="article" class="article-container card shadow-sm">
-      <div class="card-body">        <!-- 封面图片 -->
-        <div v-if="article.coverImage && article.coverImage !== 'null'" class="article-cover mb-4">
-          <img 
-            :src="article.coverImage" 
-            :alt="article.title" 
-            class="cover-image"
-            style="height: 400px; aspect-ratio: 16/9; object-fit: cover; width: 100%; border-radius: 0.5rem;"
-          />
+      <div class="card-body">        
+        <!-- 文章结构组件 - 在大屏幕上固定在右侧，在小屏幕上显示在顶部 -->
+        <div class="article-structure-wrapper">
+          <ArticleStructure :article-content="article.content" />
         </div>
+        
+        <!-- 文章主要内容 -->
+        <div class="article-main-content">
+          <!-- 封面图片 -->
+          <div v-if="article.coverImage && article.coverImage !== 'null'" class="article-cover mb-4">
+            <img 
+              :src="article.coverImage" 
+              :alt="article.title" 
+              class="cover-image"
+              style="height: 400px; aspect-ratio: 16/9; object-fit: cover; width: 100%; border-radius: 0.5rem;"
+            />
+          </div>
         
         <div class="article-header mb-4 header-fade-in">
           <h1 class="article-title">{{ article.title }}</h1>
@@ -50,6 +58,7 @@
             返回上页
           </button>
         </div>
+        </div>
       </div>
     </div>
 
@@ -64,6 +73,7 @@ import { ref, onMounted } from 'vue';
 import { getApiUrl, API_CONFIG } from '../config/api.js';
 import { useRoute, useRouter } from 'vue-router';
 import LazyCommentSection from './LazyCommentSection.vue';
+import ArticleStructure from './ArticleStructure.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -155,6 +165,60 @@ onMounted(() => {
 </script>
 
 <style scoped>
+/* 文章主要内容区域 */
+.article-main-content {
+  max-width: 100%;
+}
+
+/* 大屏幕上为文章结构组件留出空间 */
+@media (min-width: 1200px) {
+  .article-main-content {
+    margin-right: 300px; /* 为右侧固定的文章结构组件留出空间 */
+  }
+}
+
+/* 文章结构组件样式 */
+.article-structure-wrapper {
+  position: fixed;
+  top: 50%;
+  right: 12%;
+  transform: translateY(-50%);
+  width: 280px;
+  z-index: 1025;
+  transition: all 0.3s ease;
+}
+
+/* 响应式调整 */
+@media (max-width: 1399px) {
+  .article-structure-wrapper {
+    width: 260px;
+    right: 15px;
+  }
+}
+
+@media (max-width: 1199px) {
+  .article-structure-wrapper {
+    position: static;
+    width: 100%;
+    margin: 1rem 0;
+    transform: none;
+    right: auto;
+    top: auto;
+  }
+}
+
+@media (max-width: 991px) {
+  .article-structure-wrapper {
+    margin: 0.8rem 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .article-structure-wrapper {
+    margin: 0.5rem 0;
+  }
+}
+
 /* 响应式容器样式 */
 .article-container {
   width: 100%;

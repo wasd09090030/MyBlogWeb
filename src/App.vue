@@ -84,7 +84,7 @@
       <div class="container-fluid">
         <div class="row">
           <!-- 文章内容区域 -->
-          <div class="col-12 col-lg-8 col-xl-9" :class="{ 'col-lg-12 col-xl-12': isAdminRoute || isGalleryRoute }">
+          <div class="col-12 col-lg-8 col-xl-9" :class="{ 'col-lg-12 col-xl-12': isAdminRoute || isGalleryRoute || isArticleDetailRoute }">
             <main>
               <!-- 使用 Vue Router 4 推荐的 slot props 语法 -->
               <router-view v-slot="{ Component, route }">
@@ -96,7 +96,7 @@
           </div>
           
           <!-- 侧边栏个人信息 - 大屏显示 -->
-          <div class="col-lg-4 col-xl-3 d-none d-lg-block sidebar-animate" v-if="!isAdminRoute && !isGalleryRoute">
+          <div class="col-lg-4 col-xl-3 d-none d-lg-block sidebar-animate" v-if="!isAdminRoute && !isGalleryRoute && !isArticleDetailRoute">
             <div class="sidebar-content">
               <PersonalInfo />
                 <div class="mobile-music-player-container">
@@ -125,7 +125,7 @@
     </footer>
     
     <!-- 移动端个人信息按钮 -->
-    <div class="mobile-personal-info d-lg-none" v-if="!isAdminRoute && !isGalleryRoute">
+    <div class="mobile-personal-info d-lg-none" v-if="!isAdminRoute && !isGalleryRoute && !isArticleDetailRoute">
       <PersonalInfo />
     </div>
 
@@ -172,6 +172,11 @@ const shouldShowWelcomeSection = computed(() => {
 // 判断是否为画廊页面
 const isGalleryRoute = computed(() => {
   return route.name === 'Gallery';
+});
+
+// 判断是否为文章详情页面
+const isArticleDetailRoute = computed(() => {
+  return route.name === 'ArticleDetail';
 });
 
 // 导航栏样式类
