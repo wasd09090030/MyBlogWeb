@@ -38,13 +38,12 @@
               >
                 <img 
                   :src="gallery.imageUrl" 
-                  :alt="gallery.title"
+                  alt="画廊图片"
                   class="fade-image"
                 />
                 <div class="fade-overlay">
                   <div class="fade-content">
-                    <h3>{{ gallery.title }}</h3>
-                    <p>{{ gallery.description }}</p>
+                    <!-- 移除标题和描述显示 -->
                   </div>
                 </div>
               </div>
@@ -75,13 +74,9 @@
                 >
                   <img 
                     :src="gallery.imageUrl" 
-                    :alt="gallery.title"
+                    alt="画廊图片"
                     class="accordion-image"
                   />
-                  <div class="accordion-overlay">
-                    <h3 class="accordion-title">{{ gallery.title }}</h3>
-                    <p class="accordion-description">{{ gallery.description }}</p>
-                  </div>
                 </div>
               </div>
             </div>
@@ -104,11 +99,11 @@
                 >
                   <img 
                     :src="gallery.imageUrl" 
-                    :alt="gallery.title"
+                    alt="画廊图片"
                     class="coverflow-image"
                   />
                   <div class="coverflow-info">
-                    <h3>{{ gallery.title }}</h3>
+                    <!-- 移除标题显示 -->
                   </div>
                 </div>
               </div>
@@ -132,12 +127,11 @@
         <div class="fullscreen-content" @click.stop>
           <img 
             :src="selectedImage?.imageUrl" 
-            :alt="selectedImage?.title"
+            alt="画廊图片"
             class="fullscreen-image"
           />
           <div class="fullscreen-info">
-            <h3>{{ selectedImage?.title }}</h3>
-            <p v-if="selectedImage?.description">{{ selectedImage?.description }}</p>
+            <!-- 移除标题和描述显示 -->
           </div>
         </div>
       </div>
@@ -465,21 +459,21 @@ export default {
 
 /* 手风琴样式 */
 .accordion-gallery {
-  height: 350px;
+  height: 80vh;
   overflow: hidden;
   margin: 0 auto;
   max-width: 100%;
 }
 
 .accordion-slide {
-  width: 20% !important;
+  width: 10vw !important;
   transition: all 0.5s ease;
   cursor: pointer;
 }
 
 .accordion-slide:hover,
 .accordion-slide.accordion-expanded {
-  width: 40% !important;
+  width: 35% !important;
 }
 
 .accordion-item {
@@ -501,33 +495,13 @@ export default {
   transform: scale(1.1);
 }
 
-.accordion-overlay {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: linear-gradient(transparent, rgba(0,0,0,0.8));
-  color: white;
-  padding: 2rem 1rem 1rem;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
 
 .accordion-slide:hover .accordion-overlay,
 .accordion-slide.accordion-expanded .accordion-overlay {
   opacity: 1;
 }
 
-.accordion-title {
-  font-size: 1.2rem;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-}
-
-.accordion-description {
-  font-size: 0.9rem;
-  opacity: 0.9;
-}
+/* 移除不再需要的标题和描述样式 */
 
 /* 3D 覆盖流样式 */
 .coverflow-gallery {
@@ -572,11 +546,7 @@ export default {
   border-radius: 0 0 15px 15px;
 }
 
-.coverflow-info h3 {
-  margin: 0;
-  font-size: 1.1rem;
-  font-weight: 600;
-}
+/* 移除不再需要的标题样式 */
 
 /* 淡入淡出幻灯片样式 */
 .fade-section {
@@ -633,20 +603,10 @@ export default {
 }
 
 .fade-content {
+  /* 保留容器样式，但移除文本相关样式 */
   text-align: center;
   color: white;
   padding: 1rem;
-}
-
-.fade-content h3 {
-  font-size: 1.5rem;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-}
-
-.fade-content p {
-  font-size: 1rem;
-  opacity: 0.9;
 }
 
 /* 状态覆盖层样式 */
@@ -752,22 +712,11 @@ export default {
 }
 
 .fullscreen-info {
+  /* 保留容器但移除内容样式 */
   margin-top: 1rem;
   text-align: center;
   color: white;
   max-width: 500px;
-}
-
-.fullscreen-info h3 {
-  font-size: 1.5rem;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-}
-
-.fullscreen-info p {
-  font-size: 1rem;
-  opacity: 0.9;
-  line-height: 1.6;
 }
 
 /* 响应式设计 */
@@ -797,14 +746,6 @@ export default {
   
   .fade-section {
     height: 62vh;
-  }
-  
-  .fade-content h3 {
-    font-size: 1.2rem;
-  }
-  
-  .fade-content p {
-    font-size: 0.9rem;
   }
   
   .fullscreen-close {
