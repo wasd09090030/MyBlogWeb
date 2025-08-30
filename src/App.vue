@@ -1,6 +1,7 @@
 <template>
   <div id="app" :class="['min-vh-100', isDarkMode ? 'dark-theme' : 'light-theme']">
     <!-- 导航栏 - 在画廊页面隐藏 -->
+    <SakuraFalling />
     <nav :class="['navbar navbar-expand-lg transition-all', isDarkMode ? 'navbar-dark' : 'navbar-light', navbarClass, navbarAnimationClass]" ref="navbar">
       <div class="container-fluid d-flex align-items-center">
         <router-link to="/" class="navbar-brand">WyrmKk</router-link>
@@ -143,6 +144,7 @@ import SearchBar from './components/SearchBar.vue';
 import WelcomeSection from './components/WelcomeSection.vue';
 import PersonalInfo from './components/PersonalInfo.vue';
 import MusicPlayer from './components/MusicPlayer.vue';
+import SakuraFalling from './components/SakuraFalling.vue'; 
 import { useKeepAliveManager } from './utils/keepAliveManager.js';
 
 const router = useRouter();
