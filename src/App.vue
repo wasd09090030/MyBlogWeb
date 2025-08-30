@@ -8,7 +8,6 @@
       <div class="container-fluid d-flex align-items-center">
         <router-link to="/" class="navbar-brand">WyrmKk</router-link>
         <router-link to="/" class="nav-link" active-class="active">首页</router-link>
-        <router-link to="/gallery" class="nav-link" active-class="active">画廊</router-link>
         
         <!-- 搜索栏 - 真正居中显示 -->
         <div class="navbar-search-center d-none d-lg-flex">

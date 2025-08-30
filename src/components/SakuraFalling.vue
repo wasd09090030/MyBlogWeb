@@ -6,7 +6,11 @@
       class="sakura-petal"
       :style="getPetalStyle(petal, index)"
     >
-      <span class="petal-emoji">{{ petal.emoji }}</span>
+      <img 
+        :src="petal.image" 
+        class="petal-image" 
+        :alt="`flower-petal-${index}`"
+      />
     </div>
   </div>
 </template>
@@ -18,8 +22,11 @@ const petals = ref([])
 const isActive = ref(true)
 
 // 花瓣配置
-const PETAL_COUNT = 20
-const PETAL_EMOJIS = ['🌸', '🌺', '❄️', '❄️', '💮', '🏵️']
+const PETAL_COUNT = 15
+const PETAL_IMAGES = [
+  '/src/assets/flower/f01.webp',
+  '/src/assets/flower/f02.webp'
+]
 
 // 只显示活跃的花瓣
 const visiblePetals = computed(() => 
@@ -29,11 +36,11 @@ const visiblePetals = computed(() =>
 // 创建花瓣数据
 const createPetal = (index) => ({
   id: `petal-${index}-${Date.now()}`,
-  emoji: PETAL_EMOJIS[Math.floor(Math.random() * PETAL_EMOJIS.length)],
+  image: PETAL_IMAGES[Math.floor(Math.random() * PETAL_IMAGES.length)],
   startDelay: Math.random() * 5,
   duration: 8 + Math.random() * 4,
-  startX: Math.random() * 100,
-  endX: Math.random() * 100,
+  startX: Math.random() * window.innerWidth,
+  endX: Math.random() * window.innerWidth,
   size: 0.8 + Math.random() * 0.6,
   opacity: 0.6 + Math.random() * 0.4,
   active: true
@@ -42,8 +49,8 @@ const createPetal = (index) => ({
 // 获取花瓣样式
 const getPetalStyle = (petal, index) => {
   return {
-    '--start-x': `${petal.startX}vw`,
-    '--end-x': `${petal.endX}vw`,
+    '--start-x': `${petal.startX}px`,
+    '--end-x': `${petal.endX}px`,
     '--duration': `${petal.duration}s`,
     '--delay': `${petal.startDelay}s`,
     '--size': petal.size,
@@ -70,8 +77,17 @@ const restartPetal = (index) => {
   }, 100)
 }
 
+// 处理窗口大小改变
+const handleResize = () => {
+  // 重新初始化所有花瓣以适应新的窗口大小
+  initPetals()
+}
+
 onMounted(() => {
   initPetals()
+  
+  // 监听窗口大小改变
+  window.addEventListener('resize', handleResize)
   
   // 监听动画结束事件
   document.addEventListener('animationend', (e) => {
@@ -87,6 +103,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   isActive.value = false
+  window.removeEventListener('resize', handleResize)
 })
 </script>
 
@@ -98,7 +115,7 @@ onUnmounted(() => {
   width: 100vw;
   height: 100vh;
   pointer-events: none;
-  z-index: 1;
+  z-index: 99;
   overflow: hidden;
 }
 
@@ -106,7 +123,8 @@ onUnmounted(() => {
   position: absolute;
   top: -50px;
   left: var(--start-x);
-  font-size: calc(16px * var(--size));
+  width: calc(24px * var(--size));
+  height: calc(24px * var(--size));
   opacity: var(--opacity);
   animation: sakuraFall var(--duration) linear infinite;
   animation-fill-mode: forwards;
@@ -114,7 +132,10 @@ onUnmounted(() => {
   user-select: none;
 }
 
-.petal-emoji {
+.petal-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
   display: inline-block;
   animation: sakuraRotate calc(var(--duration) * 0.5) linear infinite;
   filter: drop-shadow(1px 1px 2px rgba(255, 192, 203, 0.3));
@@ -158,7 +179,8 @@ onUnmounted(() => {
 /* 移动端优化 */
 @media (max-width: 768px) {
   .sakura-petal {
-    font-size: calc(14px * var(--size));
+    width: calc(20px * var(--size));
+    height: calc(20px * var(--size));
   }
 }
 
@@ -168,13 +190,13 @@ onUnmounted(() => {
     animation-duration: calc(var(--duration) * 2) !important;
   }
   
-  .petal-emoji {
+  .petal-image {
     animation: none;
   }
 }
 
 /* 暗色主题适配 */
-:global(.dark-theme) .petal-emoji {
+:global(.dark-theme) .petal-image {
   filter: drop-shadow(1px 1px 2px rgba(255, 192, 203, 0.5));
 }
 </style>
