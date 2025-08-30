@@ -23,26 +23,26 @@
 
     <!-- 有内容时显示所有画廊 -->
     <div v-else class="gallery-content">
-      <!-- 循环幻灯片效果 - 全宽全高显示 -->
-      <section class="loop-section-fullwidth">
-        <div class="loop-gallery" ref="loopContainer">
+      <!-- 淡入淡出幻灯片效果 - 在导航栏下方显示 -->
+      <section class="fade-section">
+        <div class="fade-gallery" ref="loopContainer">
           <div class="swiper-wrapper">
             <div 
               v-for="(gallery, index) in getGallerySlice(10, 15)" 
               :key="`loop-${gallery.id}`" 
-              class="swiper-slide loop-slide"
+              class="swiper-slide fade-slide"
             >
               <div 
-                class="loop-item"
+                class="fade-item"
                 @click="openFullscreen(gallery)"
               >
                 <img 
                   :src="gallery.imageUrl" 
                   :alt="gallery.title"
-                  class="loop-image"
+                  class="fade-image"
                 />
-                <div class="loop-overlay">
-                  <div class="loop-content">
+                <div class="fade-overlay">
+                  <div class="fade-content">
                     <h3>{{ gallery.title }}</h3>
                     <p>{{ gallery.description }}</p>
                   </div>
@@ -58,7 +58,7 @@
       <div class="gallery-sections">
         <!-- 第一部分：手风琴横向展示 -->
         <section class="gallery-section">
-          <h2 class="section-title">手风琴展示</h2>
+          <h2 class="section-title">立绘</h2>
           <div class="accordion-gallery" ref="accordionContainer">
             <div class="swiper-wrapper">
               <div 
@@ -90,7 +90,7 @@
 
         <!-- 第二部分：3D 覆盖流效果 -->
         <section class="gallery-section mb-5">
-          <h2 class="section-title">3D 覆盖流</h2>
+          <h2 class="section-title">绘景图</h2>
           <div class="coverflow-gallery" ref="coverflowContainer">
             <div class="swiper-wrapper">
               <div 
@@ -160,13 +160,14 @@ import { useRouter } from 'vue-router'
 import { galleryService } from '../services/articleService.js'
 
 // 动态导入Swiper以避免SSR问题
-let Swiper, Navigation, Pagination, Autoplay, EffectCoverflow
+let Swiper, Navigation, Pagination, Autoplay, EffectCoverflow, EffectFade
 
 // 导入Swiper CSS
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 import 'swiper/css/effect-coverflow';
+import 'swiper/css/effect-fade';
 
 export default {
   name: 'Gallery',
@@ -201,6 +202,7 @@ export default {
         Pagination = modulesModule.Pagination
         Autoplay = modulesModule.Autoplay
         EffectCoverflow = modulesModule.EffectCoverflow
+        EffectFade = modulesModule.EffectFade
         
         console.log('Swiper modules loaded successfully')
       } catch (err) {
@@ -307,21 +309,25 @@ export default {
       })
     }
 
-    // 初始化循环幻灯片效果
+    // 初始化淡入淡出幻灯片效果
     const initLoopSwiper = () => {
       if (!loopContainer.value || !Swiper) return
       
       loopSwiper.value = new Swiper(loopContainer.value, {
-        modules: [Navigation, Pagination, Autoplay],
+        modules: [Navigation, Pagination, Autoplay, EffectFade],
+        effect: 'fade',
+        fadeEffect: {
+          crossFade: true
+        },
         slidesPerView: 1,
-        spaceBetween: 30,
+        spaceBetween: 0,
         loop: true,
         autoplay: {
-          delay: 3000,
+          delay: 4000,
           disableOnInteraction: false,
         },
         pagination: {
-          el: '.loop-gallery .swiper-pagination',
+          el: '.fade-gallery .swiper-pagination',
           clickable: true,
         },
       })
@@ -572,52 +578,46 @@ export default {
   font-weight: 600;
 }
 
-/* 循环幻灯片全宽容器样式 */
-.loop-section-fullwidth {
+/* 淡入淡出幻灯片样式 */
+.fade-section {
   position: relative;
-  width: 100vw;
-  left: 50%;
-  right: 50%;
-  margin-left: -50vw;
-  margin-right: -50vw;
-  height: 100vh;
-  background: rgba(0, 0, 0, 0.8);
-  backdrop-filter: blur(10px);
+  width: 100%;
+  height: 85vh;
+  margin-bottom: 2rem;
+  margin-top: 50px;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 0;
+  overflow: hidden;
 }
 
-/* 循环幻灯片样式 */
-.loop-gallery {
-  height: 100vh;
-  width: 100vw;
+.fade-gallery {
+  height: 100%;
+  width: 100%;
   margin: 0;
 }
 
-.loop-slide {
-  height: 100vh;
-  width: 100vw;
+.fade-slide {
+  height: 100%;
+  width: 100%;
 }
 
-.loop-item {
+.fade-item {
   position: relative;
-  height: 100vh;
+  height: 100%;
   width: 100%;
   border-radius: 0;
   overflow: hidden;
   cursor: pointer;
 }
 
-.loop-image {
+.fade-image {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.3s ease;
+  /* 移除hover时的放大效果 */
 }
 
-.loop-item:hover .loop-image {
-  transform: scale(1.05);
-}
-
-.loop-overlay {
+.fade-overlay {
   position: absolute;
   inset: 0;
   background: linear-gradient(45deg, rgba(0,0,0,0.3), transparent 50%, rgba(0,0,0,0.3));
@@ -628,23 +628,23 @@ export default {
   transition: opacity 0.3s ease;
 }
 
-.loop-item:hover .loop-overlay {
+.fade-item:hover .fade-overlay {
   opacity: 1;
 }
 
-.loop-content {
+.fade-content {
   text-align: center;
   color: white;
   padding: 1rem;
 }
 
-.loop-content h3 {
+.fade-content h3 {
   font-size: 1.5rem;
   font-weight: 600;
   margin-bottom: 0.5rem;
 }
 
-.loop-content p {
+.fade-content p {
   font-size: 1rem;
   opacity: 0.9;
 }
@@ -795,6 +795,18 @@ export default {
     padding: 20px 0;
   }
   
+  .fade-section {
+    height: 62vh;
+  }
+  
+  .fade-content h3 {
+    font-size: 1.2rem;
+  }
+  
+  .fade-content p {
+    font-size: 0.9rem;
+  }
+  
   .fullscreen-close {
     top: -40px;
     font-size: 1.5rem;
@@ -855,9 +867,9 @@ export default {
   color: #ffffff;
 }
 
-/* 循环幻灯片全宽暗色主题 */
-:global(.dark-theme) .loop-section-fullwidth {
-  background: rgba(45, 55, 72, 0.9);
+/* 淡入淡出幻灯片暗色主题 */
+:global(.dark-theme) .fade-section {
+  background: rgba(45, 55, 72, 0.3);
 }
 
 /* 返回按钮样式 */

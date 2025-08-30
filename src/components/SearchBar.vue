@@ -223,7 +223,7 @@ const onBlur = (e) => {
   flex: 1;
   border: none;
   background: transparent;
-  color: white;
+  color: rgb(26, 22, 22);
   padding: 8px 12px;
   font-size: 0.9rem;
   border-radius: 15px 0 0 15px;
