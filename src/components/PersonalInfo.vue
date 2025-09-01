@@ -2,11 +2,8 @@
   <div class="desktop-sidebar d-none d-lg-block sidebar-fade-in">
     <div class="sidebar-content">
       <div class="user-profile text-center">
-        <div class="avatar-container avatar-bounce" @click="triggerAvatarEffect">
+        <div class="avatar-container avatar-bounce">
           <img src="../assets/icon/Master.ico" alt="用户头像" class="avatar-img">
-          <div class="avatar-overlay" :class="{ 'active': avatarClicked }">
-            <i class="bi bi-stars"></i>
-          </div>
         </div>
         <h4 class="user-name mt-3 username-fade">WASD09090030</h4>
         <div class="user-status status-fade">
@@ -17,15 +14,41 @@
       
       <!-- 名言名句展示 -->
       <div class="quote-section animate__animated animate__fadeInUp animate__delay-2s">
-        <div class="quote-container" @click="refreshQuote">
-          <div class="quote-icon">
-            <i class="bi bi-quote"></i>
+        <div class="quote-wrapper">
+          <div class="quote-header">
+            <div class="quote-title">
+              <i class="bi bi-lightbulb-fill"></i>
+              <span>今日箴言</span>
+            </div>
+            <button class="quote-refresh-btn" @click="refreshQuote" title="换一句">
+              <i class="bi bi-arrow-clockwise"></i>
+            </button>
           </div>
-          <div class="quote-text">{{ currentQuote.text }}</div>
-          <div class="quote-author">— {{ currentQuote.author }}</div>
-          <div class="quote-refresh">
-            <i class="bi bi-arrow-clockwise"></i>
-            <span>点击换一句</span>
+          
+          <div class="quote-content">
+            <div class="quote-mark quote-mark-left">
+              <i class="bi bi-quote"></i>
+            </div>
+            
+            <div class="quote-body">
+              <p class="quote-text">{{ currentQuote.text }}</p>
+              <div class="quote-footer">
+                <div class="quote-author">{{ currentQuote.author }}</div>
+                <div class="quote-decoration"></div>
+              </div>
+            </div>
+            
+            <div class="quote-mark quote-mark-right">
+              <i class="bi bi-quote"></i>
+            </div>
+          </div>
+          
+          <div class="quote-bottom">
+            <div class="quote-dots">
+              <span class="dot"></span>
+              <span class="dot"></span>
+              <span class="dot"></span>
+            </div>
           </div>
         </div>
       </div>
@@ -49,11 +72,8 @@
     <div class="personal-info-sidebar" v-show="!isCollapsed">
       <div class="sidebar-content">
         <div class="user-profile text-center">
-          <div class="avatar-container" @click="triggerAvatarEffect">
+          <div class="avatar-container">
             <img src="../assets/icon/Master.ico" alt="用户头像" class="avatar-img">
-            <div class="avatar-overlay" :class="{ 'active': avatarClicked }">
-              <i class="bi bi-stars"></i>
-            </div>
           </div>
           <h4 class="user-name mt-3">WASD09090030</h4>
           <div class="user-status">
@@ -64,15 +84,41 @@
         
         <!-- 移动端名言名句 -->
         <div class="quote-section">
-          <div class="quote-container" @click="refreshQuote">
-            <div class="quote-icon">
-              <i class="bi bi-quote"></i>
+          <div class="quote-wrapper">
+            <div class="quote-header">
+              <div class="quote-title">
+                <i class="bi bi-lightbulb-fill"></i>
+                <span>今日箴言</span>
+              </div>
+              <button class="quote-refresh-btn" @click="refreshQuote" title="换一句">
+                <i class="bi bi-arrow-clockwise"></i>
+              </button>
             </div>
-            <div class="quote-text">{{ currentQuote.text }}</div>
-            <div class="quote-author">— {{ currentQuote.author }}</div>
-            <div class="quote-refresh">
-              <i class="bi bi-arrow-clockwise"></i>
-              <span>点击换一句</span>
+            
+            <div class="quote-content">
+              <div class="quote-mark quote-mark-left">
+                <i class="bi bi-quote"></i>
+              </div>
+              
+              <div class="quote-body">
+                <p class="quote-text">{{ currentQuote.text }}</p>
+                <div class="quote-footer">
+                  <div class="quote-author">{{ currentQuote.author }}</div>
+                  <div class="quote-decoration"></div>
+                </div>
+              </div>
+              
+              <div class="quote-mark quote-mark-right">
+                <i class="bi bi-quote"></i>
+              </div>
+            </div>
+            
+            <div class="quote-bottom">
+              <div class="quote-dots">
+                <span class="dot"></span>
+                <span class="dot"></span>
+                <span class="dot"></span>
+              </div>
             </div>
           </div>
         </div>
@@ -104,7 +150,6 @@ import { useRouter } from 'vue-router';
 
 const router = useRouter();
 const isCollapsed = ref(true);
-const avatarClicked = ref(false);
 const currentStatus = ref('在线中');
 const statusClass = ref('status-online');
 const currentQuote = ref({ text: '', author: '' });
@@ -119,16 +164,19 @@ const quotes = [
   { text: "调试代码比写代码难一倍，所以如果你写代码时竭尽全力，你就无法调试它。", author: "Brian Kernighan" },
   
   // 二次元名梗
-  { text: "我全都要！", author: "鱼塘主" },
+  { text: "不管前方的路有多苦，只要走的方向正确，不管多么崎岖不平，都比站在原地更接近幸福。", author: "《千与千寻》" },
+  { text: "成长是一笔交易，我们都是用朴素的童真与未经人事的洁白交换长大的勇气。", author: "《千与千寻》" },
+  { text: "人永远不知道，谁哪次不经意的跟你说了再见之后，就真的不会再见了。", author: "《千与千寻》" },
   { text: "真正的勇士敢于直面惨淡的人生。", author: "鲁迅（并不是）" },
   { text: "只要心中有爱，哪里都是二次元！", author: "宅文化信仰者" },
-  { text: "今天也是和平的一天呢~", author: "日常系少女" },
-  { text: "努力不一定成功，但放弃一定失败！", author: "热血番主角" },
+  { text: "今天也是和平的一天呢~", author: "日常系" },
   { text: "这一定是命运石之门的选择！", author: "冈部伦太郎" },
   { text: "人类的赞歌就是勇气的赞歌！", author: "JOJO" },
-  { text: "即使全世界都是敌人，我也要保护重要的人。", author: "某中二少年" },
-  { text: "只有失去过的人，才会真正珍惜拥有的一切。", author: "治愈系作品" },
-  { text: "梦想不会逃跑，逃跑的永远是自己。", author: "追梦少年" },
+  { text: "只有失去过的人，才会真正珍惜拥有的一切。", author: "治愈系" },
+  { text: "能不做事就不做事，非做不可一切从简。", author: "《冰果》" },
+   { text: "一旦拒绝了信仰，就不能再踏入神的大门。", author: "《黑执事》" },
+    { text: "虚伪的眼泪，会伤害别人。虚伪的笑容，会伤害自己。", author: "《叛逆的鲁鲁修》" },
+
   
   // 编程相关的有趣名言
   { text: "如果调试是去除bug的过程，那么编程就是把bug放进去的过程。", author: "Edsger Dijkstra" },
@@ -149,20 +197,12 @@ const refreshQuote = () => {
   currentQuote.value = getRandomQuote();
   
   // 添加点击动画效果
-  const quoteContainers = document.querySelectorAll('.quote-container');
-  quoteContainers.forEach(container => {
-    container.classList.add('quote-clicked');
-    
-    // 创建波纹效果
-    const ripple = document.createElement('div');
-    ripple.classList.add('quote-ripple');
-    container.appendChild(ripple);
+  const quoteWrappers = document.querySelectorAll('.quote-wrapper');
+  quoteWrappers.forEach(wrapper => {
+    wrapper.classList.add('ripple-effect');
     
     setTimeout(() => {
-      container.classList.remove('quote-clicked');
-      if (container.contains(ripple)) {
-        container.removeChild(ripple);
-      }
+      wrapper.classList.remove('ripple-effect');
     }, 600);
   });
 };
@@ -171,14 +211,6 @@ const refreshQuote = () => {
 const toggleCollapse = () => {
   isCollapsed.value = !isCollapsed.value;
   localStorage.setItem('sidebarState', isCollapsed.value ? 'collapsed' : 'expanded');
-};
-
-// 头像点击效果
-const triggerAvatarEffect = () => {
-  avatarClicked.value = true;
-  setTimeout(() => {
-    avatarClicked.value = false;
-  }, 1000);
 };
 
 // 技能动画
@@ -327,7 +359,6 @@ onBeforeUnmount(() => {
   border: 3px solid var(--bs-primary);
   transition: all 0.3s ease;
   position: relative;
-  cursor: pointer;
 }
 
 .avatar-container:hover {
@@ -340,34 +371,6 @@ onBeforeUnmount(() => {
   height: 100%;
   object-fit: cover;
   transition: all 0.3s ease;
-}
-
-.avatar-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(255, 215, 0, 0.8);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  opacity: 0;
-  transform: scale(0);
-  transition: all 0.3s ease;
-}
-
-.avatar-overlay.active {
-  opacity: 1;
-  transform: scale(1);
-  animation: sparkle 0.6s ease-out;
-}
-
-.avatar-overlay i {
-  font-size: 2rem;
-  color: white;
-  animation: spin 0.6s ease-in-out;
 }
 
 .user-name {
@@ -404,142 +407,309 @@ onBeforeUnmount(() => {
   font-weight: 500;
 }
 
-/* 名言名句样式 */
+/* 名言名句样式 - 优雅版本 */
 .quote-section {
   margin: 1.5rem 0;
 }
 
-.quote-container {
-  background: linear-gradient(135deg, #ff6b6b 0%, #feca57 100%);
-  color: white;
-  border-radius: 12px;
-  padding: 1.2rem;
-  text-align: center;
-  box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+.quote-wrapper {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 249, 250, 0.9) 100%);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 
+    0 4px 20px rgba(0, 0, 0, 0.08),
+    0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
 }
 
-.quote-container::before {
+.quote-wrapper::before {
   content: '';
   position: absolute;
   top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-  transition: left 0.5s;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+  opacity: 0.8;
 }
 
-.quote-container:hover::before {
-  left: 100%;
-}
-
-.quote-container:hover {
+.quote-wrapper:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(255, 107, 107, 0.4);
+  box-shadow: 
+    0 8px 30px rgba(0, 0, 0, 0.12),
+    0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
-.quote-container:active {
-  transform: translateY(0);
+/* 标题部分 */
+.quote-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 }
 
-.quote-container.quote-clicked {
-  background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%) !important;
-  animation: quoteClickPulse 0.6s ease-out;
+.quote-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #4a5568;
+  font-weight: 600;
+  font-size: 0.9rem;
 }
 
-[data-bs-theme="dark"] .quote-container.quote-clicked {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-  animation: quoteClickPulse 0.6s ease-out;
+.quote-title i {
+  color: #f6ad55;
+  font-size: 1rem;
+  animation: glow 2s ease-in-out infinite alternate;
 }
 
-/* 波纹效果 */
-.quote-ripple {
+.quote-refresh-btn {
+  background: none;
+  border: none;
+  color: #718096;
+  padding: 0.5rem;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+}
+
+.quote-refresh-btn:hover {
+  background: rgba(102, 126, 234, 0.1);
+  color: #667eea;
+  transform: scale(1.1);
+}
+
+.quote-refresh-btn:hover i {
+  animation: spin 0.6s ease-in-out;
+}
+
+.quote-refresh-btn:active {
+  transform: scale(0.95);
+}
+
+/* 内容部分 */
+.quote-content {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.8rem;
+  margin: 1rem 0;
+}
+
+.quote-mark {
+  color: #667eea;
+  opacity: 0.3;
+  font-size: 1.5rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.quote-mark-left {
+  align-self: flex-start;
+  margin-top: -0.2rem;
+}
+
+.quote-mark-right {
+  align-self: flex-end;
+  margin-bottom: -0.2rem;
+  transform: rotate(180deg);
+}
+
+.quote-body {
+  flex: 1;
+  text-align: center;
+}
+
+.quote-text {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: #2d3748;
+  margin: 0 0 1rem 0;
+  font-style: italic;
+  font-weight: 500;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  position: relative;
+}
+
+.quote-footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.quote-author {
+  font-size: 0.85rem;
+  color: #718096;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  position: relative;
+}
+
+.quote-author::before {
+  content: '—';
+  margin-right: 0.5rem;
+  color: #a0aec0;
+}
+
+.quote-decoration {
+  width: 30px;
+  height: 2px;
+  background: linear-gradient(90deg, #667eea, #764ba2);
+  border-radius: 1px;
+  opacity: 0.6;
+}
+
+/* 底部装饰 */
+.quote-bottom {
+  display: flex;
+  justify-content: center;
+  margin-top: 1rem;
+}
+
+.quote-dots {
+  display: flex;
+  gap: 0.3rem;
+}
+
+.dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #cbd5e0;
+  animation: dotPulse 2s ease-in-out infinite;
+}
+
+.dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+/* 暗色主题适配 */
+[data-bs-theme="dark"] .quote-wrapper {
+  background: linear-gradient(135deg, rgba(45, 55, 72, 0.9) 0%, rgba(26, 32, 44, 0.9) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 
+    0 4px 20px rgba(0, 0, 0, 0.3),
+    0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+[data-bs-theme="dark"] .quote-wrapper:hover {
+  box-shadow: 
+    0 8px 30px rgba(0, 0, 0, 0.4),
+    0 4px 8px rgba(0, 0, 0, 0.5);
+}
+
+[data-bs-theme="dark"] .quote-wrapper::before {
+  background: linear-gradient(90deg, #4299e1 0%, #9f7aea 50%, #ed64a6 100%);
+}
+
+[data-bs-theme="dark"] .quote-header {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+[data-bs-theme="dark"] .quote-title {
+  color: #e2e8f0;
+}
+
+[data-bs-theme="dark"] .quote-title i {
+  color: #fbb863;
+}
+
+[data-bs-theme="dark"] .quote-refresh-btn {
+  color: #a0aec0;
+}
+
+[data-bs-theme="dark"] .quote-refresh-btn:hover {
+  background: rgba(66, 153, 225, 0.2);
+  color: #4299e1;
+}
+
+[data-bs-theme="dark"] .quote-mark {
+  color: #4299e1;
+}
+
+[data-bs-theme="dark"] .quote-text {
+  color: #e2e8f0;
+}
+
+[data-bs-theme="dark"] .quote-author {
+  color: #a0aec0;
+}
+
+[data-bs-theme="dark"] .quote-author::before {
+  color: #718096;
+}
+
+[data-bs-theme="dark"] .quote-decoration {
+  background: linear-gradient(90deg, #4299e1, #9f7aea);
+}
+
+[data-bs-theme="dark"] .dot {
+  background: #4a5568;
+}
+
+/* 动画效果 */
+@keyframes glow {
+  0% {
+    text-shadow: 0 0 5px rgba(246, 173, 85, 0.5);
+  }
+  100% {
+    text-shadow: 0 0 10px rgba(246, 173, 85, 0.8), 0 0 15px rgba(246, 173, 85, 0.6);
+  }
+}
+
+@keyframes dotPulse {
+  0%, 100% {
+    opacity: 0.4;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+}
+
+/* 点击波纹效果 */
+.quote-wrapper {
+  position: relative;
+  overflow: hidden;
+}
+
+.quote-wrapper::after {
+  content: '';
   position: absolute;
   top: 50%;
   left: 50%;
   width: 0;
   height: 0;
+  background: radial-gradient(circle, rgba(102, 126, 234, 0.3), transparent 70%);
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.4);
   transform: translate(-50%, -50%);
-  animation: quoteRipple 0.6s ease-out;
+  transition: all 0.6s ease;
   pointer-events: none;
+  opacity: 0;
 }
 
-@keyframes quoteRipple {
-  0% {
-    width: 0;
-    height: 0;
-    opacity: 1;
-  }
-  100% {
-    width: 300px;
-    height: 300px;
-    opacity: 0;
-  }
-}
-
-.quote-icon {
-  font-size: 1.5rem;
-  margin-bottom: 0.8rem;
-  opacity: 0.8;
-}
-
-.quote-text {
-  font-size: 0.95rem;
-  line-height: 1.5;
-  margin-bottom: 0.8rem;
-  font-style: italic;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-  min-height: 2.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.quote-author {
-  font-size: 0.8rem;
-  opacity: 0.9;
-  font-weight: 500;
-  margin-bottom: 0.5rem;
-}
-
-.quote-refresh {
-  font-size: 0.75rem;
-  opacity: 0.7;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.3rem;
-  transition: opacity 0.3s ease;
-}
-
-.quote-container:hover .quote-refresh {
+.quote-wrapper.ripple-effect::after {
+  width: 300px;
+  height: 300px;
   opacity: 1;
-}
-
-.quote-refresh i {
-  font-size: 0.8rem;
-  animation: none;
-}
-
-.quote-container:hover .quote-refresh i {
-  animation: spin 0.6s ease-in-out;
-}
-
-/* 点击时的即时反馈效果 */
-.quote-container:active {
-  transform: translateY(1px) scale(0.98);
-  background: linear-gradient(135deg, #48cae4 0%, #0077b6 100%) !important;
-  transition: all 0.1s ease;
-}
-
-[data-bs-theme="dark"] .quote-container:active {
-  background: linear-gradient(135deg, #5a67d8 0%, #667eea 100%) !important;
+  animation: rippleOut 0.6s ease-out;
 }
 
 /* 技能展示样式 */
@@ -724,13 +894,22 @@ onBeforeUnmount(() => {
 }
 
 /* 暗色主题下的名言样式 */
-[data-bs-theme="dark"] .quote-container {
-  background: linear-gradient(135deg, #6a5acd 0%, #9370db 100%);
-  box-shadow: 0 4px 15px rgba(106, 90, 205, 0.3);
+[data-bs-theme="dark"] .dot {
+  background: #4a5568;
 }
 
-[data-bs-theme="dark"] .quote-container:hover {
-  box-shadow: 0 8px 25px rgba(106, 90, 205, 0.5);
+/* 波纹动画 */
+@keyframes rippleOut {
+  0% {
+    width: 0;
+    height: 0;
+    opacity: 1;
+  }
+  100% {
+    width: 300px;
+    height: 300px;
+    opacity: 0;
+  }
 }
 
 /* 动画效果 */
@@ -799,31 +978,17 @@ onBeforeUnmount(() => {
   to { transform: rotate(360deg); }
 }
 
-@keyframes sparkle {
-  0%, 100% { transform: scale(1) rotate(0deg); }
-  50% { transform: scale(1.1) rotate(180deg); }
-}
-
-@keyframes quoteClickPulse {
+/* 波纹动画 */
+@keyframes rippleOut {
   0% {
-    transform: translateY(0) scale(1);
-    box-shadow: 0 4px 15px rgba(78, 205, 196, 0.3);
-  }
-  25% {
-    transform: translateY(-3px) scale(1.02);
-    box-shadow: 0 8px 25px rgba(78, 205, 196, 0.5);
-  }
-  50% {
-    transform: translateY(-1px) scale(1.01);
-    box-shadow: 0 12px 35px rgba(78, 205, 196, 0.6);
-  }
-  75% {
-    transform: translateY(-2px) scale(1.01);
-    box-shadow: 0 8px 25px rgba(78, 205, 196, 0.4);
+    width: 0;
+    height: 0;
+    opacity: 1;
   }
   100% {
-    transform: translateY(0) scale(1);
-    box-shadow: 0 4px 15px rgba(78, 205, 196, 0.3);
+    width: 300px;
+    height: 300px;
+    opacity: 0;
   }
 }
 
@@ -842,21 +1007,34 @@ onBeforeUnmount(() => {
     font-size: 1.3rem;
   }
   
-  .quote-container {
-    padding: 1rem;
+  .quote-wrapper {
+    padding: 1.2rem;
   }
   
   .quote-text {
     font-size: 0.9rem;
-    min-height: 2rem;
+    line-height: 1.5;
   }
   
   .quote-author {
-    font-size: 0.75rem;
+    font-size: 0.8rem;
   }
   
-  .quote-refresh {
-    font-size: 0.7rem;
+  .quote-title {
+    font-size: 0.85rem;
+  }
+  
+  .quote-title i {
+    font-size: 0.9rem;
+  }
+  
+  .quote-refresh-btn {
+    width: 32px;
+    height: 32px;
+  }
+  
+  .quote-mark {
+    font-size: 1.2rem;
   }
 }
 

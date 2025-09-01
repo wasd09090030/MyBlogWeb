@@ -17,6 +17,8 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted, computed } from 'vue'
+import f01Image from '@/assets/flower/f01.webp'
+import f02Image from '@/assets/flower/f02.webp'
 
 const petals = ref([])
 const isActive = ref(true)
@@ -24,8 +26,8 @@ const isActive = ref(true)
 // 花瓣配置
 const PETAL_COUNT = 15
 const PETAL_IMAGES = [
-  '/src/assets/flower/f01.webp',
-  '/src/assets/flower/f02.webp'
+  f01Image,
+  f02Image
 ]
 
 // 只显示活跃的花瓣

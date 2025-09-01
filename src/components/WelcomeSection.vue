@@ -95,6 +95,7 @@
 import { ref, onMounted, onUnmounted, nextTick } from 'vue';
 import { useRouter } from 'vue-router';
 import articleService from '../services/articleService.js';
+import backgroundImage from '@/assets/Picture/LIN.webp';
 // 动态导入Swiper CSS
 import 'swiper/css';
 import 'swiper/css/navigation';
@@ -141,7 +142,7 @@ const fetchFeaturedArticles = async () => {
     } else {
       slides.value = articles.slice(0, 3).map(article => ({
         ...article,
-        coverImage: '/src/assets/BlogPicture/background.webp'
+        coverImage: backgroundImage
       }));
     }
   } catch (error) {
@@ -151,7 +152,7 @@ const fetchFeaturedArticles = async () => {
       id: 0,
       title: '欢迎访问我的博客',
       category: 'other',
-      coverImage: '/src/assets/BlogPicture/background.webp'
+      coverImage: backgroundImage
     }];
   }
 };

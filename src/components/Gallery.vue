@@ -1,7 +1,44 @@
 <template>
   <div class="gallery-fullscreen">
-    <!-- 加载状态 -->
-    <div v-if="loading" class="loading-overlay">
+    <!-- 进入画廊前的加载动画 -->
+    <div v-if="isInitialLoading" class="initial-loading-overlay">
+      <div class="loading-container">
+        <div class="loading-animation">
+          <div class="loading-circle">
+            <div class="circle-inner">
+              <i class="bi bi-images"></i>
+            </div>
+          </div>
+          <div class="loading-progress">
+            <div class="progress-bar">
+              <div class="progress-fill" :style="{ width: loadingProgress + '%' }"></div>
+            </div>
+            <div class="progress-text">
+              正在加载画廊 {{ Math.round(loadingProgress) }}%
+            </div>
+          </div>
+        </div>
+        
+        <!-- 预览图片展示 -->
+        <div class="preview-images" v-if="previewImages.length > 0">
+          <div 
+            v-for="(img, index) in previewImages.slice(0, 3)" 
+            :key="index"
+            class="preview-item"
+            :style="{ animationDelay: index * 0.2 + 's' }"
+          >
+            <img :src="img.imageUrl" :alt="`预览图片${index + 1}`" />
+          </div>
+        </div>
+        
+        <div class="loading-tip">
+          <p>正在为您准备精美的图片画廊...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 原有的加载状态 -->
+    <div v-else-if="loading" class="loading-overlay">
       <div class="spinner-border text-primary" role="status">
         <span class="visually-hidden">加载中...</span>
       </div>
@@ -22,13 +59,13 @@
     </div>
 
     <!-- 有内容时显示所有画廊 -->
-    <div v-else class="gallery-content">
+    <div v-else-if="!isInitialLoading" class="gallery-content">
       <!-- 淡入淡出幻灯片效果 - 在导航栏下方显示 -->
       <section class="fade-section">
         <div class="fade-gallery" ref="loopContainer">
           <div class="swiper-wrapper">
             <div 
-              v-for="(gallery, index) in getGallerySlice(10, 15)" 
+              v-for="(gallery, index) in getGallerySlice(0, 4)" 
               :key="`loop-${gallery.id}`" 
               class="swiper-slide fade-slide"
             >
@@ -62,7 +99,7 @@
             <div class="accordion-gallery" ref="accordionContainer">
               <div class="swiper-wrapper">
                 <div 
-                  v-for="(gallery, index) in getGallerySlice(0, 5)" 
+                  v-for="(gallery, index) in getGallerySlice(5, 9)" 
                   :key="`accordion-${gallery.id}`" 
                   class="swiper-slide accordion-slide"
                   :class="{ 'accordion-expanded': index === expandedAccordionIndex }"
@@ -98,7 +135,7 @@
           <div class="coverflow-gallery" ref="coverflowContainer">
             <div class="swiper-wrapper">
               <div 
-                v-for="(gallery, index) in getGallerySlice(5, 10)" 
+                v-for="(gallery, index) in getGallerySlice(10, 14)" 
                 :key="`coverflow-${gallery.id}`" 
                 class="swiper-slide coverflow-slide"
               >
@@ -186,6 +223,13 @@ export default {
     const selectedImage = ref(null)
     const expandedAccordionIndex = ref(0) // 默认第一个展开
     
+    // 初始加载状态
+    const isInitialLoading = ref(true)
+    const loadingProgress = ref(0)
+    const previewImages = ref([])
+    const loadedImagesCount = ref(0)
+    const totalImagesToLoad = ref(0)
+    
     // Swiper 实例
     const accordionSwiper = ref(null)
     const coverflowSwiper = ref(null)
@@ -224,19 +268,96 @@ export default {
       expandedAccordionIndex.value = 0 // 恢复到第一个展开
     }
 
+    // 预加载图片
+    const preloadImage = (src) => {
+      return new Promise((resolve, reject) => {
+        const img = new Image()
+        img.onload = () => {
+          loadedImagesCount.value++
+          loadingProgress.value = (loadedImagesCount.value / totalImagesToLoad.value) * 100
+          resolve(img)
+        }
+        img.onerror = reject
+        img.src = src
+      })
+    }
+
+    // 预加载所有图片
+    const preloadAllImages = async () => {
+      if (galleries.value.length === 0) return
+
+      // 设置总数
+      totalImagesToLoad.value = galleries.value.length
+      loadedImagesCount.value = 0
+      loadingProgress.value = 0
+
+      // 选择前几张作为预览
+      previewImages.value = galleries.value.slice(0, 3)
+
+      try {
+        // 并发加载所有图片，但限制并发数量
+        const concurrencyLimit = 5
+        const chunks = []
+        
+        for (let i = 0; i < galleries.value.length; i += concurrencyLimit) {
+          chunks.push(galleries.value.slice(i, i + concurrencyLimit))
+        }
+
+        for (const chunk of chunks) {
+          await Promise.allSettled(
+            chunk.map(gallery => preloadImage(gallery.imageUrl))
+          )
+        }
+
+        // 确保至少显示2秒的加载动画
+        const minLoadingTime = 2000
+        const elapsedTime = Date.now() - startTime
+        if (elapsedTime < minLoadingTime) {
+          await new Promise(resolve => setTimeout(resolve, minLoadingTime - elapsedTime))
+        }
+
+        // 加载完成，显示画廊
+        setTimeout(() => {
+          isInitialLoading.value = false
+          nextTick(() => {
+            initSwipers()
+          })
+        }, 500)
+
+      } catch (error) {
+        console.error('预加载图片失败:', error)
+        // 即使失败也要显示画廊
+        isInitialLoading.value = false
+        nextTick(() => {
+          initSwipers()
+        })
+      }
+    }
+
+    let startTime = Date.now()
+
     // 获取画廊数据
     const fetchGalleries = async () => {
       try {
+        startTime = Date.now()
         loading.value = true
         error.value = null
         const response = await galleryService.getGalleries()
-        galleries.value = response || []  // 直接使用response，不是response.data
+        galleries.value = response || []
         console.log('Gallery data loaded:', galleries.value)
+        
+        if (galleries.value.length > 0) {
+          loading.value = false
+          await preloadAllImages()
+        } else {
+          loading.value = false
+          isInitialLoading.value = false
+        }
       } catch (err) {
         console.error('获取画廊数据失败:', err)
         error.value = '获取画廊数据失败，请稍后重试'
-      } finally {
         loading.value = false
+        isInitialLoading.value = false
       }
     }
 
@@ -343,7 +464,7 @@ export default {
       await loadSwiper()
       await nextTick()
       
-      if (galleries.value.length > 0) {
+      if (galleries.value.length > 0 && !isInitialLoading.value) {
         setTimeout(() => {
           initAccordionSwiper()
           initCoverflowSwiper()
@@ -390,7 +511,6 @@ export default {
     // 生命周期钩子
     onMounted(async () => {
       await fetchGalleries()
-      await initSwipers()
     })
 
     onUnmounted(() => {
@@ -405,6 +525,9 @@ export default {
       showFullscreen,
       selectedImage,
       expandedAccordionIndex,
+      isInitialLoading,
+      loadingProgress,
+      previewImages,
       accordionContainer,
       coverflowContainer,
       loopContainer,
@@ -421,6 +544,228 @@ export default {
 </script>
 
 <style scoped>
+/* 初始加载动画样式 */
+.initial-loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  overflow: hidden;
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: white;
+  text-align: center;
+  max-width: 500px;
+  padding: 2rem;
+}
+
+.loading-animation {
+  margin-bottom: 2rem;
+}
+
+.loading-circle {
+  width: 120px;
+  height: 120px;
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 2rem;
+  position: relative;
+  animation: rotateCircle 2s linear infinite;
+}
+
+.loading-circle::before {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  right: -4px;
+  bottom: -4px;
+  border: 4px solid transparent;
+  border-top: 4px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.circle-inner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 80px;
+  height: 80px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  backdrop-filter: blur(10px);
+}
+
+.circle-inner i {
+  font-size: 2.5rem;
+  color: white;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.loading-progress {
+  width: 300px;
+  margin-bottom: 2rem;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #ffffff, #f093fb);
+  border-radius: 3px;
+  transition: width 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.progress-fill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
+  animation: shimmer 1.5s infinite;
+}
+
+.progress-text {
+  font-size: 1.1rem;
+  font-weight: 500;
+  margin-bottom: 1rem;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.preview-images {
+  display: flex;
+  gap: 1rem;
+  margin: 2rem 0;
+  justify-content: center;
+}
+
+.preview-item {
+  width: 80px;
+  height: 80px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  animation: previewFloat 2s ease-in-out infinite;
+  opacity: 0;
+  animation: previewFadeIn 0.6s ease-out forwards;
+}
+
+.preview-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.loading-tip {
+  margin-top: 1rem;
+}
+
+.loading-tip p {
+  font-size: 1rem;
+  opacity: 0.9;
+  margin: 0;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  animation: textPulse 2s ease-in-out infinite;
+}
+
+/* 动画效果 */
+@keyframes rotateCircle {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.8;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes previewFloat {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes previewFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes textPulse {
+  0%, 100% {
+    opacity: 0.9;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+/* 暗色主题下的初始加载动画 */
+:global(.dark-theme) .initial-loading-overlay {
+  background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
+}
+
 /* 画廊全屏容器样式 */
 .gallery-fullscreen {
   position: fixed;
@@ -597,7 +942,7 @@ export default {
 .fade-section {
   position: relative;
   width: 100%;
-  height: 85vh;
+  height: 95vh;
   margin-bottom: 2rem;
   margin-top: 50px;
   background: rgba(0, 0, 0, 0.1);
@@ -766,6 +1111,48 @@ export default {
 
 /* 响应式设计 */
 @media (max-width: 768px) {
+  /* 初始加载动画移动端适配 */
+  .initial-loading-overlay .loading-container {
+    padding: 1rem;
+    max-width: 90vw;
+  }
+  
+  .loading-circle {
+    width: 100px;
+    height: 100px;
+  }
+  
+  .circle-inner {
+    width: 70px;
+    height: 70px;
+  }
+  
+  .circle-inner i {
+    font-size: 2rem;
+  }
+  
+  .loading-progress {
+    width: 250px;
+  }
+  
+  .progress-text {
+    font-size: 1rem;
+  }
+  
+  .preview-images {
+    gap: 0.5rem;
+  }
+  
+  .preview-item {
+    width: 60px;
+    height: 60px;
+  }
+  
+  .loading-tip p {
+    font-size: 0.9rem;
+  }
+  
+  /* 画廊内容移动端适配 */
   .gallery-sections {
     padding: 1rem 1rem 3rem;
   }
