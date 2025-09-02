@@ -65,7 +65,7 @@
         <div class="fade-gallery" ref="loopContainer">
           <div class="swiper-wrapper">
             <div 
-              v-for="(gallery, index) in getGallerySlice(0, 4)" 
+              v-for="(gallery, index) in getGallerySlice(0, 5)" 
               :key="`loop-${gallery.id}`" 
               class="swiper-slide fade-slide"
             >
@@ -98,7 +98,7 @@
             <div class="accordion-gallery" ref="accordionContainer">
               <div class="swiper-wrapper">
                 <div 
-                  v-for="(gallery, index) in getGallerySlice(5, 9)" 
+                  v-for="(gallery, index) in getGallerySlice(5, 10)" 
                   :key="`accordion-${gallery.id}`" 
                   class="swiper-slide accordion-slide"
                   :class="{ 'accordion-expanded': index === expandedAccordionIndex }"
@@ -134,7 +134,7 @@
           <div class="coverflow-gallery" ref="coverflowContainer">
             <div class="swiper-wrapper">
               <div 
-                v-for="(gallery, index) in getGallerySlice(10, 14)" 
+                v-for="(gallery, index) in getGallerySlice(10, 15)" 
                 :key="`coverflow-${gallery.id}`" 
                 class="swiper-slide coverflow-slide"
               >
