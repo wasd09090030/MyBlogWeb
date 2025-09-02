@@ -348,6 +348,8 @@ onUnmounted(() => {
 #app {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   transition: background-color 0.3s ease, color 0.3s ease;
+  position: relative;
+  min-height: 100vh;
 }
 
 /* 主题样式 */

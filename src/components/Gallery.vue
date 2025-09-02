@@ -86,7 +86,6 @@
               </div>
             </div>
           </div>
-          <div class="swiper-pagination"></div>
         </div>
       </section>
 
@@ -154,9 +153,6 @@
                 </div>
               </div>
             </div>
-            <div class="swiper-pagination"></div>
-            <div class="swiper-button-next"></div>
-            <div class="swiper-button-prev"></div>
           </div>
         </section>
       </div>
@@ -399,7 +395,7 @@ export default {
       if (!coverflowContainer.value || !Swiper) return
       
       coverflowSwiper.value = new Swiper(coverflowContainer.value, {
-        modules: [Navigation, Pagination, EffectCoverflow],
+        modules: [EffectCoverflow],
         effect: 'coverflow',
         grabCursor: true,
         centeredSlides: true,
@@ -412,14 +408,6 @@ export default {
           depth: 100,
           modifier: 1,
           slideShadows: true,
-        },
-        pagination: {
-          el: '.coverflow-gallery .swiper-pagination',
-          clickable: true,
-        },
-        navigation: {
-          nextEl: '.coverflow-gallery .swiper-button-next',
-          prevEl: '.coverflow-gallery .swiper-button-prev',
         },
         breakpoints: {
           320: {
@@ -440,7 +428,7 @@ export default {
       if (!loopContainer.value || !Swiper) return
       
       loopSwiper.value = new Swiper(loopContainer.value, {
-        modules: [Navigation, Pagination, Autoplay, EffectFade],
+        modules: [Autoplay, EffectFade],
         effect: 'fade',
         fadeEffect: {
           crossFade: true
@@ -451,10 +439,6 @@ export default {
         autoplay: {
           delay: 4000,
           disableOnInteraction: false,
-        },
-        pagination: {
-          el: '.fade-gallery .swiper-pagination',
-          clickable: true,
         },
       })
     }
@@ -510,11 +494,14 @@ export default {
 
     // 生命周期钩子
     onMounted(async () => {
+      // 隐藏body滚动条，因为画廊组件自己处理滚动
+      document.body.style.overflow = 'hidden'
       await fetchGalleries()
     })
 
     onUnmounted(() => {
       destroySwipers()
+      // 恢复body滚动条
       document.body.style.overflow = 'auto'
     })
 
@@ -555,7 +542,7 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 9999;
+  z-index: 10000;
   overflow: hidden;
 }
 
@@ -771,12 +758,14 @@ export default {
   position: fixed;
   top: 0;
   left: 0;
+  right: 0;
+  bottom: 0;
   width: 100vw;
   height: 100vh;
   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
   overflow-y: auto;
   overflow-x: hidden;
-  z-index: 1;
+  z-index: 1000;
 }
 
 .gallery-sections {
@@ -1012,42 +1001,12 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 10;
+  z-index: 10000;
   color: white;
   flex-direction: column;
 }
 
 /* Swiper自定义样式 */
-.coverflow-gallery .swiper-button-next,
-.coverflow-gallery .swiper-button-prev {
-  color: #667eea;
-  background: rgba(255, 255, 255, 0.9);
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
-  margin-top: -20px;
-}
-
-.coverflow-gallery .swiper-button-next::after,
-.coverflow-gallery .swiper-button-prev::after {
-  font-size: 16px;
-  font-weight: 600;
-}
-
-.coverflow-gallery .swiper-pagination {
-  bottom: 10px !important;
-}
-
-.coverflow-gallery .swiper-pagination-bullet {
-  background: #667eea;
-  opacity: 0.7;
-}
-
-.coverflow-gallery .swiper-pagination-bullet-active {
-  background: #667eea;
-  opacity: 1;
-}
-
 /* 全屏模态框样式 */
 .fullscreen-modal {
   position: fixed;
