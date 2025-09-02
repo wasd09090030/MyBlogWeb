@@ -910,7 +910,7 @@ export default {
 .coverflow-item {
   position: relative;
   width: 100%;
-  height: 300px;
+  height: 350px;
   border-radius: 15px;
   overflow: hidden;
   cursor: pointer;
@@ -942,7 +942,7 @@ export default {
 .fade-section {
   position: relative;
   width: 100%;
-  height: 95vh;
+  height: 90vh;
   margin-bottom: 2rem;
   margin-top: 50px;
   background: rgba(0, 0, 0, 0.1);
@@ -974,7 +974,7 @@ export default {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  /* 移除hover时的放大效果 */
+  object-position: top; 
 }
 
 .fade-overlay {
