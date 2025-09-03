@@ -10,7 +10,7 @@ export const authAPI = {
   // 管理员登录
   async login(username, password) {
     try {
-      const response = await fetch(`${baseURL}/auth/login`, {
+      const response = await fetch(`${baseURL}${import.meta.env.PROD ? '/api/auth/login' : '/auth/login'}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -43,7 +43,7 @@ export const authAPI = {
   // 修改密码
   async changePassword(currentPassword, newPassword) {
     try {
-      const response = await fetch(`${baseURL}/auth/change-password`, {
+      const response = await fetch(`${baseURL}${import.meta.env.PROD ? '/api/auth/change-password' : '/auth/change-password'}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

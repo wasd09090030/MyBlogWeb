@@ -93,7 +93,6 @@
       <div class="gallery-sections">
         <!-- 第一部分：手风琴横向展示 -->
         <section class="gallery-section">
-          <h2 class="section-title">立绘</h2>
           <div class="accordion-container">
             <div class="accordion-gallery" ref="accordionContainer">
               <div class="swiper-wrapper">
@@ -118,19 +117,11 @@
                 </div>
               </div>
             </div>
-            <div class="fixed-image-container">
-              <img 
-                :src="LinImage" 
-                alt="立绘图片"
-                class="fixed-side-image"
-              />
-            </div>
           </div>
         </section>
 
         <!-- 第二部分：3D 覆盖流效果 -->
-        <section class="gallery-section mb-5">
-          <h2 class="section-title">绘景图</h2>
+        <section class="coverflow-section mb-5">
           <div class="coverflow-gallery" ref="coverflowContainer">
             <div class="swiper-wrapper">
               <div 
@@ -194,8 +185,6 @@
 import { ref, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { galleryService } from '../services/articleService.js'
-// 导入静态图片
-import LinImage from '@/assets/Picture/LIN.webp'
 
 // 动态导入Swiper以避免SSR问题
 let Swiper, Navigation, Pagination, Autoplay, EffectCoverflow, EffectFade
@@ -518,7 +507,6 @@ export default {
       accordionContainer,
       coverflowContainer,
       loopContainer,
-      LinImage,
       getGallerySlice,
       openFullscreen,
       closeFullscreen,
@@ -538,7 +526,7 @@ export default {
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #f834c1, #d7d5d6 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -782,26 +770,13 @@ export default {
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
 }
 
-.section-title {
-  text-align: center;
-  font-size: 1.8rem;
-  font-weight: 600;
-  color: #34495e;
-  margin-bottom: 2rem;
-  position: relative;
+/* 3D覆盖流专用容器样式 - 无背景 */
+.coverflow-section {
+  margin-bottom: 4rem;
+  padding: 2rem;
+  background: transparent;
 }
 
-.section-title::after {
-  content: '';
-  position: absolute;
-  bottom: -0.5rem;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 60px;
-  height: 3px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 2px;
-}
 
 /* 手风琴容器样式 */
 .accordion-container {
@@ -817,7 +792,6 @@ export default {
   overflow: hidden;
   margin: 0;
   flex: 1;
-  max-width: calc(100% - 300px); /* 为右侧图片预留空间 */
 }
 
 .accordion-slide {
@@ -842,12 +816,6 @@ export default {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.5s ease;
-}
-
-.accordion-slide:hover .accordion-image,
-.accordion-slide.accordion-expanded .accordion-image {
-  transform: scale(1.1);
 }
 
 
@@ -858,33 +826,10 @@ export default {
 
 /* 移除不再需要的标题和描述样式 */
 
-/* 固定图片容器样式 */
-.fixed-image-container {
-  flex-shrink: 0;
-  width: 280px;
-  height: 80vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.fixed-side-image {
-  width: 100%;
-  height: 80vh;
-  object-fit: cover;
-  border-radius: 15px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.fixed-side-image:hover {
-  transform: scale(1.02);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
-}
 
 /* 3D 覆盖流样式 */
 .coverflow-gallery {
-  height: 400px;
+  height: 75vh;
   padding: 50px 0;
   margin: 0 auto;
   max-width: 100%;
@@ -899,11 +844,10 @@ export default {
 .coverflow-item {
   position: relative;
   width: 100%;
-  height: 350px;
+  height: calc(75vh - 100px); /* 减去padding */
   border-radius: 15px;
   overflow: hidden;
   cursor: pointer;
-  /* 移除自定义的变换和阴影，让Swiper处理 */
 }
 
 .coverflow-image {
@@ -911,6 +855,8 @@ export default {
   height: 100%;
   object-fit: cover;
   border-radius: 15px;
+  /* 确保图片按3:2比例显示，纵向长方形 */
+  aspect-ratio: 2/3;
 }
 
 .coverflow-info {
@@ -931,7 +877,7 @@ export default {
 .fade-section {
   position: relative;
   width: 100%;
-  height: 90vh;
+  height: 95vh;
   margin-bottom: 2rem;
   margin-top: 50px;
   background: rgba(0, 0, 0, 0.1);
@@ -1122,13 +1068,16 @@ export default {
     border-radius: 15px;
   }
   
-  .section-title {
-    font-size: 1.5rem;
+  .coverflow-section {
+    margin-bottom: 2rem;
+    padding: 1rem;
   }
+  
+
   
   .accordion-gallery,
   .coverflow-gallery {
-    height: 250px;
+    height: 30vh;
   }
   
   /* 移动端手风琴容器调整 */
@@ -1139,21 +1088,18 @@ export default {
   }
   
   .accordion-gallery {
-    max-width: 100%;
-    height: 250px;
+    height: 30vh;
   }
   
-  .fixed-image-container {
-    width: 100%;
-    height: 250px;
-  }
-  
-  .fixed-side-image {
-    height: 250px;
-  }
+
   
   .coverflow-gallery {
     padding: 20px 0;
+    height: 45vh;
+  }
+  
+  .coverflow-item {
+    height: calc(45vh - 40px); /* 移动端减少高度 */
   }
   
   .fade-section {
@@ -1213,10 +1159,6 @@ export default {
 
 :global(.dark-theme) .gallery-section {
   background: rgba(45, 55, 72, 0.8);
-  color: #ffffff;
-}
-
-:global(.dark-theme) .section-title {
   color: #ffffff;
 }
 

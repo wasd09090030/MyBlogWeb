@@ -95,7 +95,6 @@
 import { ref, onMounted, onUnmounted, nextTick } from 'vue';
 import { useRouter } from 'vue-router';
 import articleService from '../services/articleService.js';
-import backgroundImage from '@/assets/Picture/LIN.webp';
 // 动态导入Swiper CSS
 import 'swiper/css';
 import 'swiper/css/navigation';
@@ -134,26 +133,20 @@ const fetchFeaturedArticles = async () => {
     const articles = await articleService.getArticles();
     articleCount.value = articles.length; // 设置文章总数
     
-    // 获取有封面图的文章，如果没有则使用默认图片
+    // 只获取有封面图的文章
     const articlesWithCover = articles.filter(article => article.coverImage);
     if (articlesWithCover.length > 0) {
       const shuffled = articlesWithCover.sort(() => 0.5 - Math.random());
       slides.value = shuffled.slice(0, Math.min(5, shuffled.length));
     } else {
-      slides.value = articles.slice(0, 3).map(article => ({
-        ...article,
-        coverImage: backgroundImage
-      }));
+      // 如果没有有封面图的文章，设置为空数组
+      slides.value = [];
     }
   } catch (error) {
     console.error('获取推荐文章失败:', error);
     articleCount.value = 0;
-    slides.value = [{
-      id: 0,
-      title: '欢迎访问我的博客',
-      category: 'other',
-      coverImage: backgroundImage
-    }];
+    // 错误情况下也设置为空数组
+    slides.value = [];
   }
 };
 
@@ -886,6 +879,14 @@ onUnmounted(() => {
 
 [data-bs-theme="dark"] :deep(.swiper-pagination-bullet-active) {
   background: #fff !important;
+}
+
+[data-bs-theme="dark"] .slide-card {
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+[data-bs-theme="dark"] .carousel-slide.active .slide-card {
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
 }
 
 [data-bs-theme="dark"] .slide-card {
