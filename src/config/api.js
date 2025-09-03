@@ -28,11 +28,11 @@ export const API_CONFIG = {
     LIKES_TOGGLE: (articleId) => `/likes/article/${articleId}`,
     
     // 画廊相关
-    GALLERY: '/gallery',
-    GALLERY_ADMIN: '/gallery/admin',
-    GALLERY_BY_ID: (id) => `/gallery/${id}`,
-    GALLERY_TOGGLE_ACTIVE: (id) => `/gallery/${id}/toggle-active`,
-    GALLERY_SORT_ORDER: '/gallery/batch/sort-order',
+    GALLERY: '/api/gallery',
+    GALLERY_ADMIN: '/api/gallery/admin',
+    GALLERY_BY_ID: (id) => `/api/gallery/${id}`,
+    GALLERY_TOGGLE_ACTIVE: (id) => `/api/gallery/${id}/toggle-active`,
+    GALLERY_SORT_ORDER: '/api/gallery/batch/sort-order',
   }
 };
 

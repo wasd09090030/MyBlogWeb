@@ -2,7 +2,7 @@ import { getApiUrl, API_CONFIG } from '../config/api.js';
 
 class GalleryService {
   async getAllGalleries() {
-    const response = await fetch(getApiUrl('/gallery'));
+    const response = await fetch(getApiUrl(API_CONFIG.ENDPOINTS.GALLERY));
     if (!response.ok) {
       throw new Error('获取画廊图片失败');
     }
@@ -10,7 +10,7 @@ class GalleryService {
   }
 
   async getAllGalleriesForAdmin() {
-    const response = await fetch(getApiUrl('/gallery/admin'));
+    const response = await fetch(getApiUrl(API_CONFIG.ENDPOINTS.GALLERY_ADMIN));
     if (!response.ok) {
       throw new Error('获取画廊图片失败');
     }
@@ -18,7 +18,7 @@ class GalleryService {
   }
 
   async getGalleryById(id) {
-    const response = await fetch(getApiUrl(`/gallery/${id}`));
+    const response = await fetch(getApiUrl(API_CONFIG.ENDPOINTS.GALLERY_BY_ID(id)));
     if (!response.ok) {
       throw new Error('获取画廊图片失败');
     }
@@ -26,7 +26,7 @@ class GalleryService {
   }
 
   async createGallery(galleryData) {
-    const response = await fetch(getApiUrl('/gallery'), {
+    const response = await fetch(getApiUrl(API_CONFIG.ENDPOINTS.GALLERY), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -41,7 +41,7 @@ class GalleryService {
   }
 
   async updateGallery(id, galleryData) {
-    const response = await fetch(getApiUrl(`/gallery/${id}`), {
+    const response = await fetch(getApiUrl(API_CONFIG.ENDPOINTS.GALLERY_BY_ID(id)), {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
@@ -56,7 +56,7 @@ class GalleryService {
   }
 
   async deleteGallery(id) {
-    const response = await fetch(getApiUrl(`/gallery/${id}`), {
+    const response = await fetch(getApiUrl(API_CONFIG.ENDPOINTS.GALLERY_BY_ID(id)), {
       method: 'DELETE',
     });
 
@@ -66,7 +66,7 @@ class GalleryService {
   }
 
   async updateSortOrder(updates) {
-    const response = await fetch(getApiUrl('/gallery/batch/sort-order'), {
+    const response = await fetch(getApiUrl(API_CONFIG.ENDPOINTS.GALLERY_SORT_ORDER), {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
@@ -81,7 +81,7 @@ class GalleryService {
   }
 
   async toggleActive(id) {
-    const response = await fetch(getApiUrl(`/gallery/${id}/toggle-active`), {
+    const response = await fetch(getApiUrl(API_CONFIG.ENDPOINTS.GALLERY_TOGGLE_ACTIVE(id)), {
       method: 'PATCH',
     });
 

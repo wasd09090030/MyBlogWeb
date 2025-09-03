@@ -114,7 +114,7 @@ class GalleryService {
   // 获取所有激活的画廊图片 (公开接口)
   async getGalleries() {
     try {
-      const response = await this.api.get('/gallery');
+      const response = await this.api.get('/api/gallery');
       return response.data;
     } catch (error) {
       console.error('获取画廊数据失败:', error);
@@ -125,7 +125,7 @@ class GalleryService {
   // 获取所有画廊图片 (管理员接口)
   async getAllGalleries() {
     try {
-      const response = await this.api.get('/gallery/admin', {
+      const response = await this.api.get('/api/gallery/admin', {
         headers: {
           'Authorization': this.getAuthHeader()
         }
@@ -140,7 +140,7 @@ class GalleryService {
   // 创建画廊图片
   async createGallery(galleryData) {
     try {
-      const response = await this.api.post('/gallery', galleryData, {
+      const response = await this.api.post('/api/gallery', galleryData, {
         headers: {
           'Authorization': this.getAuthHeader()
         }
@@ -155,7 +155,7 @@ class GalleryService {
   // 更新画廊图片
   async updateGallery(id, galleryData) {
     try {
-      const response = await this.api.patch(`/gallery/${id}`, galleryData, {
+      const response = await this.api.patch(`/api/gallery/${id}`, galleryData, {
         headers: {
           'Authorization': this.getAuthHeader()
         }
@@ -170,7 +170,7 @@ class GalleryService {
   // 删除画廊图片
   async deleteGallery(id) {
     try {
-      const response = await this.api.delete(`/gallery/${id}`, {
+      const response = await this.api.delete(`/api/gallery/${id}`, {
         headers: {
           'Authorization': this.getAuthHeader()
         }
