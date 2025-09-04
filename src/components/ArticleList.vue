@@ -173,7 +173,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, watch, onActivated, onDeactivated, nextTick } from 'vue';
+import { ref, onMounted, computed, watch, onActivated, onDeactivated, nextTick, inject } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import './ArticleList.styles.css';
 
@@ -181,6 +181,12 @@ import './ArticleList.styles.css';
 defineOptions({
   name: 'ArticleList'
 });
+
+// 注入从App.vue提供的文章数据
+const injectedArticles = inject('articles', ref([]));
+const articlesLoading = inject('articlesLoading', ref(false));
+const injectedArticlesError = inject('articlesError', ref(null));
+const refreshArticles = inject('refreshArticles', () => {});
 
 // 创建ref来引用ArticleList容器
 const articleListContainer = ref(null);
@@ -416,6 +422,22 @@ function formatDate(dateString) {
   });
 }
 
+// 监听注入的文章数据变化
+watch(injectedArticles, (newArticles) => {
+  if (newArticles && newArticles.length > 0) {
+    console.log('ArticleList: 接收到来自App.vue的文章数据，总数:', newArticles.length);
+    articles.value = [...newArticles]; // 复制数据
+    error.value = null;
+  }
+}, { immediate: true });
+
+// 监听注入的错误状态
+watch(injectedArticlesError, (newError) => {
+  if (newError) {
+    error.value = newError;
+  }
+}, { immediate: true });
+
 // 监听路由变化，重新获取文章
 watch(() => route.query, (newQuery, oldQuery) => {
   // 只有当搜索或分类参数变化时才重置分页，忽略returnPage参数的变化
@@ -428,44 +450,28 @@ watch(() => route.query, (newQuery, oldQuery) => {
     // 重置分页
     currentPage.value = 1;
     currentFilteredPage.value = 1;
-    fetchArticles();
+    // 不再调用fetchArticles，因为数据已经从App.vue注入
+    // 如果需要按分类筛选，在这里处理筛选逻辑
+    if (newCategory && newCategory !== oldCategory) {
+      // 可以在这里实现客户端筛选，而不是重新请求数据
+      console.log('分类筛选变化:', newCategory);
+    }
   }
 }, { deep: true });
 
-async function fetchArticles() {
-  error.value = null;
-  try {
-    // 导入文章服务
-    const articleService = (await import('../services/articleService.js')).default;
-    // 直接使用导入的服务实例，无需再次实例化
-    
-    let fetchedArticles = [];
-    
-    // 如果存在类别参数，使用它过滤文章
-    if (route.query.category) {
-      fetchedArticles = await articleService.getArticlesByCategory(route.query.category);
-    } else {
-      // 否则获取所有文章
-      fetchedArticles = await articleService.getArticles();
-    }
-    
-    // 按ID倒序排列，让新文章（ID更大的）显示在前面
-    articles.value = fetchedArticles.sort((a, b) => {
-      // 确保ID是数字类型进行比较
-      const idA = parseInt(a.id) || 0;
-      const idB = parseInt(b.id) || 0;
-      return idB - idA; // 倒序：大的在前
-    });
-    
-    console.log('文章已按ID倒序排列，总数:', articles.value.length);
-  } catch (e) {
-    error.value = e;
-    console.error("获取文章失败:", e);
-  }
-}
+// 移除原来的fetchArticles函数，改为使用注入的数据和刷新方法
+const fetchArticles = async () => {
+  // 如果需要刷新数据，调用注入的刷新方法
+  await refreshArticles();
+};
 
 onMounted(async () => {
-  await fetchArticles();
+  // 不再主动获取数据，而是等待注入的数据
+  // 如果注入的数据已经存在，直接使用
+  if (injectedArticles.value.length > 0) {
+    articles.value = [...injectedArticles.value];
+    console.log('ArticleList onMounted: 使用已有的注入数据，总数:', articles.value.length);
+  }
   
   // 检查URL query中是否有页码信息
   const pageFromQuery = route.query.page;
@@ -501,7 +507,7 @@ onActivated(async () => {
   const shouldRefresh = route.meta?.refreshOnActivated || false;
   if (shouldRefresh) {
     console.log('检测到需要刷新数据，重新获取文章列表');
-    await fetchArticles();
+    await refreshArticles(); // 使用注入的刷新方法
     // 清除刷新标记
     if (route.meta) {
       route.meta.refreshOnActivated = false;
@@ -516,7 +522,7 @@ onDeactivated(() => {
 // 添加一个手动刷新方法，可以从外部调用
 const refreshData = async () => {
   console.log('手动刷新文章数据');
-  await fetchArticles();
+  await refreshArticles(); // 使用注入的刷新方法
 };
 
 // 暴露刷新方法给父组件使用

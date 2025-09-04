@@ -92,9 +92,8 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, nextTick } from 'vue';
+import { ref, onMounted, onUnmounted, nextTick, computed, inject, watch } from 'vue';
 import { useRouter } from 'vue-router';
-import articleService from '../services/articleService.js';
 // 动态导入Swiper CSS
 import 'swiper/css';
 import 'swiper/css/navigation';
@@ -103,10 +102,34 @@ import 'swiper/css/pagination';
 const router = useRouter();
 const swiperContainer = ref(null);
 
+// 注入从App.vue提供的文章数据
+const articles = inject('articles', ref([]));
+const articlesLoading = inject('articlesLoading', ref(false));
+const articlesError = inject('articlesError', ref(null));
+
 // 响应式数据
 const slides = ref([]);
-const articleCount = ref(0);
 let swiperInstance = null;
+
+// 计算文章总数
+const articleCount = computed(() => articles.value.length);
+
+// 从注入的文章数据中生成幻灯片数据
+const generateSlides = () => {
+  if (!articles.value || articles.value.length === 0) {
+    slides.value = [];
+    return;
+  }
+  
+  // 只获取有封面图的文章
+  const articlesWithCover = articles.value.filter(article => article.coverImage && article.coverImage !== 'null');
+  if (articlesWithCover.length > 0) {
+    const shuffled = articlesWithCover.sort(() => 0.5 - Math.random());
+    slides.value = shuffled.slice(0, Math.min(5, shuffled.length));
+  } else {
+    slides.value = [];
+  }
+};
 
 // 动态导入Swiper
 let Swiper, Navigation, Pagination, Autoplay;
@@ -127,27 +150,12 @@ const loadSwiper = async () => {
   }
 };
 
-// 获取文章数据
-const fetchFeaturedArticles = async () => {
-  try {
-    const articles = await articleService.getArticles();
-    articleCount.value = articles.length; // 设置文章总数
-    
-    // 只获取有封面图的文章
-    const articlesWithCover = articles.filter(article => article.coverImage);
-    if (articlesWithCover.length > 0) {
-      const shuffled = articlesWithCover.sort(() => 0.5 - Math.random());
-      slides.value = shuffled.slice(0, Math.min(5, shuffled.length));
-    } else {
-      // 如果没有有封面图的文章，设置为空数组
-      slides.value = [];
-    }
-  } catch (error) {
-    console.error('获取推荐文章失败:', error);
-    articleCount.value = 0;
-    // 错误情况下也设置为空数组
-    slides.value = [];
-  }
+// 监听文章数据变化
+const initializeData = () => {
+  generateSlides();
+  nextTick(() => {
+    initSwiper();
+  });
 };
 
 // 初始化Swiper
@@ -246,9 +254,21 @@ const destroySwiper = () => {
 
 // 生命周期
 onMounted(async () => {
-  await fetchFeaturedArticles();
-  await initSwiper();
+  await loadSwiper();
+  
+  // 如果文章数据已经存在，直接初始化
+  if (articles.value.length > 0) {
+    initializeData();
+  }
 });
+
+// 监听文章数据变化
+watch(articles, (newArticles) => {
+  if (newArticles && newArticles.length > 0) {
+    console.log('WelcomeSection: 接收到文章数据变化，重新生成幻灯片');
+    initializeData();
+  }
+}, { deep: true });
 
 onUnmounted(() => {
   destroySwiper();
