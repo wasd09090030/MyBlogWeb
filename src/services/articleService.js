@@ -13,19 +13,78 @@ class ArticleService {
       timeout: API_CONFIG.TIMEOUT
     });
   }
-  // 获取所有文章 - 前端展示用
-  async getArticles(category) {
+
+  // 获取推荐文章 - 专为WelcomeSection轮播设计
+  async getFeaturedArticles(limit = API_CONFIG.PAGINATION.WELCOME_CAROUSEL_SIZE) {
     try {
-      let url = '/articles';
-      // 如果提供了类别参数，添加到查询参数
-      const params = category ? { category } : {};
-      const response = await this.api.get(url, { params });
+      const response = await this.api.get(API_CONFIG.ENDPOINTS.ARTICLES_FEATURED, {
+        params: { limit }
+      });
+      return response.data;
+    } catch (error) {
+      console.error('获取推荐文章失败:', error);
+      throw error;
+    }
+  }
+
+  // 获取文章列表 - 支持分页和摘要模式
+  async getArticles(options = {}) {
+    try {
+      const {
+        category = null,
+        page = 1,
+        limit = API_CONFIG.PAGINATION.DEFAULT_PAGE_SIZE,
+        summary = true // 默认使用摘要模式以提升性能
+      } = options;
+
+      const params = {
+        summary,
+        page,
+        limit
+      };
+      
+      if (category) {
+        params.category = category;
+      }
+
+      const response = await this.api.get(API_CONFIG.ENDPOINTS.ARTICLES, { params });
       return response.data;
     } catch (error) {
       console.error('获取文章失败:', error);
       throw error;
     }
   }
+
+  // 获取所有文章（兼容旧代码）- 现在使用分页方式但返回所有数据
+  async getAllArticles() {
+    try {
+      // 先获取第一页来了解总数
+      const firstPage = await this.getArticles({ page: 1, limit: 50, summary: true });
+      
+      if (firstPage.totalPages <= 1) {
+        return firstPage.data;
+      }
+      
+      // 如果有多页，获取所有页面
+      const allArticles = [...firstPage.data];
+      const promises = [];
+      
+      for (let page = 2; page <= firstPage.totalPages; page++) {
+        promises.push(this.getArticles({ page, limit: 50, summary: true }));
+      }
+      
+      const results = await Promise.all(promises);
+      results.forEach(result => {
+        allArticles.push(...result.data);
+      });
+      
+      return allArticles;
+    } catch (error) {
+      console.error('获取所有文章失败:', error);
+      throw error;
+    }
+  }
+  
   // 获取指定类别的文章
   async getArticlesByCategory(category) {
     try {

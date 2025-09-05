@@ -5,13 +5,20 @@ export const API_CONFIG = {
     import.meta.env.PROD ? '' : 'http://localhost:3000'
   ),
   
-  // 超时设置
-  TIMEOUT: 10000,
+  // 超时设置 - 增加到20秒
+  TIMEOUT: 20000,
+  
+  // 分页配置
+  PAGINATION: {
+    DEFAULT_PAGE_SIZE: 10,
+    WELCOME_CAROUSEL_SIZE: 5
+  },
   
   // API 端点
   ENDPOINTS: {
     // 文章相关
     ARTICLES: '/articles',
+    ARTICLES_FEATURED: '/articles/featured', // 推荐文章API
     ARTICLE_BY_ID: (id) => `/articles/${id}`,
     
     // 评论相关

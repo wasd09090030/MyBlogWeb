@@ -138,7 +138,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, computed, provide, watch } from 'vue';
+import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import SearchBar from './components/SearchBar.vue';
 import WelcomeSection from './components/WelcomeSection.vue';
@@ -146,45 +146,9 @@ import PersonalInfo from './components/PersonalInfo.vue';
 import MusicPlayer from './components/MusicPlayer.vue';
 import SakuraFalling from './components/SakuraFalling.vue'; 
 import { useKeepAliveManager } from './utils/keepAliveManager.js';
-import articleService from './services/articleService.js';
 
 const router = useRouter();
 const route = useRoute();
-
-// 统一管理文章数据
-const articles = ref([]);
-const articlesLoading = ref(false);
-const articlesError = ref(null);
-
-// 获取文章数据的统一方法
-const fetchArticles = async () => {
-  if (articlesLoading.value) return; // 防止重复请求
-  
-  articlesLoading.value = true;
-  articlesError.value = null;
-  
-  try {
-    const fetchedArticles = await articleService.getArticles();
-    // 按ID倒序排列，让新文章（ID更大的）显示在前面
-    articles.value = fetchedArticles.sort((a, b) => {
-      const idA = parseInt(a.id) || 0;
-      const idB = parseInt(b.id) || 0;
-      return idB - idA; // 倒序：大的在前
-    });
-    console.log('App.vue统一获取文章数据，总数:', articles.value.length);
-  } catch (e) {
-    articlesError.value = e;
-    console.error("App.vue获取文章失败:", e);
-  } finally {
-    articlesLoading.value = false;
-  }
-};
-
-// 通过provide向子组件提供数据
-provide('articles', articles);
-provide('articlesLoading', articlesLoading);
-provide('articlesError', articlesError);
-provide('refreshArticles', fetchArticles);
 
 const navbar = ref(null);
 const isNavbarVisible = ref(true);
@@ -326,24 +290,7 @@ const initTheme = () => {
 
 onMounted(async () => {
   initTheme();
-  // 移除滚动和鼠标事件监听器，因为导航栏现在是静态的
-  // window.addEventListener('scroll', handleScroll);
-  // window.addEventListener('mousemove', handleMouseMove);
-  
-  // 初始化滚动位置
   handleScroll();
-  
-  // 在首页时加载文章数据
-  if (route.name === 'ArticleList') {
-    await fetchArticles();
-  }
-});
-
-// 监听路由变化，在需要时获取文章数据
-watch(() => route.name, async (newRouteName) => {
-  if (newRouteName === 'ArticleList' && articles.value.length === 0) {
-    await fetchArticles();
-  }
 });
 
 onUnmounted(() => {

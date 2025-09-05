@@ -26,11 +26,32 @@ export class ArticleController {
   }
 
   @Get()
-  findAll(@Query('category') category?: ArticleCategory): Promise<Article[]> {
+  findAll(
+    @Query('category') category?: ArticleCategory,
+    @Query('page') page?: number,
+    @Query('limit') limit?: number,
+    @Query('summary') summary?: boolean,
+  ) {
+    // 如果请求摘要模式，只返回基本字段
+    if (summary === true) {
+      return this.articleService.findAllSummary(category, page, limit);
+    }
+
+    // 支持分页查询
+    if (page || limit) {
+      return this.articleService.findWithPagination(category, page, limit);
+    }
+
+    // 兼容原有逻辑
     if (category) {
       return this.articleService.findByCategory(category);
     }
     return this.articleService.findAll();
+  }
+
+  @Get('featured')
+  findFeatured(@Query('limit') limit?: number) {
+    return this.articleService.findFeatured(limit || 5);
   }
 
   @Get('category/:category')
