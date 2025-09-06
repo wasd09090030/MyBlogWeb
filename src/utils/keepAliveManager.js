@@ -2,7 +2,7 @@
 import { ref, computed } from 'vue'
 
 // 需要缓存的组件列表
-const cachedComponents = ref(['ArticleList'])
+const cachedComponents = ref(['ArticleList', 'WelcomeSection', 'Gallery'])
 
 // 临时排除的组件（用于强制刷新）
 const excludedComponents = ref([])

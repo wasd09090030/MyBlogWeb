@@ -38,6 +38,7 @@ const routes = [
     name: 'Gallery',
     component: Gallery,
     meta: {
+      keepAlive: true,
       title: '图片画廊'
     }
   },

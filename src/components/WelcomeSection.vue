@@ -100,6 +100,11 @@ import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 
+// 定义组件名称以便 KeepAlive 识别
+defineOptions({
+  name: 'WelcomeSection'
+});
+
 const router = useRouter();
 const swiperContainer = ref(null);
 

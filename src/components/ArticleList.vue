@@ -16,8 +16,21 @@
           <i class="bi bi-x-circle me-1"></i>清除搜索
         </button>
       </div>
-    </div>    <!-- 显示筛选结果 -->
-    <template v-if="route.query.search || route.query.category">      <div v-if="paginatedFilteredArticles.length" class="articles-container">
+    </div>    
+    <!-- 显示筛选结果 -->
+    <template v-if="route.query.search || route.query.category">
+      <!-- 加载状态 - 根据偏好选择加载动画类型 -->
+      <SkeletonLoader 
+        v-if="loading && useSkeletonLoader" 
+        :count="4"
+      />
+      <LoadingSpinner 
+        v-else-if="loading" 
+        text="正在搜索文章..." 
+        :size="'medium'"
+      />
+      
+      <div v-else-if="paginatedFilteredArticles.length" class="articles-container">
         <div 
           v-for="(article, index) in paginatedFilteredArticles" 
           :key="article.id" 
@@ -93,7 +106,19 @@
     </template>
     
     <!-- 默认显示所有文章 -->
-    <template v-else>      <div v-if="paginatedArticles.length" class="articles-container">
+    <template v-else>
+      <!-- 加载状态 - 根据偏好选择加载动画类型 -->
+      <SkeletonLoader 
+        v-if="loading && useSkeletonLoader" 
+        :count="4"
+      />
+      <LoadingSpinner 
+        v-else-if="loading" 
+        text="正在加载文章列表..." 
+        :size="'medium'"
+      />
+      
+      <div v-else-if="paginatedArticles.length" class="articles-container">
         <div 
           v-for="(article, index) in paginatedArticles" 
           :key="article.id" 
@@ -165,7 +190,8 @@
         </div>
       </div>
       
-      <div v-else class="alert alert-info text-center" role="alert">
+      <!-- 无文章时的显示 -->
+      <div v-else-if="!loading" class="alert alert-info text-center" role="alert">
         暂无文章
       </div>
     </template>
@@ -176,6 +202,8 @@
 import { ref, onMounted, computed, watch, onActivated, onDeactivated, nextTick } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import articleService from '../services/articleService.js';
+import LoadingSpinner from './LoadingSpinner.vue';
+import SkeletonLoader from './SkeletonLoader.vue';
 import './ArticleList.styles.css';
 
 // 定义组件名称以便 KeepAlive 识别
@@ -195,6 +223,9 @@ const router = useRouter();
 const currentPage = ref(1);
 const currentFilteredPage = ref(1);
 const articlesPerPage = 8;
+
+// 加载样式偏好设置
+const useSkeletonLoader = ref(true); // 可以根据用户偏好或设备性能调整
 
 // 根据路由参数计算页面标题
 const pageTitle = computed(() => {
