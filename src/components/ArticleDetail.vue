@@ -138,14 +138,9 @@ async function fetchArticle() {
     }
     article.value = await response.json();
     
-    // 在文章内容渲染后，处理数学公式和代码高亮
+    // 在文章内容渲染后，处理代码高亮和数学公式
     nextTick(() => {
-      setTimeout(() => {
-        renderKatex();
-        setTimeout(() => {
-          highlightCode();
-        }, 100);
-      }, 100);
+      processArticleContent();
     });
   } catch (e) {
     error.value = e;
@@ -170,42 +165,117 @@ const goBackToList = () => {
   }
 };
 
-// 渲染 KaTeX 数学公式
+// 处理文章内容（包括数学公式和代码高亮）
+const processArticleContent = () => {
+  nextTick(() => {
+    const articleContent = document.querySelector('.article-content-html');
+    if (!articleContent) {
+      console.warn('未找到文章内容容器');
+      return;
+    }
+
+    console.log('开始处理文章内容');
+
+    // 首先清理之前的处理结果
+    const existingKatex = articleContent.querySelectorAll('.katex');
+    existingKatex.forEach(el => {
+      // 如果有原始的数学公式文本，恢复它
+      if (el.hasAttribute('data-original')) {
+        const original = el.getAttribute('data-original');
+        el.outerHTML = original;
+      }
+    });
+
+    // 然后依次处理
+    setTimeout(() => {
+      highlightCode();
+      setTimeout(() => {
+        renderKatex();
+      }, 200);
+    }, 100);
+  });
+};
+
+// 渲染 KaTeX 数学公式 - 简化版本
 const renderKatex = () => {
   nextTick(() => {
     const articleContent = document.querySelector('.article-content-html');
     if (!articleContent) return;
 
-    // 处理 $...$ 行内公式
-    let content = articleContent.innerHTML;
-    
-    // 处理块级公式 $$...$$
-    content = content.replace(/\$\$([^$]+)\$\$/g, (match, formula) => {
-      try {
-        return katex.renderToString(formula, {
-          throwOnError: false,
-          displayMode: true
-        });
-      } catch (e) {
-        console.warn('KaTeX block render error:', e);
-        return match;
+    // 找到所有文本节点，只在文本节点中处理数学公式
+    const walker = document.createTreeWalker(
+      articleContent,
+      NodeFilter.SHOW_TEXT,
+      {
+        acceptNode: function(node) {
+          // 跳过代码块和已处理的 KaTeX 元素内的文本
+          const parent = node.parentElement;
+          if (parent && (
+            parent.tagName === 'CODE' || 
+            parent.tagName === 'PRE' ||
+            parent.classList.contains('katex') ||
+            parent.closest('pre, code, .katex')
+          )) {
+            return NodeFilter.FILTER_REJECT;
+          }
+          return NodeFilter.FILTER_ACCEPT;
+        }
+      }
+    );
+
+    const textNodes = [];
+    let node;
+    while (node = walker.nextNode()) {
+      textNodes.push(node);
+    }
+
+    textNodes.forEach(textNode => {
+      let content = textNode.textContent;
+      let hasChanges = false;
+
+      // 处理块级公式 $$...$$
+      content = content.replace(/\$\$([^$\n]+(?:\n[^$\n]*)*?[^$\n]+)\$\$/g, (match, formula) => {
+        try {
+          hasChanges = true;
+          return katex.renderToString(formula.trim(), {
+            throwOnError: false,
+            displayMode: true
+          });
+        } catch (e) {
+          console.warn('KaTeX block render error:', e);
+          return match;
+        }
+      });
+
+      // 处理行内公式 $...$
+      content = content.replace(/\$([^$\n\s][^$\n]*[^$\n\s])\$/g, (match, formula) => {
+        try {
+          hasChanges = true;
+          return katex.renderToString(formula.trim(), {
+            throwOnError: false,
+            displayMode: false
+          });
+        } catch (e) {
+          console.warn('KaTeX inline render error:', e);
+          return match;
+        }
+      });
+
+      if (hasChanges) {
+        // 创建一个临时容器来解析 HTML
+        const temp = document.createElement('div');
+        temp.innerHTML = content;
+        
+        // 替换文本节点
+        const parent = textNode.parentNode;
+        while (temp.firstChild) {
+          parent.insertBefore(temp.firstChild, textNode);
+        }
+        parent.removeChild(textNode);
       }
     });
-    
-    // 处理行内公式 $...$
-    content = content.replace(/\$([^$]+)\$/g, (match, formula) => {
-      try {
-        return katex.renderToString(formula, {
-          throwOnError: false,
-          displayMode: false
-        });
-      } catch (e) {
-        console.warn('KaTeX inline render error:', e);
-        return match;
-      }
-    });
-    
-    articleContent.innerHTML = content;
+
+    console.log('KaTeX 处理完成');
   });
 };
 
@@ -213,21 +283,32 @@ const renderKatex = () => {
 const highlightCode = () => {
   nextTick(() => {
     const codeBlocks = document.querySelectorAll('.article-content-html pre code');
-    codeBlocks.forEach((block) => {
+    console.log(`开始处理代码高亮，找到 ${codeBlocks.length} 个代码块`);
+    
+    codeBlocks.forEach((block, index) => {
       // 跳过已经被 KaTeX 处理过的元素
-      if (block.className.includes('katex') || block.parentElement.className.includes('katex')) {
+      if (block.classList.contains('katex') || 
+          block.parentElement.classList.contains('katex') ||
+          block.innerHTML.includes('katex')) {
+        console.log(`跳过代码块 ${index}：包含 KaTeX`);
         return;
       }
       
-      // 跳过数学公式
-      const text = block.textContent;
-      if ((text.startsWith('$') && text.endsWith('$')) || 
-          (text.startsWith('$$') && text.endsWith('$$'))) {
+      // 跳过已经高亮过的代码块
+      if (block.classList.contains('hljs')) {
+        console.log(`跳过代码块 ${index}：已经高亮`);
         return;
       }
       
-      hljs.highlightElement(block);
+      try {
+        hljs.highlightElement(block);
+        console.log(`代码块 ${index} 高亮成功`);
+      } catch (e) {
+        console.warn(`代码块 ${index} 高亮失败:`, e);
+      }
     });
+    
+    console.log('代码高亮处理完成');
   });
 };
 
@@ -251,22 +332,23 @@ onMounted(() => {
   }
 }
 
-/* 文章结构组件样式 */
+/* 文章结构组件包装器 */
+/* 文章结构组件包装器 */
 .article-structure-wrapper {
-  position: fixed;
-  top: 50%;
-  right: 12%;
-  transform: translateY(-50%);
+  position: sticky;
+  top: 80px;
+  float: right;
   width: 280px;
-  z-index: 1025;
-  transition: all 0.3s ease;
+  margin-left: 20px;
+  margin-bottom: 20px;
+  z-index: 1000;
+  pointer-events: auto;
 }
-
 /* 响应式调整 */
 @media (max-width: 1399px) {
   .article-structure-wrapper {
     width: 260px;
-    right: 15px;
+    right: 1%;
   }
 }
 
