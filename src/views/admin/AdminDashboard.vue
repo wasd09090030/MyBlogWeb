@@ -120,18 +120,33 @@ const createArticle = () => {
 const fetchDashboardData = async () => {
   loading.value = true;
   try {
-    // 获取文章统计
-    const articlesResponse = await articleService.getArticles();
+    // 获取文章统计 - 使用分页API获取第一页来获取总数
+    const articlesResponse = await articleService.getArticles({ 
+      summary: false, 
+      page: 1, 
+      limit: 10 
+    });
+    
     if (articlesResponse) {
-      // 后端直接返回文章数组，不是包装在articles字段中
-      articleCount.value = Array.isArray(articlesResponse) ? articlesResponse.length : 0;
-      latestArticles.value = Array.isArray(articlesResponse) ? articlesResponse.slice(0, 5) : [];
+      // 处理分页响应结构
+      if (articlesResponse.data) {
+        // 新的分页API返回格式：{ data: [], total, page, limit, totalPages }
+        articleCount.value = articlesResponse.total || 0;
+        latestArticles.value = articlesResponse.data.slice(0, 5) || [];
+      } else if (Array.isArray(articlesResponse)) {
+        // 兼容旧的直接返回数组的格式
+        articleCount.value = articlesResponse.length;
+        latestArticles.value = articlesResponse.slice(0, 5);
+      }
     }
 
     // 获取评论统计
     await fetchCommentStats();
   } catch (error) {
     console.error('获取仪表板数据失败:', error);
+    // 设置默认值
+    articleCount.value = 0;
+    latestArticles.value = [];
   } finally {
     loading.value = false;
   }
@@ -140,20 +155,38 @@ const fetchDashboardData = async () => {
 const fetchCommentStats = async () => {
   try {
     // 获取所有评论
-    const allCommentsResponse = await fetch(getApiUrl(API_CONFIG.ENDPOINTS.COMMENTS_ADMIN_ALL));
+    const allCommentsResponse = await fetch(getApiUrl(API_CONFIG.ENDPOINTS.COMMENTS_ADMIN_ALL), {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    
     if (allCommentsResponse.ok) {
       const allComments = await allCommentsResponse.json();
-      commentStats.value.total = allComments.length;
+      commentStats.value.total = Array.isArray(allComments) ? allComments.length : 0;
+    } else {
+      console.warn('获取所有评论失败，状态码:', allCommentsResponse.status);
     }
 
     // 获取待审核评论
-    const pendingCommentsResponse = await fetch(getApiUrl(API_CONFIG.ENDPOINTS.COMMENTS_ADMIN_PENDING));
+    const pendingCommentsResponse = await fetch(getApiUrl(API_CONFIG.ENDPOINTS.COMMENTS_ADMIN_PENDING), {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    
     if (pendingCommentsResponse.ok) {
       const pendingComments = await pendingCommentsResponse.json();
-      commentStats.value.pending = pendingComments.length;
+      commentStats.value.pending = Array.isArray(pendingComments) ? pendingComments.length : 0;
+    } else {
+      console.warn('获取待审核评论失败，状态码:', pendingCommentsResponse.status);
     }
   } catch (error) {
     console.error('获取评论统计失败:', error);
+    // 设置默认值
+    commentStats.value = { total: 0, pending: 0 };
   }
 };
 

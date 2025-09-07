@@ -86,7 +86,12 @@ const formatDate = (dateString) => {
 const fetchArticles = async () => {
   loading.value = true;
   try {
-    articles.value = await articleService.getArticles();
+    // 管理后台需要完整的文章信息，不使用摘要模式
+    const result = await articleService.getArticles({ 
+      summary: false, 
+      limit: 100 // 管理后台显示更多文章
+    });
+    articles.value = result.data || result;
   } catch (error) {
     console.error('获取文章列表失败:', error);
     showToast('获取文章列表失败', 'danger');
