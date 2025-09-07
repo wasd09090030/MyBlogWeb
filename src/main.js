@@ -6,6 +6,8 @@ import 'bootstrap/dist/css/bootstrap.min.css'; // 导入 Bootstrap CSS
 import 'bootstrap/dist/js/bootstrap.bundle.min.js'; // 导入 Bootstrap JS (包含 Popper)
 import 'bootstrap-icons/font/bootstrap-icons.css'; // 导入 Bootstrap 图标
 import 'github-markdown-css/github-markdown.css'; // 导入 GitHub Markdown 样式
+import 'katex/dist/katex.min.css'; // 导入 KaTeX 样式
+import 'highlight.js/styles/github.css'; // 导入 highlight.js 样式
 
 // 导入Swiper样式
 import 'swiper/css'

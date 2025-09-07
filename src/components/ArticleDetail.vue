@@ -69,11 +69,13 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, nextTick } from 'vue';
 import { getApiUrl, API_CONFIG } from '../config/api.js';
 import { useRoute, useRouter } from 'vue-router';
 import LazyCommentSection from './LazyCommentSection.vue';
 import ArticleStructure from './ArticleStructure.vue';
+import hljs from 'highlight.js';
+import katex from 'katex';
 
 const route = useRoute();
 const router = useRouter();
@@ -135,11 +137,22 @@ async function fetchArticle() {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     article.value = await response.json();
+    
+    // 在文章内容渲染后，处理数学公式和代码高亮
+    nextTick(() => {
+      setTimeout(() => {
+        renderKatex();
+        setTimeout(() => {
+          highlightCode();
+        }, 100);
+      }, 100);
+    });
   } catch (e) {
     error.value = e;
     console.error(`获取文章 ${id} 失败:`, e);
   } finally {
-    loading.value = false;  }
+    loading.value = false;
+  }
 }
 
 // 返回上一页，使用浏览器历史记录
@@ -155,6 +168,67 @@ const goBackToList = () => {
     console.log('没有历史记录，返回首页');
     router.push({ name: 'ArticleList' });
   }
+};
+
+// 渲染 KaTeX 数学公式
+const renderKatex = () => {
+  nextTick(() => {
+    const articleContent = document.querySelector('.article-content-html');
+    if (!articleContent) return;
+
+    // 处理 $...$ 行内公式
+    let content = articleContent.innerHTML;
+    
+    // 处理块级公式 $$...$$
+    content = content.replace(/\$\$([^$]+)\$\$/g, (match, formula) => {
+      try {
+        return katex.renderToString(formula, {
+          throwOnError: false,
+          displayMode: true
+        });
+      } catch (e) {
+        console.warn('KaTeX block render error:', e);
+        return match;
+      }
+    });
+    
+    // 处理行内公式 $...$
+    content = content.replace(/\$([^$]+)\$/g, (match, formula) => {
+      try {
+        return katex.renderToString(formula, {
+          throwOnError: false,
+          displayMode: false
+        });
+      } catch (e) {
+        console.warn('KaTeX inline render error:', e);
+        return match;
+      }
+    });
+    
+    articleContent.innerHTML = content;
+  });
+};
+
+// 高亮代码块
+const highlightCode = () => {
+  nextTick(() => {
+    const codeBlocks = document.querySelectorAll('.article-content-html pre code');
+    codeBlocks.forEach((block) => {
+      // 跳过已经被 KaTeX 处理过的元素
+      if (block.className.includes('katex') || block.parentElement.className.includes('katex')) {
+        return;
+      }
+      
+      // 跳过数学公式
+      const text = block.textContent;
+      if ((text.startsWith('$') && text.endsWith('$')) || 
+          (text.startsWith('$$') && text.endsWith('$$'))) {
+        return;
+      }
+      
+      hljs.highlightElement(block);
+    });
+  });
 };
 
 // 删除功能已经移除
@@ -307,6 +381,24 @@ onMounted(() => {
   background-color: transparent;
 }
 
+/* KaTeX 数学公式样式 */
+.article-content-html .katex {
+  font-size: 1.1em !important;
+}
+
+.article-content-html .katex-display {
+  margin: 16px 0 !important;
+  text-align: center;
+}
+
+.article-content-html .katex-html {
+  display: inline !important;
+}
+
+.article-content-html .katex-display .katex-html {
+  display: block !important;
+}
+
 .article-content-html.markdown-body h1,
 .article-content-html.markdown-body h2,
 .article-content-html.markdown-body h3,
@@ -379,6 +471,7 @@ onMounted(() => {
   background-color: #f6f8fa;
   border-radius: 6px;
   margin: 16px 0;
+  position: relative;
 }
 
 .article-content-html.markdown-body pre code {
@@ -390,6 +483,17 @@ onMounted(() => {
   overflow: visible;
   padding: 0;
   word-wrap: normal;
+}
+
+/* 代码高亮样式增强 */
+.article-content-html.markdown-body pre code.hljs {
+  background-color: transparent !important;
+  padding: 0 !important;
+}
+
+/* 确保代码块中的文本不会被 KaTeX 处理 */
+.article-content-html.markdown-body pre code .katex {
+  display: none;
 }
 
 .article-content-html.markdown-body table {
@@ -526,6 +630,15 @@ onMounted(() => {
   background-color: transparent;
   color: #e6edf3;
   font-size: 16px !important;
+}
+
+/* 暗色主题下的 KaTeX 样式 */
+[data-bs-theme="dark"] .article-content-html .katex {
+  color: #c9d1d9 !important;
+}
+
+[data-bs-theme="dark"] .article-content-html .katex-display {
+  color: #c9d1d9 !important;
 }
 
 [data-bs-theme="dark"] .article-content-html.markdown-body table th,
