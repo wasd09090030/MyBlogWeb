@@ -82,6 +82,13 @@
           </div>
             <div class="mb-3">
             <label class="form-label">内容 (Markdown编辑器)</label>
+            <div class="editor-info mb-2">
+              <small class="text-info">
+                <i class="bi bi-info-circle me-1"></i>
+                支持 Markdown 语法和 HTML 标签混合使用，例如：
+                <code>&lt;div style="color: red;"&gt;红色文字&lt;/div&gt;</code>
+              </small>
+            </div>
             <MdEditor
               v-model="articleForm.contentMarkdown"
               height="500px"
@@ -109,7 +116,9 @@
               :sanitize="sanitizeHtml"
               :maxLength="100000"
               :autoSave="true"
-              :placeholder="'请输入文章内容...支持 Markdown 语法'"
+              :placeholder="'请输入文章内容...支持 Markdown 语法和 HTML 标签'"
+              :sanitizeHtml="false"
+              :htmlMode="true"
               required
             />
           </div>
@@ -230,7 +239,15 @@ config({
 
 const route = useRoute();
 const router = useRouter();
-const md = new MarkdownIt();
+
+// 配置 MarkdownIt 支持 HTML 标签和更多功能
+const md = new MarkdownIt({
+  html: true,        // 启用HTML标签
+  xhtmlOut: false,   // 使用HTML5标准
+  breaks: true,      // 支持换行符转换
+  linkify: true,     // 自动识别链接
+  typographer: true, // 启用排版增强
+});
 
 const articleForm = ref({
   title: '',
@@ -409,6 +426,52 @@ const githubMarkdownCss = `
     border: 0;
   }
   
+  /* 支持自定义HTML标签样式 */
+  .markdown-body div,
+  .markdown-body span {
+    font-size: inherit;
+    line-height: inherit;
+    color: inherit;
+  }
+  
+  .markdown-body center {
+    text-align: center;
+    margin: 16px 0;
+  }
+  
+  .markdown-body mark {
+    background-color: #fff3cd;
+    padding: 0.2em 0.4em;
+    border-radius: 3px;
+  }
+  
+  .markdown-body small {
+    font-size: 0.875em;
+    color: #6c757d;
+  }
+  
+  .markdown-body kbd {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 3px;
+    padding: 0.2em 0.4em;
+    font-size: 0.875em;
+    font-family: ui-monospace,SFMono-Regular,"SF Mono",Consolas,"Liberation Mono",Menlo,monospace;
+  }
+  
+  /* 支持常用的内联样式 */
+  .markdown-body [style*="color"] {
+    /* 保持用户自定义颜色 */
+  }
+  
+  .markdown-body [style*="background"] {
+    /* 保持用户自定义背景 */
+  }
+  
+  .markdown-body [style*="text-align"] {
+    /* 保持用户自定义对齐方式 */
+  }
+  
   /* 暗色主题适配 */
   @media (prefers-color-scheme: dark) {
     .markdown-body {
@@ -486,6 +549,22 @@ const githubMarkdownCss = `
     .markdown-body hr {
       background-color: #21262d;
     }
+    
+    /* 暗色主题下的自定义HTML标签支持 */
+    .markdown-body mark {
+      background-color: #ffc107;
+      color: #000;
+    }
+    
+    .markdown-body small {
+      color: #8b949e;
+    }
+    
+    .markdown-body kbd {
+      background-color: #21262d;
+      border-color: #30363d;
+      color: #e6edf3;
+    }
   }
 `;
 
@@ -556,15 +635,40 @@ const handleUploadImg = async (files, callback) => {
   }
 };
 
-// HTML 内容净化函数（可选）
+// HTML 内容净化函数 - 允许更多安全的HTML标签
 const sanitizeHtml = (html) => {
-  // 基本的 HTML 净化，移除危险的标签和属性
+  // 定义允许的HTML标签和属性
+  const allowedTags = [
+    'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+    'p', 'br', 'hr', 'div', 'span',
+    'strong', 'b', 'em', 'i', 'u', 's', 'del', 'ins',
+    'ul', 'ol', 'li', 'dl', 'dt', 'dd',
+    'blockquote', 'pre', 'code', 'kbd', 'samp', 'var',
+    'a', 'img', 'figure', 'figcaption',
+    'table', 'thead', 'tbody', 'tfoot', 'tr', 'th', 'td',
+    'details', 'summary',
+    'sub', 'sup', 'small', 'mark',
+    'abbr', 'acronym', 'cite', 'q', 'time',
+    'center', 'align', // 支持一些常用的布局标签
+  ];
+  
+  const allowedAttributes = [
+    'href', 'src', 'alt', 'title', 'class', 'id', 'style',
+    'target', 'rel', 'width', 'height', 'align', 'valign',
+    'border', 'cellpadding', 'cellspacing', 'colspan', 'rowspan',
+    'data-*', 'aria-*' // 支持数据属性和无障碍属性
+  ];
+  
+  // 只移除明显危险的内容，保留大部分HTML功能
   return html
-    .replace(/<script[^>]*>.*?<\/script>/gi, '')
-    .replace(/<iframe[^>]*>.*?<\/iframe>/gi, '')
-    .replace(/on\w+\s*=\s*"[^"]*"/gi, '')
-    .replace(/on\w+\s*=\s*'[^']*'/gi, '')
-    .replace(/javascript:/gi, '');
+    .replace(/<script[^>]*>.*?<\/script>/gis, '') // 移除script标签
+    .replace(/<iframe[^>]*>.*?<\/iframe>/gis, '') // 移除iframe（可选，根据需要调整）
+    .replace(/on\w+\s*=\s*["'][^"']*["']/gi, '') // 移除事件处理器
+    .replace(/javascript\s*:/gi, '') // 移除javascript协议
+    .replace(/vbscript\s*:/gi, '') // 移除vbscript协议
+    .replace(/data\s*:/gi, 'unsafe-data:') // 处理data协议（可选）
+    // 保留其他HTML标签和属性
+    ;
 };
 
 // 验证图片URL是否有效

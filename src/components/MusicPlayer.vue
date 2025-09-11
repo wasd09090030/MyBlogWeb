@@ -1,5 +1,5 @@
 <template>
-  <div class="music-player animate__animated animate__fadeInLeft">
+  <div class="music-player">
     <button @click="playPrevTrack" class="music-button" title="上一首">
       <i class="bi bi-skip-backward-circle"></i>
     </button>
