@@ -182,15 +182,14 @@ const isArticleDetailRoute = computed(() => {
   return route.name === 'ArticleDetail';
 });
 
-// 导航栏样式类
+// 导航栏样式类 - 移除透明/实心切换，始终保持一致样式
 const navbarClass = computed(() => {
   return {
-    'navbar-transparent': isAtTop.value,
-    'navbar-solid': !isAtTop.value
+    'navbar-fixed': true // 使用固定样式，不再根据滚动位置变化
   };
 });
 
-// 导航栏动画类
+// 导航栏动画类 - 始终可见
 const navbarAnimationClass = computed(() => {
   return 'navbar-visible';
 });
@@ -375,34 +374,25 @@ onUnmounted(() => {
 }
 
 .navbar-visible {
-  /* 保留类名但移除动画，因为导航栏现在固定显示 */
+  /* 导航栏始终可见 */
   opacity: 1;
+  transform: translateY(0);
 }
 
 .transition-all {
   transition: all 0.3s ease-in-out;
 }
 
-/* 亮色主题导航栏 - 天蓝色 */
-.light-theme .navbar-transparent {
-  background: linear-gradient(rgb(255, 255, 255), rgb(255, 255, 255));
-  box-shadow: none;
-}
-
-.light-theme .navbar-solid {
-  background: linear-gradient(rgba(69, 85, 210, 0.85), rgba(69, 85, 210, 0.85));
+/* 亮色主题导航栏 - 统一样式，不再区分透明/实心 */
+.light-theme .navbar {
+  background: linear-gradient(rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.95));
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
-/* 暗色主题导航栏 */
-.dark-theme .navbar-transparent {
-  background: linear-gradient(rgba(13, 110, 253, 0.1), rgba(13, 110, 253, 0.05)) !important;
-  box-shadow: none;
-}
-
-.dark-theme .navbar-solid {
-   background: linear-gradient(rgba(13, 110, 253, 0.1), rgba(13, 110, 253, 0.05)) !important;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+/* 暗色主题导航栏 - 统一样式 */
+.dark-theme .navbar {
+  background: linear-gradient(rgba(33, 37, 41, 0.95), rgba(33, 37, 41, 0.9)) !important;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
 }
 
 .navbar-brand {
@@ -1051,14 +1041,6 @@ main {
 :global(.dark-theme) .main-content {
   background-color: #04407b;
   box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.3), 0 8px 32px rgba(0, 0, 0, 0.4);
-}
-
-:global(.dark-theme) .navbar-transparent {
-  background: linear-gradient(rgba(33, 37, 41, 0.1), rgba(33, 37, 41, 0.05)) !important;
-}
-
-:global(.dark-theme) .navbar-solid {
-  background: linear-gradient(rgba(33, 37, 41, 0.95), rgba(33, 37, 41, 0.9)) !important;
 }
 
 :global(.dark-theme) .dropdown-menu {

@@ -424,18 +424,21 @@ export default {
     const openFullscreen = (gallery) => {
       selectedImage.value = gallery
       showFullscreen.value = true
-      document.body.style.overflow = 'hidden'
+      // 不需要再次设置 overflow，因为画廊本身已经是全屏且禁用了滚动
     }
 
     // 关闭全屏查看
     const closeFullscreen = () => {
       showFullscreen.value = false
       selectedImage.value = null
-      document.body.style.overflow = 'auto'
+      // 不需要恢复 overflow，保持画廊的滚动设置
     }
 
     // 返回文章区域
     const goBack = () => {
+      // 在路由跳转前恢复 body 滚动
+      document.body.style.overflow = ''
+      document.body.style.removeProperty('overflow')
       router.push('/')
     }
 
@@ -457,15 +460,28 @@ export default {
 
     // 生命周期钩子
     onMounted(async () => {
+      // 保存原始的 overflow 值
+      const originalOverflow = document.body.style.overflow
       // 隐藏body滚动条，因为画廊组件自己处理滚动
       document.body.style.overflow = 'hidden'
+      
+      // 保存原始值到组件实例，以便恢复
+      if (!window.__galleryOriginalOverflow) {
+        window.__galleryOriginalOverflow = originalOverflow || ''
+      }
+      
       await fetchGalleries()
     })
 
     onUnmounted(() => {
       destroySwipers()
-      // 恢复body滚动条
-      document.body.style.overflow = 'auto'
+      // 恢复body滚动条 - 使用多种方式确保恢复
+      document.body.style.overflow = window.__galleryOriginalOverflow || ''
+      if (!window.__galleryOriginalOverflow) {
+        document.body.style.removeProperty('overflow')
+      }
+      // 清理标记
+      delete window.__galleryOriginalOverflow
     })
 
     return {

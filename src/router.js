@@ -101,6 +101,16 @@ const router = createRouter({
 
 // 添加路由守卫，针对需要验证的管理员路由
 router.beforeEach((to, from, next) => {
+  // 当从画廊路由离开时，确保恢复 body 滚动
+  if (from.name === 'Gallery' && to.name !== 'Gallery') {
+    document.body.style.overflow = ''
+    document.body.style.removeProperty('overflow')
+    // 清理可能遗留的标记
+    if (window.__galleryOriginalOverflow !== undefined) {
+      delete window.__galleryOriginalOverflow
+    }
+  }
+  
   if (to.matched.some(record => record.meta.requiresAuth)) {
     // 获取 auth store 实例
     const authStore = useAuthStore()
