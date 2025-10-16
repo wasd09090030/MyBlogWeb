@@ -2,7 +2,7 @@
 export const API_CONFIG = {
   // 基础 URL - 生产环境使用相对路径通过 Nginx 代理
   BASE_URL: import.meta.env.VITE_API_BASE_URL || (
-    import.meta.env.PROD ? '' : 'http://localhost:3000'
+    import.meta.env.PROD ? '' : 'http://localhost:3000/api'
   ),
   
   // 超时设置 - 增加到20秒

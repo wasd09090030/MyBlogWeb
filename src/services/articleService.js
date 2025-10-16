@@ -61,21 +61,36 @@ class ArticleService {
       // 先获取第一页来了解总数
       const firstPage = await this.getArticles({ page: 1, limit: 50, summary: true });
       
-      if (firstPage.totalPages <= 1) {
-        return firstPage.data;
+      // .NET 后端返回的数据结构：{ data, total, page, pageSize } 或直接是数组
+      // 检查返回的数据结构
+      if (Array.isArray(firstPage)) {
+        // 如果直接返回数组（summary=false 时）
+        return firstPage;
+      }
+      
+      // 如果是分页结构
+      const { data, total, pageSize } = firstPage;
+      const totalPages = Math.ceil(total / pageSize);
+      
+      if (totalPages <= 1) {
+        return data;
       }
       
       // 如果有多页，获取所有页面
-      const allArticles = [...firstPage.data];
+      const allArticles = [...data];
       const promises = [];
       
-      for (let page = 2; page <= firstPage.totalPages; page++) {
+      for (let page = 2; page <= totalPages; page++) {
         promises.push(this.getArticles({ page, limit: 50, summary: true }));
       }
       
       const results = await Promise.all(promises);
       results.forEach(result => {
-        allArticles.push(...result.data);
+        if (result.data) {
+          allArticles.push(...result.data);
+        } else if (Array.isArray(result)) {
+          allArticles.push(...result);
+        }
       });
       
       return allArticles;
