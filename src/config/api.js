@@ -1,8 +1,8 @@
-// API 配置文件
+
 export const API_CONFIG = {
   // 基础 URL - 生产环境使用相对路径通过 Nginx 代理
   BASE_URL: import.meta.env.VITE_API_BASE_URL || (
-    import.meta.env.PROD ? '' : 'http://localhost:3000/api'
+    import.meta.env.PROD ? '/api' : 'http://localhost:5000/api'
   ),
   
   // 超时设置 - 增加到20秒
@@ -35,11 +35,11 @@ export const API_CONFIG = {
     LIKES_TOGGLE: (articleId) => `/likes/article/${articleId}`,
     
     // 画廊相关
-    GALLERY: import.meta.env.PROD ? '/api/gallery' : '/gallery',
-    GALLERY_ADMIN: import.meta.env.PROD ? '/api/gallery/admin' : '/gallery/admin',
-    GALLERY_BY_ID: (id) => import.meta.env.PROD ? `/api/gallery/${id}` : `/gallery/${id}`,
-    GALLERY_TOGGLE_ACTIVE: (id) => import.meta.env.PROD ? `/api/gallery/${id}/toggle-active` : `/gallery/${id}/toggle-active`,
-    GALLERY_SORT_ORDER: import.meta.env.PROD ? '/api/gallery/batch/sort-order' : '/gallery/batch/sort-order',
+    GALLERY: '/gallery',
+    GALLERY_ADMIN: '/gallery/admin',
+    GALLERY_BY_ID: (id) => `/gallery/${id}`,
+    GALLERY_TOGGLE_ACTIVE: (id) => `/gallery/${id}/toggle-active`,
+    GALLERY_SORT_ORDER: '/gallery/batch/sort-order',
   }
 };
 

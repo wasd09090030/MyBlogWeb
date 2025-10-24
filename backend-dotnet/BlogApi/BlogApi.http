@@ -1,4 +1,5 @@
-@BlogApi_HostAddress = http://localhost:3000/api
+# @BlogApi_HostAddress = http://localhost:3000/api
+@BlogApi_HostAddress =http://115.190.164.243:3000/api
 
 ### Auth - Login
 POST {{BlogApi_HostAddress}}/auth/login
