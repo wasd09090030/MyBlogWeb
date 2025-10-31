@@ -239,16 +239,15 @@ const pageTitle = computed(() => {
 
 // 根据搜索关键词或分类筛选文章
 const filteredArticles = computed(() => {
+  // 搜索结果直接从后端获取，不需要前端再过滤
   if (route.query.search) {
-    const searchTerm = route.query.search.toLowerCase();
-    return articles.value.filter(article => {
-      return article.title.toLowerCase().includes(searchTerm) ||
-             (article.contentMarkdown && article.contentMarkdown.toLowerCase().includes(searchTerm)) ||
-             article.content.toLowerCase().includes(searchTerm);
-    });
+    return articles.value;
   } else if (route.query.category) {
-    // 直接使用路由参数中的category值过滤文章
-    return articles.value.filter(article => article.category === route.query.category);
+    // 直接使用路由参数中的category值过滤文章（不区分大小写）
+    const queryCategory = route.query.category.toLowerCase();
+    return articles.value.filter(article => 
+      article.category && article.category.toLowerCase() === queryCategory
+    );
   }
   return articles.value;
 });
@@ -275,24 +274,28 @@ const paginatedFilteredArticles = computed(() => {
 
 // 获取分类中文名称
 const getCategoryName = (category) => {
+  if (!category) return '其他';
+  const lowerCategory = category.toLowerCase();
   const categoryMap = {
     'study': '学习',
     'game': '游戏',
     'work': '个人作品',
     'resource': '资源分享'
   };
-  return categoryMap[category] || '其他';
+  return categoryMap[lowerCategory] || '其他';
 };
 
 // 获取分类样式类
 const getCategoryClass = (category) => {
+  if (!category) return 'category-other';
+  const lowerCategory = category.toLowerCase();
   const categoryClassMap = {
     'study': 'category-study',
     'game': 'category-game', 
     'work': 'category-work',
     'resource': 'category-resource'
   };
-  return categoryClassMap[category] || 'category-other';
+  return categoryClassMap[lowerCategory] || 'category-other';
 };
 
 // 获取文章摘要
@@ -473,7 +476,13 @@ const fetchArticles = async () => {
   try {
     console.log('ArticleList: 开始获取文章数据...');
     
-    if (route.query.category) {
+    if (route.query.search) {
+      // 如果有搜索关键词，使用搜索API
+      console.log('ArticleList: 执行搜索，关键词:', route.query.search);
+      const searchResults = await articleService.searchArticles(route.query.search);
+      articles.value = searchResults;
+      console.log('ArticleList: 搜索完成，结果数量:', articles.value.length);
+    } else if (route.query.category) {
       // 如果有分类筛选，使用原来的分类API
       const fetchedArticles = await articleService.getArticlesByCategory(route.query.category);
       articles.value = fetchedArticles.sort((a, b) => {

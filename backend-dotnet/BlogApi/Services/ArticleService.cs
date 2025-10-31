@@ -120,6 +120,41 @@ namespace BlogApi.Services
                 .ToListAsync();
         }
 
+        public async Task<List<ArticleSummaryDto>> SearchAsync(string keyword, int? page = null, int? limit = null)
+        {
+            var query = _context.Articles.AsQueryable();
+
+            // 在标题和内容中搜索关键词（不区分大小写）
+            query = query.Where(a => 
+                EF.Functions.Like(a.Title, $"%{keyword}%") || 
+                EF.Functions.Like(a.Content, $"%{keyword}%") ||
+                (a.ContentMarkdown != null && EF.Functions.Like(a.ContentMarkdown, $"%{keyword}%"))
+            );
+
+            // 分页
+            if (page.HasValue && limit.HasValue)
+            {
+                query = query.Skip((page.Value - 1) * limit.Value).Take(limit.Value);
+            }
+
+            return await query
+                .OrderByDescending(a => a.CreatedAt)
+                .Select(a => new ArticleSummaryDto
+                {
+                    Id = a.Id,
+                    Title = a.Title,
+                    CoverImage = a.CoverImage,
+                    Category = a.Category,
+                    CreatedAt = a.CreatedAt,
+                    UpdatedAt = a.UpdatedAt,
+                    Content = a.Content.Length > 240 ? a.Content.Substring(0, 240) : a.Content,
+                    ContentMarkdown = a.ContentMarkdown != null && a.ContentMarkdown.Length > 240
+                        ? a.ContentMarkdown.Substring(0, 200) 
+                        : a.ContentMarkdown
+                })
+                .ToListAsync();
+        }
+
         public async Task<Article?> GetByIdAsync(int id)
         {
             return await _context.Articles

@@ -11,7 +11,7 @@ namespace BlogApi.Controllers
     {
         private readonly ArticleService _articleService;
 
-        public ArticlesController(ArticleService articleService)
+        public ArticlesController(ArticleService articleService)//依赖注入
         {
             _articleService = articleService;
         }
@@ -57,6 +57,19 @@ namespace BlogApi.Controllers
         {
             var articles = await _articleService.GetFeaturedAsync(limit);
             return Ok(articles);
+        }
+
+        [HttpGet("search")]
+        public async Task<ActionResult<List<ArticleSummaryDto>>> Search(
+            [FromQuery] string keyword,
+            [FromQuery] int? page = null,
+            [FromQuery] int? limit = null)
+        {
+            if (string.IsNullOrWhiteSpace(keyword))
+                return BadRequest("搜索关键词不能为空");
+
+            var results = await _articleService.SearchAsync(keyword, page, limit);
+            return Ok(results);
         }
 
         [HttpGet("category/{category}")]

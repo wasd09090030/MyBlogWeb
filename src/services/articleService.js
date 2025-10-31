@@ -27,6 +27,28 @@ class ArticleService {
     }
   }
 
+  // 搜索文章
+  async searchArticles(keyword, options = {}) {
+    try {
+      const {
+        page = 1,
+        limit = API_CONFIG.PAGINATION.DEFAULT_PAGE_SIZE
+      } = options;
+
+      const params = {
+        keyword,
+        page,
+        limit
+      };
+
+      const response = await this.api.get(API_CONFIG.ENDPOINTS.ARTICLES_SEARCH, { params });
+      return response.data;
+    } catch (error) {
+      console.error('搜索文章失败:', error);
+      throw error;
+    }
+  }
+
   // 获取文章列表 - 支持分页和摘要模式
   async getArticles(options = {}) {
     try {

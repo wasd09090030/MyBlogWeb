@@ -53,6 +53,7 @@ coverage/
 # .NET output
 **/bin/
 **/obj/
+**/publish/
 *.user
 *.suo
 

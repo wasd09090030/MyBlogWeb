@@ -19,6 +19,7 @@ export const API_CONFIG = {
     // 文章相关
     ARTICLES: '/articles',
     ARTICLES_FEATURED: '/articles/featured', // 推荐文章API
+    ARTICLES_SEARCH: '/articles/search', // 搜索文章API
     ARTICLE_BY_ID: (id) => `/articles/${id}`,
     
     // 评论相关

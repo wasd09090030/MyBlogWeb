@@ -91,20 +91,31 @@ const clearInput = (e) => {
 
 // 搜索方法
 const search = () => {
-  if (searchQuery.value.trim()) {
-    isSearching.value = true;
-
-    // 模拟请求延迟
-    setTimeout(() => {
-      router.push({
-        name: 'ArticleList',
-        query: { search: searchQuery.value.trim() },
-      });
-      isSearching.value = false;
-      // 可选：搜索后自动收起
-      // closeSearchBar();
-    }, 300);
+  const trimmedQuery = searchQuery.value.trim();
+  
+  if (!trimmedQuery) {
+    // 如果搜索框为空，提示用户
+    alert('请输入搜索关键词');
+    return;
   }
+  
+  if (trimmedQuery.length < 2) {
+    // 如果关键词太短，提示用户
+    alert('搜索关键词至少需要2个字符');
+    return;
+  }
+  
+  isSearching.value = true;
+
+  // 模拟请求延迟
+  setTimeout(() => {
+    router.push({
+      name: 'ArticleList',
+      query: { search: trimmedQuery },
+    });
+    isSearching.value = false;
+    // 搜索后保持展开状态，以便用户可以修改搜索词
+  }, 300);
 };
 
 // 失焦处理：点击外部关闭
