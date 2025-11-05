@@ -28,20 +28,11 @@ class ArticleService {
   }
 
   // 搜索文章
-  async searchArticles(keyword, options = {}) {
+  async searchArticles(keyword) {
     try {
-      const {
-        page = 1,
-        limit = API_CONFIG.PAGINATION.DEFAULT_PAGE_SIZE
-      } = options;
-
-      const params = {
-        keyword,
-        page,
-        limit
-      };
-
-      const response = await this.api.get(API_CONFIG.ENDPOINTS.ARTICLES_SEARCH, { params });
+      const response = await this.api.get(API_CONFIG.ENDPOINTS.ARTICLES_SEARCH, { 
+        params: { keyword }
+      });
       return response.data;
     } catch (error) {
       console.error('搜索文章失败:', error);

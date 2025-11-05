@@ -120,7 +120,7 @@ namespace BlogApi.Services
                 .ToListAsync();
         }
 
-        public async Task<List<ArticleSummaryDto>> SearchAsync(string keyword, int? page = null, int? limit = null)
+        public async Task<List<ArticleSummaryDto>> SearchAsync(string keyword)
         {
             var query = _context.Articles.AsQueryable();
 
@@ -131,14 +131,9 @@ namespace BlogApi.Services
                 (a.ContentMarkdown != null && EF.Functions.Like(a.ContentMarkdown, $"%{keyword}%"))
             );
 
-            // 分页
-            if (page.HasValue && limit.HasValue)
-            {
-                query = query.Skip((page.Value - 1) * limit.Value).Take(limit.Value);
-            }
-
             return await query
                 .OrderByDescending(a => a.CreatedAt)
+                .Take(50) // 限制最多返回50条结果
                 .Select(a => new ArticleSummaryDto
                 {
                     Id = a.Id,

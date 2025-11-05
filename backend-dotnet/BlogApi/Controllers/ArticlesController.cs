@@ -61,14 +61,12 @@ namespace BlogApi.Controllers
 
         [HttpGet("search")]
         public async Task<ActionResult<List<ArticleSummaryDto>>> Search(
-            [FromQuery] string keyword,
-            [FromQuery] int? page = null,
-            [FromQuery] int? limit = null)
+            [FromQuery] string keyword)
         {
             if (string.IsNullOrWhiteSpace(keyword))
                 return BadRequest("搜索关键词不能为空");
 
-            var results = await _articleService.SearchAsync(keyword, page, limit);
+            var results = await _articleService.SearchAsync(keyword);
             return Ok(results);
         }
 
