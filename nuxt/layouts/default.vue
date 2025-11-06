@@ -156,12 +156,5 @@ onUnmounted(() => {
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* 主容器 */
-.main-container {
-  background-color: transparent;
-}
 
-.main-content {
-  background-color: transparent;
-}
 </style>

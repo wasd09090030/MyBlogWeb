@@ -1,14 +1,15 @@
 /* 文章列表容器 */
 .articles-container {
   max-width: 100%;
-  margin: 0 auto;
+  margin: 0;
 }
 
 .article-list-page {
+  width: 100%;
   background-color: var(--bg-secondary);
   padding: 1.5rem;
-  border-radius: 16px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+  margin: 0;
+  box-sizing: border-box;
 }
 
 .pagetitle {

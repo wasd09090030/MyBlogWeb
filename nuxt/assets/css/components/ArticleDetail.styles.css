@@ -228,14 +228,14 @@
   overflow: auto;
   font-size: 16px !important;
   line-height: 1.45;
-  background-color: #f6f8fa;
+  background-color: #f6f8fa !important;
   border-radius: 6px;
   margin: 16px 0;
   position: relative;
 }
 
 .article-content-html.markdown-body pre code {
-  background-color: transparent;
+  background-color: transparent !important;
   border: 0;
   display: inline;
   line-height: inherit;
@@ -243,12 +243,22 @@
   overflow: visible;
   padding: 0;
   word-wrap: normal;
+  color: #24292f !important;
 }
 
 /* 代码高亮样式增强 */
 .article-content-html.markdown-body pre code.hljs {
   background-color: transparent !important;
   padding: 0 !important;
+}
+
+/* 亮色主题下的代码块 */
+.article-content-html.markdown-body pre.hljs {
+  background-color: #f6f8fa !important;
+}
+
+.article-content-html.markdown-body code.hljs {
+  background-color: transparent !important;
 }
 
 /* 确保代码块中的文本不会被 KaTeX 处理 */
@@ -325,6 +335,19 @@
   color: #ffffff;
 }
 
+/* 覆盖 github-markdown-css 的变量以支持暗色主题 */
+[data-bs-theme="dark"] .markdown-body {
+  --bgColor-default: #0d1117;
+  --bgColor-muted: #161b22;
+  --bgColor-neutral-muted: #6e768166;
+  --fgColor-default: #e6edf3;
+  --fgColor-muted: #848d97;
+  --borderColor-default: #30363d;
+  --borderColor-muted: #21262d;
+  --color-canvas-default: #0d1117;
+  --color-canvas-subtle: #161b22;
+}
+
 [data-bs-theme="dark"] .article-cover {
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
 }
@@ -381,15 +404,39 @@
 }
 
 [data-bs-theme="dark"] .article-content-html.markdown-body pre {
-  background-color: #161b22;
+  background-color: #161b22 !important;
   color: #e6edf3;
   font-size: 16px !important;
 }
 
 [data-bs-theme="dark"] .article-content-html.markdown-body pre code {
-  background-color: transparent;
+  background-color: transparent !important;
   color: #e6edf3;
   font-size: 16px !important;
+}
+
+/* 强制覆盖 highlight.js 的样式 */
+[data-bs-theme="dark"] .article-content-html.markdown-body pre code.hljs {
+  background-color: transparent !important;
+  color: #e6edf3 !important;
+}
+
+[data-bs-theme="dark"] .article-content-html.markdown-body pre.hljs {
+  background-color: #161b22 !important;
+}
+
+/* 确保所有可能的选择器都被覆盖 */
+[data-bs-theme="dark"] .markdown-body pre,
+[data-bs-theme="dark"] .markdown-body .highlight pre,
+[data-bs-theme="dark"] .article-content-html pre {
+  background-color: #161b22 !important;
+}
+
+[data-bs-theme="dark"] .markdown-body pre code,
+[data-bs-theme="dark"] .markdown-body .highlight pre code,
+[data-bs-theme="dark"] .article-content-html pre code {
+  background-color: transparent !important;
+  color: #e6edf3 !important;
 }
 
 /* 暗色主题下的 KaTeX 样式 */
