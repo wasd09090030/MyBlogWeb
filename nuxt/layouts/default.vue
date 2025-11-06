@@ -57,7 +57,6 @@
             <div v-if="showSidebar" class="col-lg-4 col-xl-3 d-none d-lg-block sidebar-animate">
               <div class="sidebar-content">
                 <PersonalInfo />
-                <div class="music-player-container"><MusicPlayer /></div>
               </div>
             </div>
           </div>
@@ -73,7 +72,6 @@
       </div>
     </footer>
     <div v-if="showSidebar" class="mobile-personal-info d-lg-none"><PersonalInfo /></div>
-    <div class="mobile-music-player d-lg-none"><MusicPlayer /></div>
   </div>
 </template>
 
@@ -141,3 +139,29 @@ onUnmounted(() => {
   if (hideTimeout.value) clearTimeout(hideTimeout.value)
 })
 </script>
+
+<style scoped>
+/* 主题背景 */
+.light-theme {
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.dark-theme {
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+#app {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* 主容器 */
+.main-container {
+  background-color: transparent;
+}
+
+.main-content {
+  background-color: transparent;
+}
+</style>

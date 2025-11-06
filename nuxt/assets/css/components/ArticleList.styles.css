@@ -3,27 +3,37 @@
   max-width: 100%;
   margin: 0 auto;
 }
+
+.article-list-page {
+  background-color: var(--bg-secondary);
+  padding: 1.5rem;
+  border-radius: 16px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+}
+
 .pagetitle {
   padding-top: 10px;
 }
+
 /* 文章卡片样式 */
 .article-card {
   display: flex;
-  background: var(--bs-body-bg, #ffffff);
+  background: var(--bg-primary);
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   margin-bottom: 2rem;
   transition: all 0.3s ease;
   min-height: 300px;
-  border: 1px solid rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--border-color);
   opacity: 0;
   animation: fadeInUp 0.6s ease forwards;
 }
 
 .article-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+  border-color: var(--accent-primary);
 }
 
 /* 反向布局（偶数文章） */

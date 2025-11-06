@@ -62,42 +62,42 @@ button:focus-visible {
 
 /* Global dark/light theme styles */
 [data-bs-theme="dark"] {
-  --bs-body-bg: #4c4d4e10;
-  --bs-body-color: #ffffff;
-  --bs-border-color: #404040;
-  --bs-secondary-bg: #5b4747;
+  --bs-body-bg: var(--bg-secondary);
+  --bs-body-color: var(--text-primary);
+  --bs-border-color: var(--border-color);
+  --bs-secondary-bg: var(--bg-tertiary);
 }
 
 [data-bs-theme="light"] {
-  --bs-body-bg: rgba(255, 255, 255, 0.3);
-  --bs-body-color: #212529;
-  --bs-border-color: #dee2e6;
-  --bs-secondary-bg: #ffffff;
+  --bs-body-bg: var(--bg-secondary);
+  --bs-body-color: var(--text-primary);
+  --bs-border-color: var(--border-color);
+  --bs-secondary-bg: var(--bg-primary);
 }
 
 /* Card theme support */
 [data-bs-theme="dark"] .card {
-  background-color: #1e1e1e;
-  border-color: #404040;
-  color: #ffffff;
+  background-color: var(--card-bg);
+  border-color: var(--card-border);
+  color: var(--text-primary);
 }
 
 [data-bs-theme="dark"] .card-title {
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 [data-bs-theme="dark"] .text-primary {
-  color: #66b3ff !important;
+  color: var(--accent-primary) !important;
 }
 
 [data-bs-theme="dark"] .bg-light {
-  background-color: #434242 !important;
+  background-color: var(--bg-tertiary) !important;
 }
 
 [data-bs-theme="dark"] .alert-info {
-  background-color: #1a4d6b;
-  border-color: #2563eb;
-  color: #bfdbfe;
+  background-color: var(--accent-info);
+  border-color: var(--accent-primary);
+  color: var(--text-primary);
 }
 
 /* Smooth transitions for theme changes */
@@ -105,16 +105,17 @@ button:focus-visible {
   transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
 
+/* 移除硬编码的媒体查询，使用主题变量系统 */
 @media (prefers-color-scheme: light) {
   :root {
-    color: #213547;
-    background-color: #ffffff;
+    color: var(--text-primary);
+    background-color: var(--bg-secondary);
   }
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    color: rgba(255, 255, 255, 0.87);
-    background-color: #525252;
+    color: var(--text-primary);
+    background-color: var(--bg-secondary);
   }
 }
