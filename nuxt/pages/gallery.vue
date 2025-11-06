@@ -115,6 +115,7 @@
 <script setup>
 import { useGallery } from '~/composables/useGallery'
 import LoadingSpinner from '~/components/LoadingSpinner.vue'
+import '~/assets/css/components/Gallery.styles.css'
 
 // 设置页面元数据
 useHead({

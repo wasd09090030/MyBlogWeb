@@ -117,6 +117,7 @@
 import { useArticles } from '~/composables/useArticles'
 import LoadingSpinner from '~/components/LoadingSpinner.vue'
 import CommentSection from '~/components/CommentSection.vue'
+import '~/assets/css/components/ArticleDetail.styles.css'
 
 // 获取路由参数
 const route = useRoute()

@@ -205,6 +205,7 @@
 
 <script setup>
 import { useArticles } from '~/composables/useArticles'
+import '~/assets/css/components/ArticleList.styles.css'
 
 // 设置页面元数据
 definePageMeta({

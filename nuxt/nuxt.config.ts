@@ -7,7 +7,14 @@ export default defineNuxtConfig({
     'bootstrap-icons/font/bootstrap-icons.css',
     'github-markdown-css/github-markdown.css',
     'highlight.js/styles/github.css',
-    '~/assets/css/main.css'
+    'katex/dist/katex.min.css',
+    'swiper/css',
+    'swiper/css/navigation',
+    'swiper/css/pagination',
+    'swiper/css/effect-coverflow',
+    'swiper/css/effect-cube',
+    '~/assets/css/style.css',
+    '~/assets/css/app.css'
   ],
 
   // 模块配置

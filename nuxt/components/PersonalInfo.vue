@@ -75,6 +75,8 @@
 </template>
 
 <script setup>
+import '~/assets/css/components/PersonalInfo.styles.css'
+
 // 响应式数据
 const articleCount = ref(42)
 const categoryCount = ref(4)
