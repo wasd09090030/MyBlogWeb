@@ -1,0 +1,263 @@
+/**
+ * 主题变量系统 - Theme Variables System
+ * 统一的色彩和样式变量定义
+ */
+
+/* ==================== 根变量 (Root Variables) ==================== */
+:root {
+  /* 过渡动画 */
+  --theme-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* 间距系统 */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  --spacing-2xl: 3rem;
+
+  /* 圆角系统 */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 24px;
+  --radius-full: 9999px;
+
+  /* Z-index层级 */
+  --z-base: 1;
+  --z-dropdown: 1000;
+  --z-sticky: 1020;
+  --z-fixed: 1030;
+  --z-modal-backdrop: 1040;
+  --z-modal: 1050;
+  --z-popover: 1060;
+  --z-tooltip: 1070;
+}
+
+/* ==================== 亮色主题 (Light Theme) ==================== */
+:root[data-bs-theme="light"],
+:root {
+  /* 背景色 */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8f9fa;
+  --bg-tertiary: #e9ecef;
+  --bg-hover: #f1f3f5;
+  --bg-active: #e9ecef;
+  --bg-overlay: rgba(0, 0, 0, 0.5);
+
+  /* 文字颜色 */
+  --text-primary: #212529;
+  --text-secondary: #6c757d;
+  --text-tertiary: #adb5bd;
+  --text-inverse: #ffffff;
+  --text-muted: #98a2b3;
+
+  /* 主题色 */
+  --accent-primary: #0d6efd;
+  --accent-secondary: #6610f2;
+  --accent-success: #198754;
+  --accent-danger: #dc3545;
+  --accent-warning: #ffc107;
+  --accent-info: #0dcaf0;
+
+  /* Hover状态 */
+  --accent-primary-hover: #0b5ed7;
+  --accent-secondary-hover: #520dc2;
+  --accent-success-hover: #157347;
+  --accent-danger-hover: #bb2d3b;
+
+  /* 渐变色 */
+  --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  --gradient-soft: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  --gradient-warm: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+  --gradient-cool: linear-gradient(135deg, #30cfd0 0%, #330867 100%);
+
+  /* 边框颜色 */
+  --border-color: #dee2e6;
+  --border-color-light: #e9ecef;
+  --border-color-dark: #adb5bd;
+
+  /* 阴影 */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.15);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.2);
+  --shadow-xl: 0 12px 36px rgba(0, 0, 0, 0.25);
+  --shadow-2xl: 0 20px 50px rgba(0, 0, 0, 0.3);
+
+  /* 毛玻璃效果 */
+  --backdrop-blur: blur(10px);
+  --glass-bg: rgba(255, 255, 255, 0.8);
+  --glass-border: rgba(255, 255, 255, 0.2);
+
+  /* 导航栏 */
+  --navbar-bg: linear-gradient(rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.95));
+  --navbar-text: #333333;
+  --navbar-text-hover: #0d6efd;
+  --navbar-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+
+  /* 卡片 */
+  --card-bg: #ffffff;
+  --card-border: #e9ecef;
+  --card-shadow: var(--shadow-sm);
+
+  /* 输入框 */
+  --input-bg: #ffffff;
+  --input-border: #ced4da;
+  --input-focus-border: #80bdff;
+  --input-placeholder: #6c757d;
+
+  /* Footer */
+  --footer-bg: linear-gradient(135deg, #ffffff 0%, #e9ecef 100%);
+  --footer-text: rgba(0, 0, 0, 0.8);
+  --footer-text-muted: rgba(0, 0, 0, 0.6);
+}
+
+/* ==================== 暗色主题 (Dark Theme) ==================== */
+:root[data-bs-theme="dark"] {
+  /* 背景色 */
+  --bg-primary: #1a202c;
+  --bg-secondary: #2d3748;
+  --bg-tertiary: #4a5568;
+  --bg-hover: #374151;
+  --bg-active: #4b5563;
+  --bg-overlay: rgba(0, 0, 0, 0.7);
+
+  /* 文字颜色 */
+  --text-primary: #f7fafc;
+  --text-secondary: #e2e8f0;
+  --text-tertiary: #cbd5e0;
+  --text-inverse: #1a202c;
+  --text-muted: #a0aec0;
+
+  /* 主题色 */
+  --accent-primary: #4299e1;
+  --accent-secondary: #9f7aea;
+  --accent-success: #48bb78;
+  --accent-danger: #f56565;
+  --accent-warning: #ed8936;
+  --accent-info: #4fd1c5;
+
+  /* Hover状态 */
+  --accent-primary-hover: #3182ce;
+  --accent-secondary-hover: #805ad5;
+  --accent-success-hover: #38a169;
+  --accent-danger-hover: #e53e3e;
+
+  /* 渐变色 */
+  --gradient-primary: linear-gradient(135deg, #4299e1 0%, #9f7aea 100%);
+  --gradient-secondary: linear-gradient(135deg, #ed64a6 0%, #f56565 100%);
+  --gradient-soft: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
+  --gradient-warm: linear-gradient(135deg, #ed64a6 0%, #ed8936 100%);
+  --gradient-cool: linear-gradient(135deg, #4299e1 0%, #2c5282 100%);
+
+  /* 边框颜色 */
+  --border-color: #4a5568;
+  --border-color-light: #374151;
+  --border-color-dark: #6b7280;
+
+  /* 阴影 */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
+  --shadow-xl: 0 12px 36px rgba(0, 0, 0, 0.6);
+  --shadow-2xl: 0 20px 50px rgba(0, 0, 0, 0.7);
+
+  /* 毛玻璃效果 */
+  --backdrop-blur: blur(10px);
+  --glass-bg: rgba(45, 55, 72, 0.8);
+  --glass-border: rgba(255, 255, 255, 0.1);
+
+  /* 导航栏 */
+  --navbar-bg: linear-gradient(rgba(26, 32, 44, 0.95), rgba(26, 32, 44, 0.9));
+  --navbar-text: #e2e8f0;
+  --navbar-text-hover: #4299e1;
+  --navbar-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+
+  /* 卡片 */
+  --card-bg: #2d3748;
+  --card-border: #4a5568;
+  --card-shadow: var(--shadow-md);
+
+  /* 输入框 */
+  --input-bg: #2d3748;
+  --input-border: #4a5568;
+  --input-focus-border: #4299e1;
+  --input-placeholder: #a0aec0;
+
+  /* Footer */
+  --footer-bg: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
+  --footer-text: rgba(255, 255, 255, 0.9);
+  --footer-text-muted: rgba(255, 255, 255, 0.7);
+}
+
+/* ==================== 全局过渡 (Global Transitions) ==================== */
+* {
+  transition: background-color 0.3s ease,
+              color 0.3s ease,
+              border-color 0.3s ease,
+              box-shadow 0.3s ease;
+}
+
+/* 移除特定元素的过渡 */
+*:where(
+  .no-transition,
+  [data-no-transition],
+  img,
+  video,
+  iframe
+) {
+  transition: none !important;
+}
+
+/* ==================== 主题切换动画 (Theme Switch Animation) ==================== */
+@media (prefers-reduced-motion: no-preference) {
+  :root {
+    --theme-switch-duration: 0.3s;
+  }
+
+  html {
+    transition: background-color var(--theme-switch-duration) ease;
+  }
+
+  body {
+    transition: background-color var(--theme-switch-duration) ease,
+                color var(--theme-switch-duration) ease;
+  }
+}
+
+/* ==================== 辅助类 (Utility Classes) ==================== */
+
+/* 背景色辅助类 */
+.bg-primary { background-color: var(--bg-primary) !important; }
+.bg-secondary { background-color: var(--bg-secondary) !important; }
+.bg-tertiary { background-color: var(--bg-tertiary) !important; }
+
+/* 文字色辅助类 */
+.text-primary { color: var(--text-primary) !important; }
+.text-secondary { color: var(--text-secondary) !important; }
+.text-tertiary { color: var(--text-tertiary) !important; }
+
+/* 边框色辅助类 */
+.border-color { border-color: var(--border-color) !important; }
+
+/* 阴影辅助类 */
+.shadow-sm { box-shadow: var(--shadow-sm) !important; }
+.shadow-md { box-shadow: var(--shadow-md) !important; }
+.shadow-lg { box-shadow: var(--shadow-lg) !important; }
+
+/* 毛玻璃效果 */
+.glass-effect {
+  background: var(--glass-bg);
+  backdrop-filter: var(--backdrop-blur);
+  -webkit-backdrop-filter: var(--backdrop-blur);
+  border: 1px solid var(--glass-border);
+}
+
+/* 渐变背景 */
+.gradient-primary { background: var(--gradient-primary) !important; }
+.gradient-secondary { background: var(--gradient-secondary) !important; }
+.gradient-soft { background: var(--gradient-soft) !important; }

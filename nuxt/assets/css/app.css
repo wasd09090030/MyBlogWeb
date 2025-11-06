@@ -28,26 +28,26 @@
 
 /* 暗色主题的body背景 */
 :global(.dark-theme body) {
-  background: linear-gradient(135deg, #a8a8c0 0%, #e5e5e7 100%)!important;
+  background: var(--gradient-soft) !important;
 }
 
 /* 全局样式 */
 #app {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition: var(--theme-transition);
   position: relative;
   min-height: 100vh;
 }
 
 /* 主题样式 */
 .light-theme {
-  background-color: #f8f9fa;
-  color: #212529;
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
 }
 
 .dark-theme {
-  background-color: #96ffda79;
-  color: #ffffff;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
 }
 
 /* 导航栏样式 */
@@ -77,19 +77,19 @@
 
 /* 亮色主题导航栏 - 统一样式，不再区分透明/实心 */
 .light-theme .navbar {
-  background: linear-gradient(rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.95));
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  background: var(--navbar-bg);
+  box-shadow: var(--navbar-shadow);
 }
 
 /* 暗色主题导航栏 - 统一样式 */
 .dark-theme .navbar {
-  background: linear-gradient(rgba(33, 37, 41, 0.95), rgba(33, 37, 41, 0.9)) !important;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  background: var(--navbar-bg) !important;
+  box-shadow: var(--navbar-shadow);
 }
 
 .navbar-brand {
   font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  color: #4eaaf6;
+  color: var(--accent-primary);
   padding-left: 10%;
   padding-top: 0.5rem; /* 调整上内边距 */
   padding-bottom: 0.5rem; /* 调整下内边距 */
@@ -114,14 +114,14 @@
 /* nav-link 悬停效果 */
 .navbar-nav .nav-link:hover {
     transform: translateY(-2px);
-    background-color: rgba(13, 110, 253, 0.1);
-    box-shadow: 0 4px 15px rgba(13, 110, 253, 0.2);
+    background-color: var(--bg-hover);
+    box-shadow: var(--shadow-md);
 }
 
 /* nav-link 点击效果 */
 .navbar-nav .nav-link:active {
     transform: translateY(0);
-    box-shadow: 0 2px 8px rgba(13, 110, 253, 0.3);
+    box-shadow: var(--shadow-sm);
 }
 
 /* nav-link 底部滑动条效果 */
@@ -132,8 +132,8 @@
     left: 50%;
     width: 0;
     height: 2px;
-    background: linear-gradient(90deg, #667eea, #764ba2);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background: var(--gradient-primary);
+    transition: var(--theme-transition);
     transform: translateX(-50%);
 }
 
@@ -143,14 +143,14 @@
 
 /* 活跃状态样式 */
 .navbar-nav .nav-link.active {
-    background-color: rgba(13, 110, 253, 0.15);
-    color: #0d6efd !important;
+    background-color: var(--bg-active);
+    color: var(--accent-primary) !important;
     font-weight: 600;
 }
 
 .navbar-nav .nav-link.active::after {
     width: 80%;
-    background: linear-gradient(90deg, #0d6efd, #6610f2);
+    background: var(--gradient-primary);
 }
 
 /* 中间导航项样式 */
@@ -178,15 +178,15 @@
 /* 中间导航项悬停效果 */
 .navbar-center-nav .nav-link:hover {
   transform: translateY(-3px) scale(1.05);
-  background: linear-gradient(135deg, rgba(13, 110, 253, 0.1), rgba(102, 126, 234, 0.1));
-  box-shadow: 0 6px 20px rgba(13, 110, 253, 0.25);
-  color: #0d6efd;
+  background: var(--bg-hover);
+  box-shadow: var(--shadow-lg);
+  color: var(--accent-primary);
 }
 
 /* 中间导航项点击效果 */
 .navbar-center-nav .nav-link:active {
   transform: translateY(-1px) scale(1.02);
-  box-shadow: 0 3px 10px rgba(13, 110, 253, 0.3);
+  box-shadow: var(--shadow-md);
 }
 
 
@@ -198,9 +198,9 @@
   left: 50%;
   width: 0;
   height: 3px;
-  background: linear-gradient(90deg, #0d6efd, #6610f2);
+  background: var(--gradient-primary);
   border-radius: 2px;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: var(--theme-transition);
   transform: translateX(-50%);
 }
 
@@ -239,9 +239,9 @@
 
 .navbar-center-nav .dropdown:hover .nav-link {
   transform: translateY(-3px) scale(1.05);
-  background: linear-gradient(135deg, rgba(13, 110, 253, 0.1), rgba(102, 126, 234, 0.1));
-  box-shadow: 0 6px 20px rgba(13, 110, 253, 0.25);
-  color: #0d6efd;
+  background: var(--bg-hover);
+  box-shadow: var(--shadow-lg);
+  color: var(--accent-primary);
 }
 
 /* 脉冲动画效果 */
@@ -288,15 +288,15 @@
   width: 40px;
   height: 40px;
   border-radius: 50% !important;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: var(--theme-transition);
   position: relative;
   overflow: hidden;
 }
 
 .theme-toggle-btn:hover {
-  background-color: rgba(13, 110, 253, 0.1) !important;
+  background-color: var(--bg-hover) !important;
   transform: scale(1.1) rotate(10deg);
-  box-shadow: 0 4px 15px rgba(13, 110, 253, 0.2);
+  box-shadow: var(--shadow-md);
 }
 
 .theme-toggle-btn:active {
@@ -331,11 +331,11 @@
 /* 下拉菜单样式 */
 .dropdown-menu {
   border: none;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-  border-radius: 8px;
+  box-shadow: var(--shadow-lg);
+  border-radius: var(--radius-md);
   opacity: 0;
   transform: translateY(-10px) scale(0.95);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: var(--theme-transition);
   animation: dropdownSlideIn 0.3s ease-out forwards;
 }
 
@@ -346,7 +346,7 @@
 
 .dropdown-item {
   padding: 0.5rem 1rem;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: var(--theme-transition);
   position: relative;
   overflow: hidden;
 }
@@ -363,7 +363,7 @@
 }
 
 .dropdown-item:hover {
-  background-color: rgba(13, 110, 253, 0.1);
+  background-color: var(--bg-hover);
   transform: translateX(5px);
   padding-left: 1.2rem;
 }
@@ -384,12 +384,12 @@
 .main-content {
   position: relative;
   z-index: 10;
-  background-color: var(--bs-body-bg, #ffffff);
+  background-color: var(--card-bg);
   min-height: 100vh;
   padding: 0;
   margin-top: 20px;
-  box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.1), 0 8px 32px rgba(0, 0, 0, 0.15);
-  border-radius: 12px 12px 0 0;
+  box-shadow: var(--card-shadow);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
   /* 大屏幕限制宽度为70% */
   max-width: 80%;
   margin-left: auto;
@@ -449,20 +449,20 @@ main {
   transform: translateX(-50%);
   z-index: 1020;
   padding: 8px;
-  background-color: rgba(255, 255, 255, 0.95);
+  background-color: var(--glass-bg);
   border-radius: 25px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-  backdrop-filter: blur(10px);
+  box-shadow: var(--shadow-lg);
+  backdrop-filter: var(--backdrop-blur);
 }
 
 /* Footer 样式 */
 .blog-footer {
-  background: linear-gradient(135deg, #ffffff 0%, #cacaca 100%);
+  background: var(--footer-bg);
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   padding: 2rem 0;
   margin-top: 1rem;
-  border-top: 1px solid rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
+  border-top: 1px solid var(--border-color);
+  transition: var(--theme-transition);
 }
 
 .footer-content {
@@ -472,47 +472,47 @@ main {
 }
 
 .footer-copyright {
-  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  border-top: 1px solid var(--border-color);
   padding-top: 0.5rem;
   text-align: center;
 }
 
 .copyright-text {
   margin: 0;
-  color: rgba(0, 0, 0, 0.8);
+  color: var(--footer-text);
   font-size: 0.85rem;
   font-weight: 500;
 }
 
 .slogan-text {
   margin: 0.5rem 0 0 0;
-  color: rgba(6, 5, 5, 0.6);
+  color: var(--footer-text-muted);
   font-size: 0.8rem;
   font-weight: 400;
 }
 
 /* 暗色主题下的 Footer 样式 */
 .dark-theme .blog-footer {
-  background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
-  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  background: var(--footer-bg);
+  border-top: 1px solid var(--border-color);
 }
 
 .dark-theme .footer-copyright {
-  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  border-top: 1px solid var(--border-color);
 }
 
 .dark-theme .copyright-text {
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--footer-text);
 }
 
 .dark-theme .slogan-text {
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--footer-text-muted);
 }
 
 /* 暗色主题下的移动端音乐播放器 */
 :global(.dark-theme) .mobile-music-player {
-  background-color: rgba(26, 26, 26, 0.95);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  background-color: var(--glass-bg);
+  box-shadow: var(--shadow-lg);
 }
 
 /* 响应式调整 */
@@ -547,28 +547,28 @@ main {
   /* 移动端导航项交互效果 */
   .navbar-nav .nav-link:hover {
     transform: translateX(5px);
-    background: linear-gradient(135deg, rgba(13, 110, 253, 0.1), rgba(102, 126, 234, 0.1));
+    background: var(--bg-hover);
     padding-left: 1rem;
   }
 
   .navbar-nav .nav-link.active {
-    background: linear-gradient(135deg, rgba(13, 110, 253, 0.15), rgba(102, 126, 234, 0.15));
-    color: #0d6efd;
+    background: var(--bg-active);
+    color: var(--accent-primary);
     font-weight: 600;
-    border-left: 3px solid #0d6efd;
+    border-left: 3px solid var(--accent-primary);
     padding-left: 1rem;
   }
 
   /* 移动端暗色主题导航项 */
   :global(.dark-theme) .navbar-nav .nav-link:hover {
-    background: linear-gradient(135deg, rgba(66, 153, 225, 0.15), rgba(159, 122, 234, 0.15));
-    color: #4299e1;
+    background: var(--bg-hover);
+    color: var(--accent-primary);
   }
 
   :global(.dark-theme) .navbar-nav .nav-link.active {
-    background: linear-gradient(135deg, rgba(66, 153, 225, 0.2), rgba(159, 122, 234, 0.2));
-    color: #4299e1;
-    border-left: 3px solid #4299e1;
+    background: var(--bg-active);
+    color: var(--accent-primary);
+    border-left: 3px solid var(--accent-primary);
   }
 
   .theme-toggle-btn {
@@ -722,80 +722,80 @@ main {
 
 /* 亮色主题导航栏文字颜色 - 适配白色背景 */
 .light-theme .nav-link {
-  color: #333333;
+  color: var(--navbar-text);
 }
 
 .light-theme .nav-link:hover {
-  color: #555555;
+  color: var(--navbar-text-hover);
 }
 
 /* 暗色主题下的特殊样式 */
 :global(.dark-theme) .main-content {
-  background-color: #04407b;
-  box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.3), 0 8px 32px rgba(0, 0, 0, 0.4);
+  background-color: var(--card-bg);
+  box-shadow: var(--card-shadow);
 }
 
 :global(.dark-theme) .dropdown-menu {
-  background-color: #2d3748;
-  border: 1px solid #4a5568;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  box-shadow: var(--shadow-xl);
 }
 
 :global(.dark-theme) .dropdown-item {
-  color: #e2e8f0;
+  color: var(--text-primary);
 }
 
 :global(.dark-theme) .dropdown-item:hover {
-  background-color: rgba(66, 153, 225, 0.2);
-  color: #ffffff;
+  background-color: var(--bg-hover);
+  color: var(--text-primary);
 }
 
 /* 暗色主题下的中间导航项样式 */
 :global(.dark-theme) .navbar-center-nav .nav-link:hover {
-  background: linear-gradient(135deg, rgba(66, 153, 225, 0.15), rgba(159, 122, 234, 0.15));
-  box-shadow: 0 6px 20px rgba(66, 153, 225, 0.3);
-  color: #4299e1;
+  background: var(--bg-hover);
+  box-shadow: var(--shadow-lg);
+  color: var(--accent-primary);
 }
 
 :global(.dark-theme) .navbar-center-nav .nav-link.active {
-  background: linear-gradient(135deg, rgba(66, 153, 225, 0.2), rgba(159, 122, 234, 0.2));
-  color: #4299e1;
-  box-shadow: 0 4px 15px rgba(66, 153, 225, 0.25);
+  background: var(--bg-active);
+  color: var(--accent-primary);
+  box-shadow: var(--shadow-md);
 }
 
 :global(.dark-theme) .navbar-center-nav .nav-link::after {
-  background: linear-gradient(90deg, #4299e1, #9f7aea);
+  background: var(--gradient-primary);
 }
 
 :global(.dark-theme) .navbar-center-nav .dropdown:hover .nav-link {
-  background: linear-gradient(135deg, rgba(66, 153, 225, 0.15), rgba(159, 122, 234, 0.15));
-  box-shadow: 0 6px 20px rgba(66, 153, 225, 0.3);
-  color: #4299e1;
+  background: var(--bg-hover);
+  box-shadow: var(--shadow-lg);
+  color: var(--accent-primary);
 }
 
 /* 暗色主题下的 nav-link 样式 */
 :global(.dark-theme) .navbar-nav .nav-link:hover {
-  background-color: rgba(66, 153, 225, 0.15);
-  box-shadow: 0 4px 15px rgba(66, 153, 225, 0.2);
+  background-color: var(--bg-hover);
+  box-shadow: var(--shadow-md);
 }
 
 :global(.dark-theme) .navbar-nav .nav-link::after {
-  background: linear-gradient(90deg, #4299e1, #9f7aea);
+  background: var(--gradient-primary);
 }
 
 :global(.dark-theme) .navbar-nav .nav-link.active {
-  background-color: rgba(66, 153, 225, 0.2);
-  color: #4299e1 !important;
+  background-color: var(--bg-active);
+  color: var(--accent-primary) !important;
 }
 
 :global(.dark-theme) .navbar-nav .nav-link.active::after {
-  background: linear-gradient(90deg, #4299e1, #9f7aea);
+  background: var(--gradient-primary);
 }
 
 /* 暗色主题下的主题切换按钮 */
 :global(.dark-theme) .theme-toggle-btn:hover {
-  background-color: rgba(66, 153, 225, 0.15) !important;
-  box-shadow: 0 4px 15px rgba(66, 153, 225, 0.2);
+  background-color: var(--bg-hover) !important;
+  box-shadow: var(--shadow-md);
 }
 
 :global(.dark-theme) .theme-toggle-btn::before {

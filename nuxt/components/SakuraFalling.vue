@@ -1,129 +1,204 @@
 <template>
-  <div class="sakura-container">
-    <div
-      v-for="sakura in sakuras"
-      :key="sakura.id"
-      class="sakura"
-      :style="{
-        left: sakura.left,
-        animationDelay: sakura.delay,
-        animationDuration: sakura.duration,
-        opacity: sakura.opacity
-      }"
+  <div class="sakura-falling">
+    <div 
+      v-for="(petal, index) in visiblePetals" 
+      :key="`petal-${index}`"
+      class="sakura-petal"
+      :style="getPetalStyle(petal, index)"
     >
-      {{ sakura.symbol }}
+      <img 
+        :src="petal.image" 
+        class="petal-image" 
+        :alt="`flower-petal-${index}`"
+      />
     </div>
   </div>
 </template>
 
 <script setup>
-// 响应式数据
-const sakuras = ref([])
+import { ref, onMounted, onUnmounted, computed } from 'vue'
+import f01Image from '../public/flower/f01.webp'
+import f02Image from '../public/flower/f02.webp'
 
-// 樱花符号
-const sakuraSymbols = ['🌸', '🌺', '🌼', '🌻']
+const petals = ref([])
+const isActive = ref(true)
 
-// 生成樱花
-const generateSakuras = () => {
-  const sakuraArray = []
-  const count = 15 // 樱花数量
+// 花瓣配置
+const PETAL_COUNT = 15
+const PETAL_IMAGES = [
+  f01Image,
+  f02Image
+]
 
-  for (let i = 0; i < count; i++) {
-    sakuraArray.push({
-      id: i,
-      left: Math.random() * 100 + '%',
-      delay: Math.random() * 10 + 's',
-      duration: Math.random() * 10 + 10 + 's', // 10-20秒
-      opacity: Math.random() * 0.6 + 0.4, // 0.4-1.0
-      symbol: sakuraSymbols[Math.floor(Math.random() * sakuraSymbols.length)]
-    })
+// 只显示活跃的花瓣
+const visiblePetals = computed(() => 
+  petals.value.filter(petal => petal.active)
+)
+
+// 创建花瓣数据
+const createPetal = (index) => ({
+  id: `petal-${index}-${Date.now()}`,
+  image: PETAL_IMAGES[Math.floor(Math.random() * PETAL_IMAGES.length)],
+  startDelay: Math.random() * 5,
+  duration: 8 + Math.random() * 4,
+  startX: Math.random() * window.innerWidth,
+  endX: Math.random() * window.innerWidth,
+  size: 0.8 + Math.random() * 0.6,
+  opacity: 0.6 + Math.random() * 0.4,
+  active: true
+})
+
+// 获取花瓣样式
+const getPetalStyle = (petal, index) => {
+  return {
+    '--start-x': `${petal.startX}px`,
+    '--end-x': `${petal.endX}px`,
+    '--duration': `${petal.duration}s`,
+    '--delay': `${petal.startDelay}s`,
+    '--size': petal.size,
+    '--opacity': petal.opacity,
+    animationDelay: `${petal.startDelay}s`,
+    animationDuration: `${petal.duration}s`
   }
-
-  sakuras.value = sakuraArray
 }
 
-// 组件挂载时生成樱花
+// 初始化花瓣
+const initPetals = () => {
+  petals.value = []
+  for (let i = 0; i < PETAL_COUNT; i++) {
+    petals.value.push(createPetal(i))
+  }
+}
+
+// 重新启动花瓣动画
+const restartPetal = (index) => {
+  if (!isActive.value) return
+  
+  setTimeout(() => {
+    petals.value[index] = createPetal(index)
+  }, 100)
+}
+
+// 处理窗口大小改变
+const handleResize = () => {
+  // 重新初始化所有花瓣以适应新的窗口大小
+  initPetals()
+}
+
 onMounted(() => {
-  generateSakuras()
+  initPetals()
+  
+  // 监听窗口大小改变
+  window.addEventListener('resize', handleResize)
+  
+  // 监听动画结束事件
+  document.addEventListener('animationend', (e) => {
+    if (e.target.classList.contains('sakura-petal')) {
+      const petalElement = e.target
+      const index = Array.from(petalElement.parentNode.children).indexOf(petalElement)
+      if (index !== -1) {
+        restartPetal(index)
+      }
+    }
+  })
+})
+
+onUnmounted(() => {
+  isActive.value = false
+  window.removeEventListener('resize', handleResize)
 })
 </script>
 
 <style scoped>
-.sakura-container {
+.sakura-falling {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
+  width: 100vw;
+  height: 100vh;
   pointer-events: none;
-  z-index: 1;
+  z-index: 99;
   overflow: hidden;
 }
 
-.sakura {
+.sakura-petal {
   position: absolute;
-  top: -20px;
-  font-size: 1.5rem;
+  top: -50px;
+  left: var(--start-x);
+  width: calc(24px * var(--size));
+  height: calc(24px * var(--size));
+  opacity: var(--opacity);
+  animation: sakuraFall var(--duration) linear infinite;
+  animation-fill-mode: forwards;
+  pointer-events: none;
   user-select: none;
-  animation: sakura-fall linear infinite;
-  will-change: transform;
 }
 
-@keyframes sakura-fall {
+.petal-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: inline-block;
+  animation: sakuraRotate calc(var(--duration) * 0.5) linear infinite;
+  filter: drop-shadow(1px 1px 2px rgba(255, 192, 203, 0.3));
+}
+
+@keyframes sakuraFall {
   0% {
-    transform: translateY(-20px) rotate(0deg) translateX(0);
+    transform: translateY(-100px) translateX(0px) rotateZ(0deg);
+    opacity: var(--opacity);
   }
   10% {
-    transform: translateY(10vh) rotate(90deg) translateX(10px);
-  }
-  20% {
-    transform: translateY(20vh) rotate(180deg) translateX(-10px);
-  }
-  30% {
-    transform: translateY(30vh) rotate(270deg) translateX(15px);
-  }
-  40% {
-    transform: translateY(40vh) rotate(360deg) translateX(-15px);
-  }
-  50% {
-    transform: translateY(50vh) rotate(450deg) translateX(20px);
-  }
-  60% {
-    transform: translateY(60vh) rotate(540deg) translateX(-20px);
-  }
-  70% {
-    transform: translateY(70vh) rotate(630deg) translateX(10px);
-  }
-  80% {
-    transform: translateY(80vh) rotate(720deg) translateX(-10px);
+    opacity: var(--opacity);
   }
   90% {
-    transform: translateY(90vh) rotate(810deg) translateX(5px);
+    opacity: var(--opacity);
   }
   100% {
-    transform: translateY(100vh) rotate(900deg) translateX(0);
+    transform: translateY(100vh) translateX(calc(var(--end-x) - var(--start-x))) rotateZ(360deg);
     opacity: 0;
   }
 }
 
-/* 在暗色主题下的特殊样式 */
-@media (prefers-color-scheme: dark) {
-  .sakura {
-    filter: brightness(0.8);
+@keyframes sakuraRotate {
+  0% {
+    transform: rotateY(0deg) rotateX(0deg);
+  }
+  25% {
+    transform: rotateY(90deg) rotateX(45deg);
+  }
+  50% {
+    transform: rotateY(180deg) rotateX(0deg);
+  }
+  75% {
+    transform: rotateY(270deg) rotateX(-45deg);
+  }
+  100% {
+    transform: rotateY(360deg) rotateX(0deg);
   }
 }
 
-/* 性能优化：减少动画在低性能设备上的影响 */
+/* 移动端优化 */
+@media (max-width: 768px) {
+  .sakura-petal {
+    width: calc(20px * var(--size));
+    height: calc(20px * var(--size));
+  }
+}
+
+/* 减少动画在低性能设备上的影响 */
 @media (prefers-reduced-motion: reduce) {
-  .sakura {
+  .sakura-petal {
+    animation-duration: calc(var(--duration) * 2) !important;
+  }
+  
+  .petal-image {
     animation: none;
   }
 }
 
-/* 移动设备优化 */
-@media (max-width: 768px) {
-  .sakura {
-    font-size: 1.2rem;
-  }
+/* 暗色主题适配 */
+:global(.dark-theme) .petal-image {
+  filter: drop-shadow(1px 1px 2px rgba(255, 192, 203, 0.5));
 }
 </style>

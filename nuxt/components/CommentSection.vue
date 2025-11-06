@@ -1,146 +1,150 @@
 <template>
-  <div class="comment-section">
-    <div class="comment-header mb-4">
-      <h4 class="mb-3">
-        <i class="bi bi-chat-dots me-2"></i>
-        评论区
-        <span v-if="comments.length" class="badge bg-secondary ms-2">
-          {{ comments.length }}
-        </span>
-      </h4>
-
-      <!-- 评论统计 -->
-      <div v-if="comments.length" class="text-muted small mb-3">
-        共 {{ comments.length }} 条评论
-      </div>
-    </div>
-
-    <!-- 发表评论表单 -->
-    <div class="comment-form mb-4 p-3 bg-light rounded">
-      <h5 class="mb-3">发表评论</h5>
-      <form @submit.prevent="submitComment">
-        <div class="mb-3">
-          <label for="commentName" class="form-label">昵称</label>
-          <input
-            id="commentName"
-            v-model="commentForm.name"
-            type="text"
-            class="form-control"
-            placeholder="请输入您的昵称"
-            required
-          />
-        </div>
-        <div class="mb-3">
-          <label for="commentEmail" class="form-label">邮箱</label>
-          <input
-            id="commentEmail"
-            v-model="commentForm.email"
-            type="email"
-            class="form-control"
-            placeholder="请输入您的邮箱（不会被公开）"
-            required
-          />
-        </div>
-        <div class="mb-3">
-          <label for="commentContent" class="form-label">评论内容</label>
-          <textarea
-            id="commentContent"
-            v-model="commentForm.content"
-            class="form-control"
-            rows="4"
-            placeholder="请输入您的评论..."
-            required
-          ></textarea>
-        </div>
-        <button
-          type="submit"
-          class="btn btn-primary"
-          :disabled="submitting"
-        >
-          <span v-if="submitting" class="spinner-border spinner-border-sm me-2"></span>
-          {{ submitting ? '提交中...' : '发表评论' }}
-        </button>
-      </form>
-    </div>
-
-    <!-- 加载状态 -->
-    <LoadingSpinner v-if="loading" text="正在加载评论..." size="small" />
-
-    <!-- 错误状态 -->
-    <div v-else-if="error" class="alert alert-danger" role="alert">
-      <i class="bi bi-exclamation-triangle me-2"></i>
-      加载评论失败: {{ error.message }}
-      <button class="btn btn-sm btn-outline-danger ms-3" @click="fetchComments">
-        重试
+  <div class="comment-section mt-5">
+    <!-- 点赞区域 -->
+    <div class="like-section mb-4 text-center">
+      <button
+        @click="toggleLike"
+        :class="['btn', 'like-btn', { 'liked': isLiked }]"
+        :disabled="likingInProgress"
+      >
+        <i class="bi" :class="isLiked ? 'bi-heart-fill' : 'bi-heart'"></i>
+        <span class="like-count ms-2">{{ likeCount }}</span>
+        <span class="like-text ms-1">{{ isLiked ? '已点赞' : '点赞' }}</span>
       </button>
     </div>
 
-    <!-- 评论列表 -->
-    <div v-else-if="comments.length" class="comment-list">
-      <div
-        v-for="comment in comments"
-        :key="comment.id"
-        class="comment-item mb-3 p-3 border rounded"
-      >
-        <div class="comment-header d-flex justify-content-between align-items-start mb-2">
-          <div>
-            <strong class="comment-author">{{ comment.name }}</strong>
-            <span class="comment-date text-muted small ms-2">
-              {{ formatDate(comment.createdAt) }}
-            </span>
+    <!-- 评论表单 -->
+    <div class="comment-form card mb-4">
+      <div class="card-body">
+        <h5 class="card-title">
+          <i class="bi bi-chat-dots me-2"></i>
+          发表评论
+        </h5>
+        <div v-if="submitSuccess" class="alert alert-success">
+          <i class="bi bi-check-circle me-2"></i>
+          评论提交成功！正在等待审核...
+        </div>
+        <form @submit.prevent="submitComment">
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <input
+                v-model="newComment.author"
+                type="text"
+                class="form-control"
+                placeholder="姓名 *"
+                required
+                maxlength="50"
+              >
+            </div>
+            <div class="col-md-6">
+              <input
+                v-model="newComment.email"
+                type="email"
+                class="form-control"
+                placeholder="邮箱（可选）"
+                maxlength="100"
+              >
+            </div>
+          </div>
+          <div class="mb-3">
+            <textarea
+              v-model="newComment.content"
+              class="form-control"
+              rows="4"
+              placeholder="写下您的评论... *"
+              required
+              maxlength="1000"
+            ></textarea>
+            <div class="form-text">{{ newComment.content.length }}/1000</div>
           </div>
           <button
-            class="btn btn-sm btn-outline-primary like-btn"
-            @click="likeComment(comment.id)"
-            :disabled="likingComments.has(comment.id)"
+            type="submit"
+            class="btn btn-primary"
+            :disabled="submitting"
           >
-            <i class="bi bi-hand-thumbs-up me-1"></i>
-            {{ comment.likes || 0 }}
-            <span v-if="likingComments.has(comment.id)" class="spinner-border spinner-border-sm ms-1"></span>
+            <span v-if="submitting" class="spinner-border spinner-border-sm me-2"></span>
+            <i class="bi bi-send me-2"></i>
+            发表评论
           </button>
-        </div>
-        <div class="comment-content">
-          <!-- eslint-disable-next-line vue/no-v-html -->
-          <div v-html="formatCommentContent(comment.content)"></div>
-        </div>
-      </div>
-
-      <!-- 无更多评论提示 -->
-      <div v-if="!hasMoreComments" class="text-center text-muted mt-4">
-        <i class="bi bi-chat-dots me-1"></i>
-        没有更多评论了
+        </form>
       </div>
     </div>
 
-    <!-- 空状态 -->
-    <div v-else class="alert alert-info text-center" role="alert">
-      <i class="bi bi-chat-dots fs-1 d-block mb-3"></i>
-      暂无评论，快来发表第一条评论吧！
+    <!-- 评论列表 -->
+    <div class="comments-list">
+      <h5 class="mb-4">
+        <i class="bi bi-chat-left-text me-2"></i>
+        评论 ({{ comments.length }})
+      </h5>
+      <div v-if="loadingComments" class="text-center py-4">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">加载中...</span>
+        </div>
+      </div>
+      <div v-else-if="comments.length === 0" class="text-muted text-center py-4">
+        <i class="bi bi-chat-square-dots fs-1 mb-3 d-block"></i>
+        暂无评论，来发表第一条评论吧！
+      </div>
+      <div v-else>
+        <div
+          v-for="comment in comments"
+          :key="comment.id"
+          class="comment-item card mb-3"
+        >
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+              <div class="comment-author">
+                <strong class="author-name">
+                  <i class="bi bi-person-circle me-1"></i>
+                  {{ comment.author }}
+                </strong>
+                <small class="text-muted ms-2">{{ formatDate(comment.createdAt) }}</small>
+                <span v-if="comment.website" class="ms-2">
+                  <a :href="comment.website" target="_blank" class="text-decoration-none">
+                    <i class="bi bi-link-45deg"></i>
+                  </a>
+                </span>
+              </div>
+              <button
+                @click="likeComment(comment.id)"
+                class="btn btn-sm btn-outline-danger comment-like-btn"
+                :class="{ 'active': comment.isLiked }"
+              >
+                <i class="bi bi-heart"></i>
+                <span v-if="comment.likes > 0" class="ms-1">{{ comment.likes }}</span>
+              </button>
+            </div>
+            <div class="comment-content">
+              {{ comment.content }}
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
 import { useComments } from '~/composables/useComments'
-import LoadingSpinner from '~/components/LoadingSpinner.vue'
 
 const props = defineProps({
   articleId: {
-    type: [String, Number],
+    type: [Number, String],
     required: true
   }
 })
 
 // 响应式数据
 const comments = ref([])
-const loading = ref(false)
-const error = ref(null)
+const likeCount = ref(0)
+const isLiked = ref(false)
+const likingInProgress = ref(false)
 const submitting = ref(false)
-const likingComments = ref(new Set())
+const submitSuccess = ref(false)
+const loadingComments = ref(true)
 
-// 评论表单
-const commentForm = ref({
-  name: '',
+const newComment = ref({
+  author: '',
   email: '',
   content: ''
 })
@@ -148,50 +152,62 @@ const commentForm = ref({
 // API composable
 const { getCommentsByArticle, submitComment: submitCommentApi, likeComment: likeCommentApi } = useComments()
 
-// 格式化评论内容（简单的链接和换行处理）
-const formatCommentContent = (content) => {
-  if (!content) return ''
-
-  // 转换换行符为<br>
-  let formatted = content.replace(/\n/g, '<br>')
-
-  // 简单的链接识别
-  const urlRegex = /(https?:\/\/[^\s]+)/g
-  formatted = formatted.replace(urlRegex, '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>')
-
-  return formatted
-}
-
-// 格式化日期
-const formatDate = (dateString) => {
-  if (!dateString) return '未知时间'
-  const date = new Date(dateString)
-  return date.toLocaleDateString('zh-CN', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  })
-}
-
 // 获取评论列表
 const fetchComments = async () => {
-  if (loading.value) return
-
-  loading.value = true
-  error.value = null
-
   try {
-    console.log('CommentSection: 开始获取评论，文章ID:', props.articleId)
+    loadingComments.value = true
     const data = await getCommentsByArticle(props.articleId)
     comments.value = data || []
-    console.log('CommentSection: 获取评论成功，数量:', comments.value.length)
-  } catch (e) {
-    error.value = e
-    console.error('CommentSection: 获取评论失败:', e)
+  } catch (error) {
+    console.error('获取评论失败:', error)
   } finally {
-    loading.value = false
+    loadingComments.value = false
+  }
+}
+
+// 获取点赞状态（简化版本，可以根据实际API调整）
+const fetchLikeStatus = async () => {
+  try {
+    // 这里可以添加获取文章点赞状态的API调用
+    // 暂时使用本地存储
+    const likedArticles = JSON.parse(localStorage.getItem('likedArticles') || '{}')
+    isLiked.value = likedArticles[props.articleId] || false
+
+    // 这里可以从API获取实际的点赞数
+    likeCount.value = 0
+  } catch (error) {
+    console.error('获取点赞状态失败:', error)
+  }
+}
+
+// 切换点赞
+const toggleLike = async () => {
+  if (likingInProgress.value) return
+
+  likingInProgress.value = true
+  try {
+    // 切换点赞状态
+    isLiked.value = !isLiked.value
+
+    // 更新本地存储
+    const likedArticles = JSON.parse(localStorage.getItem('likedArticles') || '{}')
+    if (isLiked.value) {
+      likedArticles[props.articleId] = true
+      likeCount.value++
+    } else {
+      delete likedArticles[props.articleId]
+      likeCount.value = Math.max(0, likeCount.value - 1)
+    }
+    localStorage.setItem('likedArticles', JSON.stringify(likedArticles))
+
+    // 这里可以调用实际的点赞API
+    // await likeArticleApi(props.articleId)
+  } catch (error) {
+    console.error('点赞操作失败:', error)
+    // 如果失败，恢复状态
+    isLiked.value = !isLiked.value
+  } finally {
+    likingInProgress.value = false
   }
 }
 
@@ -200,34 +216,36 @@ const submitComment = async () => {
   if (submitting.value) return
 
   submitting.value = true
+  submitSuccess.value = false
 
   try {
     const commentData = {
       articleId: props.articleId,
-      name: commentForm.value.name.trim(),
-      email: commentForm.value.email.trim(),
-      content: commentForm.value.content.trim()
+      author: newComment.value.author.trim(),
+      email: newComment.value.email.trim(),
+      content: newComment.value.content.trim()
     }
 
-    console.log('CommentSection: 提交评论:', commentData)
     await submitCommentApi(commentData)
 
     // 重置表单
-    commentForm.value = {
-      name: '',
+    newComment.value = {
+      author: '',
       email: '',
       content: ''
     }
+    submitSuccess.value = true
 
-    // 重新获取评论列表
+    // 3秒后隐藏成功消息
+    setTimeout(() => {
+      submitSuccess.value = false
+    }, 3000)
+
+    // 重新加载评论
     await fetchComments()
-
-    // 显示成功提示
-    showToast('评论发表成功！', 'success')
-
-  } catch (e) {
-    console.error('CommentSection: 提交评论失败:', e)
-    showToast('评论发表失败，请重试', 'error')
+  } catch (error) {
+    console.error('提交评论失败:', error)
+    alert('提交评论失败，请稍后重试')
   } finally {
     submitting.value = false
   }
@@ -235,177 +253,224 @@ const submitComment = async () => {
 
 // 点赞评论
 const likeComment = async (commentId) => {
-  if (likingComments.value.has(commentId)) return
-
-  likingComments.value.add(commentId)
-
   try {
-    console.log('CommentSection: 点赞评论，ID:', commentId)
     await likeCommentApi(commentId)
 
     // 更新本地评论的点赞数
     const comment = comments.value.find(c => c.id === commentId)
     if (comment) {
       comment.likes = (comment.likes || 0) + 1
+      comment.isLiked = true
     }
-
-  } catch (e) {
-    console.error('CommentSection: 点赞评论失败:', e)
-    showToast('点赞失败，请重试', 'error')
-  } finally {
-    likingComments.value.delete(commentId)
+  } catch (error) {
+    console.error('点赞评论失败:', error)
   }
 }
 
-// 显示提示消息
-const showToast = (message, type = 'info') => {
-  const toast = document.createElement('div')
-  const bgClass = type === 'success' ? 'bg-success' : type === 'error' ? 'bg-danger' : 'bg-info'
-
-  toast.className = `position-fixed top-0 start-50 translate-middle-x ${bgClass} text-white px-4 py-3 rounded shadow mt-3`
-  toast.style.zIndex = '9999'
-  toast.innerHTML = `
-    <div class="d-flex align-items-center">
-      <i class="bi bi-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'} me-2"></i>
-      ${message}
-    </div>
-  `
-
-  document.body.appendChild(toast)
-
-  // 添加进入动画
-  setTimeout(() => {
-    toast.style.transition = 'all 0.3s ease'
-    toast.style.transform = 'translate(-50%, 0)'
-  }, 10)
-
-  // 3秒后移除
-  setTimeout(() => {
-    toast.style.transform = 'translate(-50%, -100px)'
-    toast.style.opacity = '0'
-    setTimeout(() => {
-      if (document.body.contains(toast)) {
-        document.body.removeChild(toast)
-      }
-    }, 300)
-  }, 3000)
+// 格式化日期
+const formatDate = (dateString) => {
+  if (!dateString) return '未知时间'
+  return new Date(dateString).toLocaleDateString('zh-CN', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
 }
 
 // 监听文章ID变化
 watch(() => props.articleId, (newId, oldId) => {
   if (newId !== oldId) {
     fetchComments()
+    fetchLikeStatus()
   }
 })
 
-// 组件挂载时获取评论
 onMounted(() => {
   fetchComments()
+  fetchLikeStatus()
 })
 </script>
 
 <style scoped>
-.comment-section {
-  background: white;
-  border-radius: 8px;
-  padding: 2rem;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
-
-.comment-header h4 {
-  color: #212529;
-  border-bottom: 2px solid #0d6efd;
-  padding-bottom: 0.5rem;
-  display: inline-block;
-}
-
-.comment-form {
-  background: #f8f9fa !important;
-  border: 1px solid #dee2e6;
-}
-
-.comment-list {
-  max-height: 600px;
-  overflow-y: auto;
-}
-
-.comment-item {
-  background: white;
-  transition: all 0.3s ease;
-  border-left: 3px solid transparent;
-}
-
-.comment-item:hover {
-  border-left-color: #0d6efd;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
-
-.comment-author {
-  color: #0d6efd;
-  font-weight: 600;
-}
-
-.comment-date {
-  color: #6c757d !important;
-}
-
-.comment-content {
-  color: #495057;
-  line-height: 1.6;
-  margin-top: 0.5rem;
-}
-
+/* 点赞按钮样式 */
 .like-btn {
-  transition: all 0.3s ease;
+  background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+  color: white;
   border: none;
-  background: transparent;
+  border-radius: 50px;
+  padding: 1rem 2rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.like-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.like-btn:hover::before {
+  left: 100%;
 }
 
 .like-btn:hover {
-  background: #0d6efd;
-  color: white;
-  transform: translateY(-1px);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(255, 107, 107, 0.4);
+}
+
+.like-btn.liked {
+  background: linear-gradient(135deg, #e55039, #c44569);
+  animation: heartbeat 0.6s ease-in-out;
 }
 
 .like-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+  transform: none !important;
 }
 
-/* 表单样式 */
-.form-control:focus {
-  border-color: #0d6efd;
-  box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+@keyframes heartbeat {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
 }
 
-.btn-primary {
-  background: #0d6efd;
-  border-color: #0d6efd;
+/* 评论表单样式 */
+.comment-form {
+  border: 2px solid #e9ecef;
+  border-radius: 15px;
   transition: all 0.3s ease;
 }
 
-.btn-primary:hover {
-  background: #0b5ed7;
-  border-color: #0a58ca;
-  transform: translateY(-1px);
+.comment-form:hover {
+  border-color: #007bff;
+  box-shadow: 0 4px 15px rgba(0, 123, 255, 0.1);
+}
+
+.comment-form .card-title {
+  color: #495057;
+  font-weight: 600;
+}
+
+.comment-form .form-control {
+  border-radius: 8px;
+  border: 1px solid #ced4da;
+  transition: all 0.3s ease;
+}
+
+.comment-form .form-control:focus {
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+  border-color: #80bdff;
+}
+
+/* 评论项样式 */
+.comment-item {
+  border-left: 4px solid #007bff;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+  background: linear-gradient(135deg, #ffffff, #f8f9fa);
+}
+
+.comment-item:hover {
+  transform: translateX(5px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+}
+
+.author-name {
+  color: #495057;
+  font-size: 1rem;
+}
+
+.comment-content {
+  line-height: 1.7;
+  color: #333;
+  margin: 0.8rem 0;
+  padding: 0.5rem 0;
+  font-size: 1rem;
+  word-wrap: break-word;
+}
+
+.comment-like-btn {
+  border-radius: 20px;
+  transition: all 0.3s ease;
+}
+
+.comment-like-btn:hover {
+  transform: scale(1.1);
+}
+
+.comment-like-btn.active {
+  background-color: #dc3545;
+  border-color: #dc3545;
+  color: white;
+}
+
+/* 暗色主题支持 */
+[data-bs-theme="dark"] .comment-form,
+[data-bs-theme="dark"] .comment-item {
+  background: linear-gradient(135deg, var(--bs-dark), #2c2c2c);
+  border-color: var(--bs-border-color-translucent);
+}
+
+[data-bs-theme="dark"] .comment-form .card-title {
+  color: #fff;
+}
+
+[data-bs-theme="dark"] .author-name {
+  color: #fff;
+}
+
+[data-bs-theme="dark"] .comment-content {
+  color: #dee2e6;
+}
+
+[data-bs-theme="dark"] .like-btn {
+  box-shadow: 0 4px 15px rgba(255, 107, 107, 0.2);
 }
 
 /* 响应式设计 */
 @media (max-width: 768px) {
-  .comment-section {
-    padding: 1rem;
-  }
-
-  .comment-header h4 {
-    font-size: 1.25rem;
-  }
-
-  .comment-form {
-    padding: 1rem !important;
+  .like-btn {
+    padding: 0.8rem 1.5rem;
+    font-size: 1rem;
   }
 
   .comment-item {
-    padding: 1rem !important;
+    margin-bottom: 1rem;
+  }
+
+  .comment-form .row > div {
+    margin-bottom: 0.5rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .like-btn {
+    padding: 0.7rem 1.2rem;
+    font-size: 0.9rem;
+  }
+
+  .like-text {
+    display: none;
+  }
+
+  .author-name {
+    font-size: 0.9rem;
+  }
+
+  .comment-content {
+    font-size: 0.95rem;
   }
 }
 </style>

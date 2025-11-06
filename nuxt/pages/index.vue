@@ -35,6 +35,7 @@
         <div
           v-for="(article, index) in paginatedFilteredArticles"
           :key="article.id"
+          v-memo="[article.id, article.title, article.coverImage, article.createdAt, article.category, currentFilteredPage, route.query.search, route.query.category]"
           :class="['article-card',  { 'article-card-reverse': (currentFilteredIndex + index + 1) % 2 === 0 }]"
         >
           <!-- 封面图片区域 -->
@@ -43,9 +44,10 @@
               v-if="article.coverImage && article.coverImage !== 'null'"
               :src="article.coverImage"
               :alt="article.title"
-              class="article-image"
+              class="article-image lazy-image"
               style="height: 300px; aspect-ratio: 16/9; object-fit: cover; width: 100%;"
               @error="handleImageError"
+              @load="handleImageLoad"
               loading="lazy"
             />
             <div v-else class="article-image-placeholder">
@@ -124,6 +126,7 @@
         <div
           v-for="(article, index) in paginatedArticles"
           :key="article.id"
+          v-memo="[article.id, article.title, article.coverImage, article.createdAt, article.category, currentPage]"
           :class="['article-card', { 'article-card-reverse': (currentIndex + index + 1) % 2 === 0 }]"
         >
           <!-- 封面图片区域 -->
@@ -132,9 +135,10 @@
               v-if="article.coverImage && article.coverImage !== 'null'"
               :src="article.coverImage"
               :alt="article.title"
-              class="article-image"
+              class="article-image lazy-image"
               style="height: 300px; aspect-ratio: 16/9; object-fit: cover; width: 100%;"
               @error="handleImageError"
+              @load="handleImageLoad"
               loading="lazy"
             />
             <div v-else class="article-image-placeholder">
@@ -327,8 +331,8 @@ const clearSearch = () => {
   navigateTo({ path: '/' })
 }
 
-// 生成文章详情路由的简化函数
-const getArticleDetailRoute = (articleId) => {
+// 计算属性：为当前页面的文章预先生成路由对象，避免重复计算
+const articleRoutesMap = computed(() => {
   const query = {}
 
   // 保持原有的搜索和分类参数
@@ -339,9 +343,27 @@ const getArticleDetailRoute = (articleId) => {
     query.category = route.query.category
   }
 
-  return {
+  // 为当前页面的所有文章生成路由映射
+  const routesMap = new Map()
+  const currentArticles = route.query.search || route.query.category
+    ? paginatedFilteredArticles.value
+    : paginatedArticles.value
+
+  currentArticles.forEach(article => {
+    routesMap.set(article.id, {
+      path: `/article/${article.id}`,
+      query: { ...query }
+    })
+  })
+
+  return routesMap
+})
+
+// 生成文章详情路由的简化函数
+const getArticleDetailRoute = (articleId) => {
+  return articleRoutesMap.value.get(articleId) || {
     path: `/article/${articleId}`,
-    query: { ...query }
+    query: {}
   }
 }
 
@@ -441,6 +463,11 @@ const getFilteredPageNumbers = () => {
 const handleImageError = (event) => {
   // 隐藏加载失败的图片
   event.target.style.display = 'none'
+}
+
+// 处理图片加载成功
+const handleImageLoad = (event) => {
+  event.target.classList.add('lazy-loaded')
 }
 
 // 格式化日期的辅助函数
@@ -548,184 +575,6 @@ defineExpose({
 </script>
 
 <style scoped>
-/* 文章列表样式 */
-.article-list-page {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px;
-}
-
-.articles-container {
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
-}
-
-.article-card {
-  display: grid;
-  grid-template-columns: 1fr 2fr;
-  gap: 2rem;
-  padding: 1.5rem;
-  border: 1px solid #e1e5e9;
-  border-radius: 8px;
-  background: white;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.article-card:hover {
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-  transform: translateY(-2px);
-}
-
-.article-card-reverse {
-  direction: rtl;
-}
-
-.article-card-reverse .article-content-section {
-  direction: ltr;
-}
-
-.article-image-section {
-  position: relative;
-  overflow: hidden;
-  border-radius: 6px;
-}
-
-.article-image {
-  transition: transform 0.3s ease;
-}
-
-.article-card:hover .article-image {
-  transform: scale(1.05);
-}
-
-.article-image-placeholder {
-  height: 300px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #f8f9fa;
-  border: 2px dashed #dee2e6;
-  border-radius: 6px;
-}
-
-.article-content-section {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-
-.article-meta {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  font-size: 0.9rem;
-}
-
-.article-date {
-  color: #6c757d;
-}
-
-.article-category {
-  padding: 0.25rem 0.75rem;
-  border-radius: 1rem;
-  font-size: 0.8rem;
-  font-weight: 500;
-}
-
-.category-study {
-  background: #e3f2fd;
-  color: #1976d2;
-}
-
-.category-game {
-  background: #fce4ec;
-  color: #c2185b;
-}
-
-.category-work {
-  background: #e8f5e8;
-  color: #388e3c;
-}
-
-.category-resource {
-  background: #fff3e0;
-  color: #f57c00;
-}
-
-.category-other {
-  background: #f5f5f5;
-  color: #616161;
-}
-
-.article-title-link {
-  text-decoration: none;
-  color: inherit;
-}
-
-.article-title {
-  font-size: 1.5rem;
-  font-weight: 600;
-  margin: 0.5rem 0;
-  color: #212529;
-  transition: color 0.3s ease;
-}
-
-.article-title-link:hover .article-title {
-  color: #0d6efd;
-}
-
-.article-excerpt {
-  margin: 1rem 0;
-  color: #6c757d;
-  line-height: 1.6;
-}
-
-.article-content-preview {
-  font-size: 0.95rem;
-}
-
-.read-more-btn {
-  align-self: flex-start;
-  text-decoration: none;
-  color: #0d6efd;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  transition: all 0.3s ease;
-}
-
-.read-more-btn:hover {
-  color: #0a58ca;
-  transform: translateX(4px);
-}
-
-.pagination-container {
-  margin-top: 2rem;
-}
-
-.page-btn {
-  transition: all 0.3s ease;
-}
-
-.page-btn:hover {
-  transform: translateY(-1px);
-}
-
-@media (max-width: 768px) {
-  .article-card {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-  }
-
-  .article-card-reverse {
-    direction: ltr;
-  }
-
-  .article-list-page {
-    padding: 1rem;
-  }
-}
+@import '~/assets/css/components/ArticleList.styles.css';
 </style>
+

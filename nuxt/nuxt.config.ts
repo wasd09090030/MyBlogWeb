@@ -3,6 +3,7 @@ export default defineNuxtConfig({
 
   // CSS配置
   css: [
+    '~/assets/css/theme-variables.css', // 主题变量系统 - 必须首先加载
     'bootstrap/dist/css/bootstrap.min.css',
     'bootstrap-icons/font/bootstrap-icons.css',
     'github-markdown-css/github-markdown.css',
