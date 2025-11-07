@@ -362,3 +362,53 @@ onMounted(() => {
 <style scoped>
 @import '~/assets/css/components/ArticleDetail.styles.css';
 </style>
+
+<style>
+/* 暗色主题下的代码块样式 - 全局样式以覆盖 highlight.js */
+[data-bs-theme="dark"] .article-detail-page .markdown-body pre,
+[data-bs-theme="dark"] .article-container pre,
+[data-bs-theme="dark"] pre.hljs {
+  background-color: #161b22 !important;
+  color: #e6edf3 !important;
+}
+
+[data-bs-theme="dark"] .article-detail-page .markdown-body pre code,
+[data-bs-theme="dark"] .article-container pre code,
+[data-bs-theme="dark"] pre code.hljs {
+  background-color: transparent !important;
+  color: inherit !important;
+}
+
+[data-bs-theme="dark"] .markdown-body code {
+  background-color: rgba(110,118,129,0.4) !important;
+  color: #e6edf3 !important;
+}
+
+/* 确保 highlight.js 的语法高亮在暗色主题下可见 */
+[data-bs-theme="dark"] .hljs-keyword,
+[data-bs-theme="dark"] .hljs-selector-tag,
+[data-bs-theme="dark"] .hljs-literal {
+  color: #ff7b72 !important;
+}
+
+[data-bs-theme="dark"] .hljs-string,
+[data-bs-theme="dark"] .hljs-title,
+[data-bs-theme="dark"] .hljs-name {
+  color: #a5d6ff !important;
+}
+
+[data-bs-theme="dark"] .hljs-comment,
+[data-bs-theme="dark"] .hljs-quote {
+  color: #8b949e !important;
+}
+
+[data-bs-theme="dark"] .hljs-number,
+[data-bs-theme="dark"] .hljs-tag {
+  color: #79c0ff !important;
+}
+
+[data-bs-theme="dark"] .hljs-variable,
+[data-bs-theme="dark"] .hljs-attr {
+  color: #ffa657 !important;
+}
+</style>

@@ -335,19 +335,6 @@
   color: #ffffff;
 }
 
-/* 覆盖 github-markdown-css 的变量以支持暗色主题 */
-[data-bs-theme="dark"] .markdown-body {
-  --bgColor-default: #0d1117;
-  --bgColor-muted: #161b22;
-  --bgColor-neutral-muted: #6e768166;
-  --fgColor-default: #e6edf3;
-  --fgColor-muted: #848d97;
-  --borderColor-default: #30363d;
-  --borderColor-muted: #21262d;
-  --color-canvas-default: #0d1117;
-  --color-canvas-subtle: #161b22;
-}
-
 [data-bs-theme="dark"] .article-cover {
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
 }
@@ -398,45 +385,73 @@
 }
 
 [data-bs-theme="dark"] .article-content-html.markdown-body code {
-  background-color: rgba(110,118,129,0.4);
-  color: #e6edf3;
-  font-size: 16px !important;
-}
-
-[data-bs-theme="dark"] .article-content-html.markdown-body pre {
-  background-color: #161b22 !important;
-  color: #e6edf3;
-  font-size: 16px !important;
-}
-
-[data-bs-theme="dark"] .article-content-html.markdown-body pre code {
-  background-color: transparent !important;
-  color: #e6edf3;
-  font-size: 16px !important;
-}
-
-/* 强制覆盖 highlight.js 的样式 */
-[data-bs-theme="dark"] .article-content-html.markdown-body pre code.hljs {
-  background-color: transparent !important;
+  background-color: rgba(110,118,129,0.4) !important;
   color: #e6edf3 !important;
+  font-size: 16px !important;
 }
 
-[data-bs-theme="dark"] .article-content-html.markdown-body pre.hljs {
+/* 暗色主题下的代码块 - 使用更高优先级的选择器 */
+[data-bs-theme="dark"] .article-content-html.markdown-body pre,
+[data-bs-theme="dark"] .article-detail-page .markdown-body pre,
+[data-bs-theme="dark"] .article-container pre {
   background-color: #161b22 !important;
-}
-
-/* 确保所有可能的选择器都被覆盖 */
-[data-bs-theme="dark"] .markdown-body pre,
-[data-bs-theme="dark"] .markdown-body .highlight pre,
-[data-bs-theme="dark"] .article-content-html pre {
-  background-color: #161b22 !important;
-}
-
-[data-bs-theme="dark"] .markdown-body pre code,
-[data-bs-theme="dark"] .markdown-body .highlight pre code,
-[data-bs-theme="dark"] .article-content-html pre code {
-  background-color: transparent !important;
   color: #e6edf3 !important;
+  font-size: 16px !important;
+}
+
+[data-bs-theme="dark"] .article-content-html.markdown-body pre code,
+[data-bs-theme="dark"] .article-detail-page .markdown-body pre code,
+[data-bs-theme="dark"] .article-container pre code {
+  background-color: transparent !important;
+  color: inherit !important;
+  font-size: 16px !important;
+}
+
+/* 强制覆盖 highlight.js 的样式 - 多层选择器确保优先级 */
+[data-bs-theme="dark"] .article-content-html.markdown-body pre code.hljs,
+[data-bs-theme="dark"] .article-detail-page .markdown-body pre code.hljs,
+[data-bs-theme="dark"] .article-container pre code.hljs {
+  background-color: transparent !important;
+}
+
+[data-bs-theme="dark"] .article-content-html.markdown-body pre.hljs,
+[data-bs-theme="dark"] .article-detail-page .markdown-body pre.hljs,
+[data-bs-theme="dark"] .article-container pre.hljs {
+  background-color: #161b22 !important;
+}
+
+/* 确保 hljs 的语法高亮颜色在暗色主题下可见 */
+[data-bs-theme="dark"] .hljs-keyword,
+[data-bs-theme="dark"] .hljs-selector-tag,
+[data-bs-theme="dark"] .hljs-literal,
+[data-bs-theme="dark"] .hljs-section,
+[data-bs-theme="dark"] .hljs-link {
+  color: #ff7b72 !important;
+}
+
+[data-bs-theme="dark"] .hljs-string,
+[data-bs-theme="dark"] .hljs-title,
+[data-bs-theme="dark"] .hljs-name,
+[data-bs-theme="dark"] .hljs-type,
+[data-bs-theme="dark"] .hljs-attribute {
+  color: #a5d6ff !important;
+}
+
+[data-bs-theme="dark"] .hljs-comment,
+[data-bs-theme="dark"] .hljs-quote {
+  color: #8b949e !important;
+}
+
+[data-bs-theme="dark"] .hljs-number,
+[data-bs-theme="dark"] .hljs-regexp,
+[data-bs-theme="dark"] .hljs-tag {
+  color: #79c0ff !important;
+}
+
+[data-bs-theme="dark"] .hljs-variable,
+[data-bs-theme="dark"] .hljs-template-variable,
+[data-bs-theme="dark"] .hljs-attr {
+  color: #ffa657 !important;
 }
 
 /* 暗色主题下的 KaTeX 样式 */

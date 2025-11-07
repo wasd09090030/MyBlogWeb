@@ -1,5 +1,5 @@
 <template>
-  <div id="app" :class="['min-vh-100', isDarkMode ? 'dark-theme' : 'light-theme']">
+  <div id="app" :class="['min-vh-100', isDarkMode ? 'dark-theme' : 'light-theme']" :data-bs-theme="isDarkMode ? 'dark' : 'light'">
     <SakuraFalling />
     <nav ref="navbar" :class="['navbar navbar-expand-lg transition-all', isDarkMode ? 'navbar-dark' : 'navbar-light', navbarAnimationClass]">
       <div class="container-fluid d-flex align-items-center">
@@ -66,7 +66,7 @@
     <footer v-if="!isGalleryRoute" class="blog-footer">
       <div class="footer-content">
         <div class="footer-copyright">
-          <p class="copyright-text">© 2025 WyrmKk Blog. Built with ❤️ using Nuxt.js & Asp.Net Core</p>
+          <p class="copyright-text">© 2025 WyrmKk Blog. Built with ❤️ using Nuxt.js & NestJS.</p>
           <p class="slogan-text">用心分享，共同成长 | 让知识传播得更远</p>
         </div>
       </div>
