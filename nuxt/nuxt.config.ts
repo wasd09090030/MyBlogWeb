@@ -7,7 +7,7 @@ export default defineNuxtConfig({
     'bootstrap/dist/css/bootstrap.min.css',
     'bootstrap-icons/font/bootstrap-icons.css',
     'github-markdown-css/github-markdown.css',
-    // 移除 highlight.js 默认样式，使用自定义主题样式
+    'highlight.js/styles/github.css',
     'katex/dist/katex.min.css',
     'swiper/css',
     'swiper/css/navigation',

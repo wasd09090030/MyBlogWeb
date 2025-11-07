@@ -71,8 +71,6 @@ onMounted(() => {
 
 html {
   scroll-behavior: smooth;
-  background-color: var(--bg-secondary);
-  transition: background-color 0.3s ease;
 }
 
 body {
@@ -82,9 +80,8 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   line-height: 1.6;
-  color: var(--text-primary);
-  background: var(--bg-tertiary);
-  transition: background-color 0.3s ease, color 0.3s ease;
+  color: #333;
+  background: #f8f9fa;
 }
 
 /* 全局动画类 */

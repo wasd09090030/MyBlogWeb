@@ -1,274 +1,363 @@
-<template>  <!-- 桌面端侧边栏 -->
-  <div class="desktop-sidebar d-none d-lg-block sidebar-fade-in">
-    <div class="sidebar-content">
-      <div class="user-profile text-center">
-        <div class="avatar-container avatar-bounce">
-          <img src="../public/icon/Master.ico" alt="用户头像" class="avatar-img">
-        </div>
-        <h4 class="user-name mt-3 username-fade">WASD09090030</h4>
-        <div class="user-status status-fade">
-          <span class="status-dot" :class="statusClass"></span>
-          <span class="status-text">{{ currentStatus }}</span>
-        </div>
-      </div>
-      
-      <!-- 名言名句展示 -->
-      <div class="quote-section animate__animated animate__fadeInUp animate__delay-2s">
-        <div class="quote-wrapper">
-          <div class="quote-header">
-            <div class="quote-title">
-              <i class="bi bi-lightbulb-fill"></i>
-              <span>今日箴言</span>
-            </div>
-            <button class="quote-refresh-btn" @click="refreshQuote" title="换一句">
-              <i class="bi bi-arrow-clockwise"></i>
-            </button>
-          </div>
-          
-          <div class="quote-content">
-            <div class="quote-mark quote-mark-left">
-              <i class="bi bi-quote"></i>
-            </div>
-            
-            <div class="quote-body">
-              <p class="quote-text">{{ currentQuote.text }}</p>
-              <div class="quote-footer">
-                <div class="quote-author">{{ currentQuote.author }}</div>
-                <div class="quote-decoration"></div>
-              </div>
-            </div>
-            
-            <div class="quote-mark quote-mark-right">
-              <i class="bi bi-quote"></i>
-            </div>
-          </div>
-          
-          <div class="quote-bottom">
-            <div class="quote-dots">
-              <span class="dot"></span>
-              <span class="dot"></span>
-              <span class="dot"></span>
-            </div>
-          </div>
+<template>
+  <div class="personal-info">
+    <div class="personal-card">
+      <!-- 头像 -->
+      <div class="avatar-section">
+        <div class="avatar">
+          <img
+            src="/icon/Master.ico"
+            alt="头像"
+            class="avatar-img"
+            @error="handleAvatarError"
+          />
+          <div class="avatar-status"></div>
         </div>
       </div>
 
-       <div class="contact-info mt-4 animate__animated animate__fadeInUp animate__delay-2.8s">
-        <h5>联系我：</h5>
-        <div class="contact-icons">
-          <a href="mailto:qq86280630qq@163.com" class="contact-icon email-icon" title="发送邮件: qq86280630qq@163.com">
-            <i class="bi bi-envelope"></i>
-          </a>
-          <a href="https://github.com/WASD09090030" target="_blank" class="contact-icon github-icon" title="访问GitHub: WASD09090030">
+      <!-- 个人信息 -->
+      <div class="info-section text-center">
+        <h2 class="name mb-2">博客作者</h2>
+        <p class="bio mb-4">
+          热爱技术、生活和分享的开发者<br>
+          专注于前端开发和用户体验设计
+        </p>
+
+        <!-- 社交链接 -->
+        <div class="social-links mb-4">
+          <a href="#" class="social-link" title="GitHub">
             <i class="bi bi-github"></i>
           </a>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- 移动端浮动按钮 -->
-  <div class="mobile-personal-info d-lg-none">    <!-- 侧边栏内容 -->
-    <div class="personal-info-sidebar" v-show="!isCollapsed">
-      <div class="sidebar-content">
-        <div class="user-profile text-center">
-          <div class="avatar-container">
-            <img src="../assets/icon/Master.ico" alt="用户头像" class="avatar-img">
-          </div>
-          <h4 class="user-name mt-3">WASD09090030</h4>
-          <div class="user-status">
-            <span class="status-dot" :class="statusClass"></span>
-            <span class="status-text">{{ currentStatus }}</span>
-          </div>
-        </div>
-        
-        <!-- 移动端名言名句 -->
-        <div class="quote-section">
-          <div class="quote-wrapper">
-            <div class="quote-header">
-              <div class="quote-title">
-                <i class="bi bi-lightbulb-fill"></i>
-                <span>今日箴言</span>
-              </div>
-              <button class="quote-refresh-btn" @click="refreshQuote" title="换一句">
-                <i class="bi bi-arrow-clockwise"></i>
-              </button>
-            </div>
-            
-            <div class="quote-content">
-              <div class="quote-mark quote-mark-left">
-                <i class="bi bi-quote"></i>
-              </div>
-              
-              <div class="quote-body">
-                <p class="quote-text">{{ currentQuote.text }}</p>
-                <div class="quote-footer">
-                  <div class="quote-author">{{ currentQuote.author }}</div>
-                  <div class="quote-decoration"></div>
-                </div>
-              </div>
-              
-              <div class="quote-mark quote-mark-right">
-                <i class="bi bi-quote"></i>
-              </div>
-            </div>
-            
-            <div class="quote-bottom">
-              <div class="quote-dots">
-                <span class="dot"></span>
-                <span class="dot"></span>
-                <span class="dot"></span>
-              </div>
-            </div>
-          </div>
+          <a href="#" class="social-link" title="邮箱">
+            <i class="bi bi-envelope"></i>
+          </a>
+          <a href="#" class="social-link" title="Twitter">
+            <i class="bi bi-twitter"></i>
+          </a>
+          <a href="#" class="social-link" title="LinkedIn">
+            <i class="bi bi-linkedin"></i>
+          </a>
         </div>
 
-         <div class="contact-info mt-4">
-          <h5>联系我：</h5>
-          <div class="contact-icons">
-            <a href="mailto:qq86280630qq@163.com" class="contact-icon email-icon" title="发送邮件: qq86280630qq@163.com">
-              <i class="bi bi-envelope"></i>
-            </a>
-            <a href="https://github.com/WASD09090030" target="_blank" class="contact-icon github-icon" title="访问GitHub: WASD09090030">
-              <i class="bi bi-github"></i>
-            </a>
+        <!-- 技能标签 -->
+        <div class="skills mb-4">
+          <span class="skill-tag">Vue.js</span>
+          <span class="skill-tag">JavaScript</span>
+          <span class="skill-tag">CSS</span>
+          <span class="skill-tag">Node.js</span>
+          <span class="skill-tag">UI/UX</span>
+        </div>
+
+        <!-- 统计信息 -->
+        <div class="stats">
+          <div class="stat-item">
+            <div class="stat-number">{{ articleCount }}</div>
+            <div class="stat-label">文章</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-number">{{ categoryCount }}</div>
+            <div class="stat-label">分类</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-number">{{ visitCount }}</div>
+            <div class="stat-label">访问</div>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- 控制按钮 -->
-    <div class="toggle-button" @click="toggleCollapse">
-      <i class="bi" :class="isCollapsed ? 'bi-person-circle' : 'bi-x-circle'"></i>
+      <!-- 个性化装饰 -->
+      <div class="decoration">
+        <div class="decoration-circle decoration-circle-1"></div>
+        <div class="decoration-circle decoration-circle-2"></div>
+        <div class="decoration-circle decoration-circle-3"></div>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue';
-import { useRouter } from 'vue-router';
-import '~/assets/css/components/PersonalInfo.styles.css';
+import '~/assets/css/components/PersonalInfo.styles.css'
 
-const router = useRouter();
-const isCollapsed = ref(true);
-const currentStatus = ref('在线中');
-const statusClass = ref('status-online');
-const currentQuote = ref({ text: '', author: '' });
+// 响应式数据
+const articleCount = ref(42)
+const categoryCount = ref(4)
+const visitCount = ref(1280)
 
-// 名言名句数据库
-const quotes = [
-  // 名人名言
-  { text: "生活就像编程，你永远不知道下一个bug在哪里。", author: "程序员的自我修养" },
-  { text: "代码如诗，bug如人生，总有意想不到的惊喜。", author: "代码诗人" },
-  { text: "最好的代码是没有代码，最好的bug是没有bug。", author: "极简主义程序员" },
-  { text: "程序员的三大美德：懒惰、急躁和傲慢。", author: "Larry Wall" },
-  { text: "调试代码比写代码难一倍，所以如果你写代码时竭尽全力，你就无法调试它。", author: "Brian Kernighan" },
-  
-  // 二次元名梗
-  { text: "不管前方的路有多苦，只要走的方向正确，不管多么崎岖不平，都比站在原地更接近幸福。", author: "《千与千寻》" },
-  { text: "成长是一笔交易，我们都是用朴素的童真与未经人事的洁白交换长大的勇气。", author: "《千与千寻》" },
-  { text: "人永远不知道，谁哪次不经意的跟你说了再见之后，就真的不会再见了。", author: "《千与千寻》" },
-  { text: "真正的勇士敢于直面惨淡的人生。", author: "鲁迅（并不是）" },
-  { text: "只要心中有爱，哪里都是二次元！", author: "宅文化信仰者" },
-  { text: "今天也是和平的一天呢~", author: "日常系" },
-  { text: "这一定是命运石之门的选择！", author: "冈部伦太郎" },
-  { text: "人类的赞歌就是勇气的赞歌！", author: "JOJO" },
-  { text: "只有失去过的人，才会真正珍惜拥有的一切。", author: "治愈系" },
-  { text: "能不做事就不做事，非做不可一切从简。", author: "《冰果》" },
-   { text: "一旦拒绝了信仰，就不能再踏入神的大门。", author: "《黑执事》" },
-    { text: "虚伪的眼泪，会伤害别人。虚伪的笑容，会伤害自己。", author: "《叛逆的鲁鲁修》" },
-
-  
-  // 编程相关的有趣名言
-  { text: "如果调试是去除bug的过程，那么编程就是把bug放进去的过程。", author: "Edsger Dijkstra" },
-  { text: "计算机科学只不过是包含了计算机的科学，就像天文学包含了望远镜一样。", author: "Edsger Dijkstra" },
-  { text: "代码写得越多，bug就越多，所以最优雅的代码就是没有代码。", author: "禅宗程序员" },
-  { text: "编程是一门艺术，而程序员是艺术家。", author: "代码艺术家" },
-  { text: "好的程序员会写人类能读懂的代码。", author: "Martin Fowler" }
-];
-
-// 随机获取名言
-const getRandomQuote = () => {
-  const randomIndex = Math.floor(Math.random() * quotes.length);
-  return quotes[randomIndex];
-};
-
-// 刷新名言
-const refreshQuote = () => {
-  currentQuote.value = getRandomQuote();
-  
-  // 添加点击动画效果
-  const quoteWrappers = document.querySelectorAll('.quote-wrapper');
-  quoteWrappers.forEach(wrapper => {
-    wrapper.classList.add('ripple-effect');
-    
-    setTimeout(() => {
-      wrapper.classList.remove('ripple-effect');
-    }, 600);
-  });
-};
-
-// 切换侧边栏
-const toggleCollapse = () => {
-  isCollapsed.value = !isCollapsed.value;
-  localStorage.setItem('sidebarState', isCollapsed.value ? 'collapsed' : 'expanded');
-};
-
-// 技能动画
-const animateSkill = (skill) => {
-  const originalLevel = skill.level;
-  skill.level = 0;
-  setTimeout(() => {
-    skill.level = originalLevel;  }, 100);
-};
-
-// 更新状态
-const updateStatus = () => {
-  const hour = new Date().getHours();
-  if (hour >= 6 && hour < 12) {
-    currentStatus.value = '早安时光';
-    statusClass.value = 'status-morning';
-  } else if (hour >= 12 && hour < 18) {
-    currentStatus.value = '午后编程';
-    statusClass.value = 'status-afternoon';
-  } else if (hour >= 18 && hour < 22) {
-    currentStatus.value = '夜晚思考';
-    statusClass.value = 'status-evening';
-  } else {
-    currentStatus.value = '深夜码农';
-    statusClass.value = 'status-night';
-  }
-};
-
-// 页面点击外部区域处理
-const handleClickOutside = (event) => {
-  const sidebarContainer = document.querySelector('.mobile-personal-info');
-  if (!isCollapsed.value && sidebarContainer && !sidebarContainer.contains(event.target)) {
-    isCollapsed.value = true;
-  }
-};
-
+// 模拟数据更新
 onMounted(() => {
-  document.addEventListener('click', handleClickOutside);
-  
-  // 恢复用户偏好
-  const savedState = localStorage.getItem('sidebarState');
-  if (savedState) {
-    isCollapsed.value = savedState === 'collapsed';
-  }
-  
-  // 开始状态和名言更新
-  updateStatus();
-  refreshQuote(); // 初始化名言
-  setInterval(updateStatus, 60000); // 每分钟检查状态
-  setInterval(refreshQuote, 300000); // 每5分钟自动更换名言
-});
+  // 这里可以从API获取真实的统计数据
+  setTimeout(() => {
+    articleCount.value = 45
+    categoryCount.value = 4
+    visitCount.value = 1350
+  }, 2000)
+})
 
-onBeforeUnmount(() => {
-  document.removeEventListener('click', handleClickOutside);
-});
+// 处理头像加载错误
+const handleAvatarError = (event) => {
+  // 使用默认头像或字母头像
+  event.target.style.display = 'none'
+  const parent = event.target.parentElement
+  parent.innerHTML = '<div class="avatar-fallback">博</div>'
+}
 </script>
 
 <style scoped>
-@import'~/assets/css/components/PersonalInfo.styles.css';
+.personal-info {
+  padding: 2rem;
+}
+
+.personal-card {
+  background: rgba(255,255,255,0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 1rem;
+  padding: 2rem;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+  border: 1px solid rgba(255,255,255,0.2);
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.3s ease;
+}
+
+.personal-card:hover {
+  transform: translateY(-4px);
+}
+
+.avatar-section {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.avatar {
+  position: relative;
+  display: inline-block;
+  width: 120px;
+  height: 120px;
+}
+
+.avatar-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid rgba(255,255,255,0.8);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  transition: transform 0.3s ease;
+}
+
+.avatar:hover .avatar-img {
+  transform: scale(1.05);
+}
+
+.avatar-status {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  width: 20px;
+  height: 20px;
+  background: #28a745;
+  border: 3px solid white;
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+.avatar-fallback {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+  font-weight: 600;
+  border: 4px solid rgba(255,255,255,0.8);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+.name {
+  color: #333;
+  font-weight: 700;
+  font-size: 1.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.bio {
+  color: #666;
+  line-height: 1.6;
+  font-size: 0.95rem;
+}
+
+.social-links {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.social-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: #f8f9fa;
+  border-radius: 50%;
+  color: #6c757d;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.social-link:hover {
+  background: #0d6efd;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
+}
+
+.skills {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.skill-tag {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 1rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  transition: transform 0.3s ease;
+}
+
+.skill-tag:hover {
+  transform: translateY(-2px);
+}
+
+.stats {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid #dee2e6;
+}
+
+.stat-item {
+  text-align: center;
+}
+
+.stat-number {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #0d6efd;
+  display: block;
+}
+
+.stat-label {
+  font-size: 0.85rem;
+  color: #6c757d;
+  margin-top: 0.25rem;
+}
+
+/* 装饰元素 */
+.decoration {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.decoration-circle {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.1;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.decoration-circle-1 {
+  width: 100px;
+  height: 100px;
+  top: -50px;
+  right: -50px;
+  animation: float 6s ease-in-out infinite;
+}
+
+.decoration-circle-2 {
+  width: 60px;
+  height: 60px;
+  bottom: 20px;
+  left: -30px;
+  animation: float 4s ease-in-out infinite reverse;
+}
+
+.decoration-circle-3 {
+  width: 80px;
+  height: 80px;
+  top: 50%;
+  right: -40px;
+  animation: float 5s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-20px) rotate(180deg);
+  }
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(40, 167, 69, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(40, 167, 69, 0);
+  }
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .personal-info {
+    padding: 1rem;
+  }
+
+  .personal-card {
+    padding: 1.5rem;
+  }
+
+  .avatar {
+    width: 100px;
+    height: 100px;
+  }
+
+  .name {
+    font-size: 1.5rem;
+  }
+
+  .stats {
+    gap: 1rem;
+  }
+
+  .stat-number {
+    font-size: 1.25rem;
+  }
+
+  .social-links {
+    gap: 0.75rem;
+  }
+
+  .social-link {
+    width: 35px;
+    height: 35px;
+  }
+}
 </style>

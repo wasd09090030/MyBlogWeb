@@ -132,28 +132,26 @@ function formatDate(dateString) {
 
 // 获取分类名称
 function getCategoryName(category) {
-  if (!category) return '其他'
-  const lowerCategory = category.toLowerCase()
   const categoryMap = {
     'study': '学习',
     'game': '游戏',
     'work': '个人作品',
-    'resource': '资源分享'
+    'resource': '资源分享',
+    'other': '其他'
   }
-  return categoryMap[lowerCategory] || '未分类'
+  return categoryMap[category] || '未分类'
 }
 
 // 获取分类徽章样式
 function getCategoryBadgeClass(category) {
-  if (!category) return 'bg-secondary'
-  const lowerCategory = category.toLowerCase()
   const classMap = {
     'study': 'bg-primary',
     'game': 'bg-warning text-dark',
     'work': 'bg-success',
-    'resource': 'bg-info text-dark'
+    'resource': 'bg-info text-dark',
+    'other': 'bg-secondary'
   }
-  return classMap[lowerCategory] || 'bg-secondary'
+  return classMap[category] || 'bg-secondary'
 }
 
 async function fetchArticle() {
