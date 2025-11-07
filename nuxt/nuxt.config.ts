@@ -61,6 +61,9 @@ export default defineNuxtConfig({
 
   // 应用配置
   app: {
+    // 启用 KeepAlive 以缓存页面状态
+    // keepalive: true,
+
     head: {
       title: 'My Blog',
       meta: [

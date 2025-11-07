@@ -211,10 +211,16 @@
 import { useArticles } from '~/composables/useArticles'
 import '~/assets/css/components/ArticleList.styles.css'
 
-// 设置页面元数据
+// 设置页面元数据 - 使用 Nuxt 的 keepalive 配置
 definePageMeta({
-  name: 'ArticleList',
-  keepAlive: true
+  name: 'index',
+  keepalive: true,
+  key: () => 'index-page' // ✅ 使用函数形式返回固定的 key
+})
+
+// 定义组件名称（重要：用于 keep-alive）
+defineOptions({
+  name: 'ArticleListPage'
 })
 
 // SEO设置
@@ -230,6 +236,9 @@ const articleListContainer = ref(null)
 const articles = ref([])
 const error = ref(null)
 const loading = ref(false)
+
+// 保存滚动位置
+const savedScrollPosition = ref(0)
 
 // API composable
 const { getAllArticles, getArticlesByCategory, searchArticles } = useArticles()
@@ -560,6 +569,39 @@ onMounted(async () => {
       }
     }
   }
+})
+
+// Keep-alive 生命周期：组件被激活时（从缓存中恢复）
+onActivated(() => {
+  console.log('ArticleList: 组件被激活（从缓存恢复）')
+
+  // 恢复滚动位置 - 需要等待 DOM 完全渲染
+  if (savedScrollPosition.value > 0) {
+    console.log('准备恢复滚动位置:', savedScrollPosition.value)
+
+    // 使用多重延迟确保 DOM 已完全渲染
+    nextTick(() => {
+      setTimeout(() => {
+        console.log('执行滚动位置恢复:', savedScrollPosition.value)
+        window.scrollTo({
+          top: savedScrollPosition.value,
+          left: 0,
+          behavior: 'instant' // 使用 instant 立即跳转
+        })
+      }, 50) // 50ms 延迟确保渲染完成
+    })
+  }
+})
+
+// Keep-alive 生命周期：组件被停用时（进入缓存）
+onDeactivated(() => {
+  console.log('ArticleList: 组件被停用（进入缓存）')
+
+  // 保存当前滚动位置
+  savedScrollPosition.value = window.scrollY || window.pageYOffset || document.documentElement.scrollTop
+  console.log('保存滚动位置:', savedScrollPosition.value)
+  console.log('当前页码:', currentPage.value)
+  console.log('当前筛选页码:', currentFilteredPage.value)
 })
 
 // 添加一个手动刷新方法

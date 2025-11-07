@@ -2,7 +2,8 @@
 :global(body) {
   cursor: url('/pointer/default.cur'), auto;
   min-height: 100vh;
-  transition: background 0.3s ease;
+  background-color: var(--bg-secondary);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* 可点击元素使用指针样式 */
@@ -26,9 +27,9 @@
   cursor: url('/pointer/pointer.cur'), pointer;
 }
 
-/* 暗色主题的body背景 */
+/* 移除暗色主题的渐变背景覆盖 - 使用主题变量 */
 :global(.dark-theme body) {
-  background: var(--gradient-soft) !important;
+  background-color: var(--bg-tertiary);
 }
 
 /* 全局样式 */
@@ -41,12 +42,12 @@
 
 /* 主题样式 */
 .light-theme {
-  background-color: var(--bg-secondary);
+  background-color: var(--bg-tertiary);
   color: var(--text-primary);
 }
 
 .dark-theme {
-  background-color: var(--bg-primary);
+  background-color: var(--bg-tertiary);
   color: var(--text-primary);
 }
 
@@ -384,16 +385,16 @@
 .main-content {
   position: relative;
   z-index: 10;
-  background-color: var(--card-bg);
+  background-color: var(--bg-secondary);
   min-height: 100vh;
   padding: 0;
   margin-top: 20px;
-  box-shadow: var(--card-shadow);
+  box-shadow: var(--shadow-lg);
   border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-  /* 大屏幕限制宽度为70% */
   max-width: 80%;
   margin-left: auto;
   margin-right: auto;
+  border: 1px solid var(--border-color-light);
 }
 
 /* Admin页面全宽度样式 */
@@ -409,10 +410,11 @@
 }
 
 main {
-  padding: 0 15px 60px;
+  padding: 0 0 60px;
   max-width: 100%;
   margin: 0;
 }
+
 
 /* 侧边栏样式 */
 .sidebar-content {
@@ -422,37 +424,12 @@ main {
   height: fit-content;
 }
 
-/* MusicPlayer容器样式 */
-.music-player-container {
-  margin-top: 20px;
-}
-
-.mobile-music-player-container {
-  margin-top: 15px;
-  position: relative;
-  z-index: 999;
-}
-
 /* 移动端个人信息 */
 .mobile-personal-info {
   position: fixed;
-  bottom: 50%;
+  bottom: 20px;
   right: 20px;
   z-index: 1025;
-}
-
-/* 移动端音乐播放器 */
-.mobile-music-player {
-  position: fixed;
-  bottom: 75px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 1020;
-  padding: 8px;
-  background-color: var(--glass-bg);
-  border-radius: 25px;
-  box-shadow: var(--shadow-lg);
-  backdrop-filter: var(--backdrop-blur);
 }
 
 /* Footer 样式 */
@@ -507,12 +484,6 @@ main {
 
 .dark-theme .slogan-text {
   color: var(--footer-text-muted);
-}
-
-/* 暗色主题下的移动端音乐播放器 */
-:global(.dark-theme) .mobile-music-player {
-  background-color: var(--glass-bg);
-  box-shadow: var(--shadow-lg);
 }
 
 /* 响应式调整 */
@@ -597,13 +568,9 @@ main {
     max-width: 100%;
     margin-left: 0;
     margin-right: 0;
-    /* 为底部音乐播放器留出更多空间 */
-    padding-bottom: 130px;
+    padding-bottom: 20px;
   }
 
-  main {
-    padding: 0 10px 40px;
-  }
 
   .sidebar-content {
     display: none;
@@ -613,7 +580,6 @@ main {
   .blog-footer {
     padding: 1.5rem 0;
     margin-top: 2rem;
-    margin-bottom: 100px; /* 为移动端音乐播放器留出空间 */
   }
 
   .footer-content {
@@ -628,40 +594,26 @@ main {
     font-size: 0.75rem;
   }
 
-  /* 移动端音乐播放器适配 */
-  .mobile-music-player {
-    bottom: 60px;
-    padding: 6px;
-  }
-
   .mobile-personal-info {
     right: 15px;
-    bottom: 90px;
+    bottom: 20px;
   }
 }
 
 /* 小屏幕进一步优化 */
 @media (max-width: 576px) {
-  .mobile-music-player {
-    bottom: 50px;
-    padding: 5px;
-    left: 50%;
-    transform: translateX(-50%);
-  }
-
   .mobile-personal-info {
     right: 15px;
-    bottom: 90px;
+    bottom: 20px;
   }
 
   .main-content {
-    padding-bottom: 110px;
+    padding-bottom: 20px;
   }
 
   /* 小屏幕 Footer 调整 */
   .blog-footer {
     padding: 1rem 0;
-    margin-bottom: 80px;
   }
 
   .copyright-text {
@@ -675,24 +627,18 @@ main {
 
 /* 极小屏幕或横屏手机优化 */
 @media (max-width: 480px), (max-height: 600px) {
-  .mobile-music-player {
-    bottom: 40px;
-    padding: 4px;
-  }
-
   .mobile-personal-info {
     right: 10px;
-    bottom: 50%;
+    bottom: 20px;
   }
 
   .main-content {
-    padding-bottom: 100px;
+    padding-bottom: 20px;
   }
 
   /* 极小屏幕 Footer 调整 */
   .blog-footer {
     padding: 0.8rem 0;
-    margin-bottom: 70px;
   }
 
   .footer-content {
@@ -729,10 +675,36 @@ main {
   color: var(--navbar-text-hover);
 }
 
+/* 暗色主题导航栏文字颜色 */
+.dark-theme .nav-link {
+  color: var(--text-primary);
+}
+
+.dark-theme .nav-link:hover {
+  color: var(--accent-primary);
+}
+
+.dark-theme .navbar-brand {
+  color: var(--accent-primary) !important;
+}
+
+.dark-theme .navbar-center-nav .nav-link {
+  color: var(--text-primary);
+}
+
+.dark-theme .dropdown-toggle {
+  color: var(--text-primary);
+}
+
+.dark-theme .theme-toggle-btn {
+  color: var(--text-primary);
+}
+
 /* 暗色主题下的特殊样式 */
 :global(.dark-theme) .main-content {
-  background-color: var(--card-bg);
-  box-shadow: var(--card-shadow);
+  background-color: var(--bg-secondary);
+  box-shadow: var(--shadow-xl);
+  border-color: var(--border-color);
 }
 
 :global(.dark-theme) .dropdown-menu {
