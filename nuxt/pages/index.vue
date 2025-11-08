@@ -575,22 +575,22 @@ onMounted(async () => {
 onActivated(() => {
   console.log('ArticleList: 组件被激活（从缓存恢复）')
 
-  // 恢复滚动位置 - 需要等待 DOM 完全渲染
-  if (savedScrollPosition.value > 0) {
-    console.log('准备恢复滚动位置:', savedScrollPosition.value)
+  // // 恢复滚动位置 - 需要等待 DOM 完全渲染
+  // if (savedScrollPosition.value > 0) {
+  //   console.log('准备恢复滚动位置:', savedScrollPosition.value)
 
-    // 使用多重延迟确保 DOM 已完全渲染
-    nextTick(() => {
-      setTimeout(() => {
-        console.log('执行滚动位置恢复:', savedScrollPosition.value)
-        window.scrollTo({
-          top: savedScrollPosition.value,
-          left: 0,
-          behavior: 'instant' // 使用 instant 立即跳转
-        })
-      }, 50) // 50ms 延迟确保渲染完成
-    })
-  }
+  //   // 使用多重延迟确保 DOM 已完全渲染
+  //   nextTick(() => {
+  //     setTimeout(() => {
+  //       console.log('执行滚动位置恢复:', savedScrollPosition.value)
+  //       window.scrollTo({
+  //         top: savedScrollPosition.value,
+  //         left: 0,
+  //         behavior: 'instant' // 使用 instant 立即跳转
+  //       })
+  //     }, 50) // 50ms 延迟确保渲染完成
+  //   })
+  // }
 })
 
 // Keep-alive 生命周期：组件被停用时（进入缓存）
