@@ -384,31 +384,119 @@ onMounted(() => {
   color: #e6edf3 !important;
 }
 
-/* 确保 highlight.js 的语法高亮在暗色主题下可见 */
+/* 确保 highlight.js 的语法高亮在暗色主题下可见 - 增强对比度 */
+/* 关键字、选择器 - 鲜红色 */
 [data-bs-theme="dark"] .hljs-keyword,
 [data-bs-theme="dark"] .hljs-selector-tag,
-[data-bs-theme="dark"] .hljs-literal {
+[data-bs-theme="dark"] .hljs-literal,
+[data-bs-theme="dark"] .hljs-section,
+[data-bs-theme="dark"] .hljs-link,
+[data-bs-theme="dark"] .hljs-selector-class,
+[data-bs-theme="dark"] .hljs-selector-id {
   color: #ff7b72 !important;
+  font-weight: 500;
 }
 
+/* 字符串、标题 - 亮蓝色 */
 [data-bs-theme="dark"] .hljs-string,
 [data-bs-theme="dark"] .hljs-title,
-[data-bs-theme="dark"] .hljs-name {
+[data-bs-theme="dark"] .hljs-name,
+[data-bs-theme="dark"] .hljs-type,
+[data-bs-theme="dark"] .hljs-attribute,
+[data-bs-theme="dark"] .hljs-symbol,
+[data-bs-theme="dark"] .hljs-bullet,
+[data-bs-theme="dark"] .hljs-addition,
+[data-bs-theme="dark"] .hljs-built_in {
   color: #a5d6ff !important;
 }
 
+/* 注释 - 中灰色 */
 [data-bs-theme="dark"] .hljs-comment,
-[data-bs-theme="dark"] .hljs-quote {
+[data-bs-theme="dark"] .hljs-quote,
+[data-bs-theme="dark"] .hljs-deletion,
+[data-bs-theme="dark"] .hljs-meta {
   color: #8b949e !important;
+  font-style: italic;
 }
 
+/* 数字、正则 - 天蓝色 */
 [data-bs-theme="dark"] .hljs-number,
-[data-bs-theme="dark"] .hljs-tag {
+[data-bs-theme="dark"] .hljs-regexp,
+[data-bs-theme="dark"] .hljs-tag,
+[data-bs-theme="dark"] .hljs-template-tag {
   color: #79c0ff !important;
 }
 
+/* 变量、属性 - 橙色 */
 [data-bs-theme="dark"] .hljs-variable,
-[data-bs-theme="dark"] .hljs-attr {
+[data-bs-theme="dark"] .hljs-template-variable,
+[data-bs-theme="dark"] .hljs-attr,
+[data-bs-theme="dark"] .hljs-params {
   color: #ffa657 !important;
+}
+
+/* 函数名 - 紫色 */
+[data-bs-theme="dark"] .hljs-function,
+[data-bs-theme="dark"] .hljs-title.function_,
+[data-bs-theme="dark"] .hljs-title.class_,
+[data-bs-theme="dark"] .hljs-class .hljs-title {
+  color: #d2a8ff !important;
+  font-weight: 500;
+}
+
+/* 运算符、标点 - 浅灰色 */
+[data-bs-theme="dark"] .hljs-operator,
+[data-bs-theme="dark"] .hljs-punctuation {
+  color: #c9d1d9 !important;
+}
+
+/* 特殊关键字（如 import, export） - 绿色 */
+[data-bs-theme="dark"] .hljs-keyword.hljs-import,
+[data-bs-theme="dark"] .hljs-keyword.hljs-export,
+[data-bs-theme="dark"] .hljs-keyword.hljs-from {
+  color: #7ee787 !important;
+}
+
+/* 装饰器 - 黄色 */
+[data-bs-theme="dark"] .hljs-meta .hljs-keyword,
+[data-bs-theme="dark"] .hljs-decorator,
+[data-bs-theme="dark"] .hljs-annotation {
+  color: #f0b72f !important;
+}
+
+/* 暗色主题下的表格样式 - 使用更高优先级 */
+[data-bs-theme="dark"] .article-detail-page table,
+[data-bs-theme="dark"] .article-content-html table,
+[data-bs-theme="dark"] .markdown-body table {
+  border-collapse: collapse !important;
+}
+
+[data-bs-theme="dark"] .article-detail-page table th,
+[data-bs-theme="dark"] .article-detail-page table td,
+[data-bs-theme="dark"] .article-content-html table th,
+[data-bs-theme="dark"] .article-content-html table td,
+[data-bs-theme="dark"] .markdown-body table th,
+[data-bs-theme="dark"] .markdown-body table td {
+  border: 1px solid #30363d !important;
+  color: #c9d1d9 !important;
+}
+
+[data-bs-theme="dark"] .article-detail-page table th,
+[data-bs-theme="dark"] .article-content-html table th,
+[data-bs-theme="dark"] .markdown-body table th {
+  background-color: #161b22 !important;
+  color: #f0f6fc !important;
+}
+
+[data-bs-theme="dark"] .article-detail-page table td,
+[data-bs-theme="dark"] .article-content-html table td,
+[data-bs-theme="dark"] .markdown-body table td {
+  background-color: #0d1117 !important;
+}
+
+[data-bs-theme="dark"] .article-detail-page table tr:nth-child(2n) td,
+[data-bs-theme="dark"] .article-content-html table tr:nth-child(2n) td,
+[data-bs-theme="dark"] .markdown-body table tr:nth-child(2n) td {
+  background-color: #161b22 !important;
 }
 </style>

@@ -74,9 +74,8 @@
                 >
                   <div
                     class="accordion-item"
-                    @click="openFullscreen(gallery)"
-                    @mouseenter="expandAccordion(index)"
-                    @mouseleave="resetAccordion"
+                    @click="toggleAccordion(index)"
+                    @dblclick="openFullscreen(gallery)"
                   >
                     <img
                       :src="gallery.imageUrl"
@@ -221,13 +220,15 @@ const loadSwiper = async () => {
   }
 }
 
-// 手风琴展开控制
-const expandAccordion = (index) => {
-  expandedAccordionIndex.value = index
-}
-
-const resetAccordion = () => {
-  expandedAccordionIndex.value = 0 // 恢复到第一个展开
+// 手风琴展开控制 - 改为点击切换
+const toggleAccordion = (index) => {
+  // 如果点击的是当前展开的项，则收起（回到默认第一个）
+  if (expandedAccordionIndex.value === index) {
+    expandedAccordionIndex.value = 0
+  } else {
+    // 否则展开点击的项
+    expandedAccordionIndex.value = index
+  }
 }
 
 // 预加载图片

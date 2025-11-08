@@ -76,6 +76,20 @@ const authStore = useAuthStore()
 onMounted(() => {
   authStore.initialize()
 })
+
+// 添加路由守卫，处理从 gallery 页面离开时恢复滚动
+const router = useRouter()
+router.afterEach((to, from) => {
+  // 当从 gallery 路由离开时，确保恢复 body 滚动
+  if (from.name === 'gallery' && to.name !== 'gallery') {
+    document.body.style.overflow = ''
+    document.body.style.removeProperty('overflow')
+    // 清理可能遗留的标记
+    if (window.__galleryOriginalOverflow !== undefined) {
+      delete window.__galleryOriginalOverflow
+    }
+  }
+})
 </script>
 
 <style>

@@ -56,7 +56,7 @@
   cursor: pointer;
 }
 
-.accordion-slide:hover,
+/* 只有点击后才展开，移除 hover 效果 */
 .accordion-slide.accordion-expanded {
   width: 40% !important;
 }
@@ -66,6 +66,19 @@
   height: 100%;
   overflow: hidden;
   border-radius: 15px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* 鼠标悬停时的视觉反馈 - 轻微高亮，不展开 */
+.accordion-item:hover {
+  box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
+  transform: translateY(-2px);
+}
+
+/* 已展开的项鼠标悬停时的效果 */
+.accordion-slide.accordion-expanded .accordion-item:hover {
+  transform: translateY(0);
+  box-shadow: 0 8px 30px rgba(102, 126, 234, 0.4);
 }
 
 .accordion-image {
@@ -74,7 +87,7 @@
   object-fit: cover;
 }
 
-.accordion-slide:hover .accordion-overlay,
+/* 只有展开时显示遮罩层，移除 hover 效果 */
 .accordion-slide.accordion-expanded .accordion-overlay {
   opacity: 1;
 }
