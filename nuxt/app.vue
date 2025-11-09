@@ -31,20 +31,20 @@ useHead({
     { charset: 'utf-8' },
     { name: 'viewport', content: 'width=device-width, initial-scale=1' },
     { name: 'format-detection', content: 'telephone=no' },
-    { name: 'description', content: '一个分享技术、生活和思考的个人博客' },
-    { name: 'keywords', content: '博客,技术,前端,Vue,JavaScript,动漫资源' },
+    { name: 'description', content: '一个分享技术、生活和资源的个人网站' },
+    { name: 'keywords', content: '博客,技术,前端,后端,Vue,JavaScript,Python,动漫资源' },
     { name: 'author', content: 'WASD09090030' },
 
     // Open Graph
     { property: 'og:type', content: 'website' },
-    { property: 'og:site_name', content: 'My Blog' },
-    { property: 'og:title', content: 'My Blog - 个人网站' },
+    { property: 'og:site_name', content: 'WyrmKk' },
+    { property: 'og:title', content: 'WyrmKk - 个人网站' },
     { property: 'og:description', content: '分享技术、生活和思考的个人博客' },
     { property: 'og:image', content: '/icon/og-image.jpg' },
 
     // Twitter Card
     { name: 'twitter:card', content: 'summary_large_image' },
-    { name: 'twitter:title', content: 'My Blog - 个人技术博客' },
+    { name: 'twitter:title', content: 'WyrmKk - 个人技术博客' },
     { name: 'twitter:description', content: '分享技术、生活和思考的个人博客' },
     { name: 'twitter:image', content: '/icon/og-image.jpg' },
 
