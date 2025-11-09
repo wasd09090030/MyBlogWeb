@@ -99,8 +99,8 @@
                   {{ comment.author }}
                 </strong>
                 <small class="text-muted ms-2">{{ formatDate(comment.createdAt) }}</small>
-                <span v-if="comment.website" class="ms-2">
-                  <a :href="comment.website" target="_blank" class="text-decoration-none">
+                <span v-if="comment.website && comment.website.trim()" class="ms-2">
+                  <a :href="comment.website" target="_blank" rel="noopener noreferrer" class="text-decoration-none">
                     <i class="bi bi-link-45deg"></i>
                   </a>
                 </span>

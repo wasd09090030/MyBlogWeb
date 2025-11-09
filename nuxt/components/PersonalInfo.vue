@@ -3,7 +3,7 @@
     <div class="sidebar-content">
       <div class="user-profile text-center">
         <div class="avatar-container avatar-bounce">
-          <img src="/icon/Master.ico" alt="用户头像" class="avatar-img">
+          <img :src="avatarUrl" alt="用户头像" class="avatar-img">
         </div>
         <h4 class="user-name mt-3 username-fade">WASD09090030</h4>
         <div class="user-status status-fade">
@@ -73,7 +73,7 @@
       <div class="sidebar-content">
         <div class="user-profile text-center">
           <div class="avatar-container">
-            <img src="/icon/Master.ico" alt="用户头像" class="avatar-img">
+            <img :src="avatarUrl" alt="用户头像" class="avatar-img">
           </div>
           <h4 class="user-name mt-3">WASD09090030</h4>
           <div class="user-status">
@@ -154,6 +154,9 @@ const isCollapsed = ref(true);
 const currentStatus = ref('在线中');
 const statusClass = ref('status-online');
 const currentQuote = ref({ text: '', author: '' });
+
+// 使用计算属性或 ref 来处理静态资源路径，避免 SSR 水合不匹配
+const avatarUrl = '/icon/Master.ico';
 
 // 名言名句数据库
 const quotes = [

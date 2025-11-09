@@ -370,6 +370,12 @@ const articleRoutesMap = computed(() => {
 
 // 生成文章详情路由的简化函数
 const getArticleDetailRoute = (articleId) => {
+  // 验证 articleId 是否有效
+  if (!articleId || articleId === 'null' || articleId === 'undefined') {
+    console.warn('无效的 articleId:', articleId)
+    return { path: '/' } // 返回首页，避免跳转到无效路由
+  }
+  
   return articleRoutesMap.value.get(articleId) || {
     path: `/article/${articleId}`,
     query: {}

@@ -8,7 +8,8 @@
             v-for="(slide, index) in slides"
             :key="`slide-${slide.id}-${index}`"
             class="swiper-slide carousel-slide"
-            @click="goToArticle(slide.id)"
+            @click="slide.id ? goToArticle(slide.id) : null"
+            :style="{ cursor: slide.id ? 'pointer' : 'default' }"
           >
             <div class="slide-card">
               <div
@@ -200,7 +201,10 @@ const initSwiper = async () => {
 // 跳转到文章详情
 const goToArticle = (articleId) => {
   if (articleId && articleId !== 0) {
+    console.log('导航到文章:', articleId)
     router.push(`/article/${articleId}`)
+  } else {
+    console.warn('无效的文章ID:', articleId)
   }
 }
 

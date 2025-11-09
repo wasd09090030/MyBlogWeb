@@ -40,22 +40,11 @@ useHead({
     { property: 'og:site_name', content: 'WyrmKk' },
     { property: 'og:title', content: 'WyrmKk - 个人网站' },
     { property: 'og:description', content: '分享技术、生活和思考的个人博客' },
-    { property: 'og:image', content: '/icon/og-image.jpg' },
 
     // Twitter Card
     { name: 'twitter:card', content: 'summary_large_image' },
     { name: 'twitter:title', content: 'WyrmKk - 个人技术博客' },
-    { name: 'twitter:description', content: '分享技术、生活和思考的个人博客' },
-    { name: 'twitter:image', content: '/icon/og-image.jpg' },
-
-    // Favicon
-    { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
-    { rel: 'icon', type: 'image/png', sizes: '32x32', href: '/icon/favicon-32x32.png' },
-    { rel: 'icon', type: 'image/png', sizes: '16x16', href: '/icon/favicon-16x16.png' },
-    { rel: 'apple-touch-icon', sizes: '180x180', href: '/icon/apple-touch-icon.png' },
-
-    // Manifest
-    { rel: 'manifest', href: '/manifest.json' }
+    { name: 'twitter:description', content: '分享技术、生活和思考的个人博客' }
   ],
 
   // 全局样式

@@ -9,7 +9,7 @@
           <div class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" href="#" id="categoryDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">分类</a>
             <ul class="dropdown-menu" aria-labelledby="categoryDropdown">
-              <li><a class="dropdown-item" href="#" @click.prevent="filterByCategory(null)">全部</a></li>
+              <li><a class="dropdown-item" href="#" @click.prevent="filterByCategory()">全部</a></li>
               <li><a class="dropdown-item" href="#" @click.prevent="filterByCategory('study')">学习</a></li>
               <li><a class="dropdown-item" href="#" @click.prevent="filterByCategory('game')">游戏</a></li>
               <li><a class="dropdown-item" href="#" @click.prevent="filterByCategory('work')">个人作品</a></li>
@@ -27,7 +27,7 @@
             <li class="nav-item dropdown">
               <a class="nav-link dropdown-toggle" href="#" id="categoryDropdownMobile" role="button" data-bs-toggle="dropdown">分类</a>
               <ul class="dropdown-menu" aria-labelledby="categoryDropdownMobile">
-                <li><a class="dropdown-item" href="#" @click.prevent="filterByCategory(null)">全部</a></li>
+                <li><a class="dropdown-item" href="#" @click.prevent="filterByCategory()">全部</a></li>
                 <li><a class="dropdown-item" href="#" @click.prevent="filterByCategory('study')">学习</a></li>
                 <li><a class="dropdown-item" href="#" @click.prevent="filterByCategory('game')">游戏</a></li>
                 <li><a class="dropdown-item" href="#" @click.prevent="filterByCategory('work')">个人作品</a></li>
@@ -121,7 +121,7 @@ const handleMouseMove = (event) => {
   }
 }
 const filterByCategory = (category) => {
-  if (category) {
+  if (category && typeof category === 'string') {
     router.push({ path: '/', query: { category } })
   } else {
     router.push({ path: '/' })
