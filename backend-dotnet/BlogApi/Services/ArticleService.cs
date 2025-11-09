@@ -113,9 +113,24 @@ namespace BlogApi.Services
 
         public async Task<List<Article>> GetFeaturedAsync(int limit = 5)
         {
+            // 获取所有文章的ID
+            var allIds = await _context.Articles
+                .Select(a => a.Id)
+                .ToListAsync();
+
+            if (allIds.Count == 0)
+                return new List<Article>();
+
+            // 随机选择ID
+            var random = new Random();
+            var selectedIds = allIds
+                .OrderBy(x => random.Next())
+                .Take(Math.Min(limit, allIds.Count))
+                .ToList();
+
+            // 获取选中的文章
             return await _context.Articles
-                .OrderByDescending(a => a.CreatedAt)
-                .Take(limit)
+                .Where(a => selectedIds.Contains(a.Id))
                 .Include(a => a.Comments)
                 .ToListAsync();
         }
