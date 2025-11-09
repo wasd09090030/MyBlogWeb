@@ -330,7 +330,7 @@ const renderKatex = () => {
   })
 }
 
-// 高亮代码块
+// 高亮代码块并添加折叠功能
 const highlightCode = () => {
   if (!hljs) {
     console.warn('highlight.js 未加载')
@@ -359,6 +359,9 @@ const highlightCode = () => {
       try {
         hljs.highlightElement(block)
         console.log(`代码块 ${index} 高亮成功`)
+
+        // 为代码块添加折叠功能
+        addCodeBlockToggle(block, index)
       } catch (e) {
         console.warn(`代码块 ${index} 高亮失败:`, e)
       }
@@ -366,6 +369,76 @@ const highlightCode = () => {
 
     console.log('代码高亮处理完成')
   })
+}
+
+// 为代码块添加折叠/展开功能
+const addCodeBlockToggle = (codeBlock, index) => {
+  const preElement = codeBlock.parentElement
+  if (!preElement || preElement.tagName !== 'PRE') return
+
+  // 如果已经添加过按钮，跳过
+  if (preElement.parentElement.classList.contains('code-block-wrapper')) return
+
+  // 创建包装器
+  const wrapper = document.createElement('div')
+  wrapper.className = 'code-block-wrapper'
+  wrapper.setAttribute('data-index', index)
+
+  // 创建头部容器
+  const header = document.createElement('div')
+  header.className = 'code-block-header'
+
+  // 创建语言标签 - 统一显示"代码"
+  const langLabel = document.createElement('span')
+  langLabel.className = 'code-language-label'
+  langLabel.textContent = '代码'
+
+  // 创建折叠按钮
+  const toggleBtn = document.createElement('button')
+  toggleBtn.className = 'code-toggle-btn'
+  toggleBtn.innerHTML = '<i class="bi bi-chevron-up"></i> 收起'
+  toggleBtn.setAttribute('aria-label', '折叠代码块')
+  toggleBtn.setAttribute('data-expanded', 'true')
+
+  // 添加点击事件
+  toggleBtn.addEventListener('click', (e) => {
+    e.stopPropagation()
+    const isExpanded = toggleBtn.getAttribute('data-expanded') === 'true'
+
+    if (isExpanded) {
+      // 收起 - 完全隐藏
+      preElement.style.maxHeight = '0'
+      preElement.style.padding = '0'
+      preElement.style.border = 'none'
+      preElement.style.overflow = 'hidden'
+      preElement.style.margin = '0'
+      toggleBtn.innerHTML = '<i class="bi bi-chevron-down"></i> 展开'
+      toggleBtn.setAttribute('data-expanded', 'false')
+      wrapper.classList.add('collapsed')
+    } else {
+      // 展开
+      preElement.style.maxHeight = 'none'
+      preElement.style.padding = ''
+      preElement.style.border = ''
+      preElement.style.overflow = 'auto'
+      preElement.style.margin = ''
+      toggleBtn.innerHTML = '<i class="bi bi-chevron-up"></i> 收起'
+      toggleBtn.setAttribute('data-expanded', 'true')
+      wrapper.classList.remove('collapsed')
+    }
+  })
+
+  // 组装头部
+  header.appendChild(langLabel)
+  header.appendChild(toggleBtn)
+
+  // 插入包装器
+  preElement.parentNode.insertBefore(wrapper, preElement)
+  wrapper.appendChild(header)
+  wrapper.appendChild(preElement)
+
+  // 添加过渡效果
+  preElement.style.transition = 'max-height 0.3s ease, padding 0.3s ease, margin 0.3s ease'
 }
 
 onMounted(() => {
@@ -378,6 +451,96 @@ onMounted(() => {
 </style>
 
 <style>
+/* 代码块折叠功能样式 */
+.code-block-wrapper {
+  margin: 1.5rem 0;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #e1e4e8;
+  transition: all 0.3s ease;
+}
+
+[data-bs-theme="dark"] .code-block-wrapper {
+  border-color: #30363d;
+}
+
+.code-block-wrapper.collapsed {
+  border-color: #d1d5da;
+}
+
+[data-bs-theme="dark"] .code-block-wrapper.collapsed {
+  border-color: #21262d;
+}
+
+.code-block-wrapper.collapsed .code-block-header {
+  border-bottom: none;
+}
+
+.code-block-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  background-color: #f6f8fa;
+  border-bottom: 1px solid #e1e4e8;
+}
+
+[data-bs-theme="dark"] .code-block-header {
+  background-color: #161b22;
+  border-bottom-color: #30363d;
+}
+
+.code-language-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #0366d6;
+  letter-spacing: 0.5px;
+}
+
+[data-bs-theme="dark"] .code-language-label {
+  color: #58a6ff;
+}
+
+.code-toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.875rem;
+  color: #0366d6;
+  background-color: transparent;
+  border: 1px solid #0366d6;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.code-toggle-btn:hover {
+  background-color: #0366d6;
+  color: white;
+}
+
+[data-bs-theme="dark"] .code-toggle-btn {
+  color: #58a6ff;
+  border-color: #58a6ff;
+}
+
+[data-bs-theme="dark"] .code-toggle-btn:hover {
+  background-color: #58a6ff;
+  color: #0d1117;
+}
+
+.code-toggle-btn i {
+  font-size: 1rem;
+  transition: transform 0.3s ease;
+}
+
+.code-block-wrapper pre {
+  margin: 0 !important;
+  border-radius: 0 !important;
+  border: none !important;
+}
+
 /* 暗色主题下的代码块样式 - 全局样式以覆盖 highlight.js */
 [data-bs-theme="dark"] .article-detail-page .markdown-body pre,
 [data-bs-theme="dark"] .article-container pre,
