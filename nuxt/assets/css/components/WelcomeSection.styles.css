@@ -212,7 +212,7 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background-image: url('/Picture/公告.webp');
+  background-image: url('/Picture/announcement.webp');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -303,11 +303,11 @@
 }
 
 .articles-bg {
-  background-image: url('/Picture/文章.webp');
+  background-image: url('/Picture/articles.webp');
 }
 
 .gallery-bg {
-  background-image: url('/Picture/画廊.webp');
+  background-image: url('/Picture/gallery.webp');
 }
 
 /* 卡片遮罩层 */
