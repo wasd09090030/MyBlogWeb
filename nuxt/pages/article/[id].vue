@@ -102,20 +102,34 @@ const error = ref(null)
 // API composable
 const { getArticleById } = useArticles()
 
-// 设置页面元数据
-useHead(() => ({
-  title: article.value?.title || '文章详情',
-  meta: [
-    {
-      name: 'description',
-      content: article.value ? article.value.title : '文章详情'
-    },
-    {
-      property: 'og:title',
-      content: article.value?.title || '文章详情'
-    }
-  ]
-}))
+// 生成文章描述（从内容中提取纯文本摘要）
+const getArticleDescription = (content, maxLength = 160) => {
+  if (!content) return ''
+  // 移除HTML标签
+  const text = content.replace(/<[^>]+>/g, '')
+  // 移除多余空格和换行
+  const cleaned = text.replace(/\s+/g, ' ').trim()
+  // 截取指定长度
+  return cleaned.length > maxLength ? cleaned.substring(0, maxLength) + '...' : cleaned
+}
+
+// 设置页面SEO元数据
+useSeoMeta({
+  title: () => article.value?.title || '文章详情',
+  description: () => article.value ? getArticleDescription(article.value.content) : '文章详情',
+  ogTitle: () => article.value?.title || '文章详情',
+  ogDescription: () => article.value ? getArticleDescription(article.value.content) : '文章详情',
+  ogImage: () => article.value?.coverImage && article.value.coverImage !== 'null' ? article.value.coverImage : '',
+  ogType: 'article',
+  twitterCard: 'summary_large_image',
+  twitterTitle: () => article.value?.title || '文章详情',
+  twitterDescription: () => article.value ? getArticleDescription(article.value.content) : '文章详情',
+  twitterImage: () => article.value?.coverImage && article.value.coverImage !== 'null' ? article.value.coverImage : '',
+  articlePublishedTime: () => article.value?.createdAt || '',
+  articleModifiedTime: () => article.value?.updatedAt || '',
+  articleAuthor: () => article.value?.author || '',
+  articleTag: () => article.value?.category || '',
+})
 
 // 格式化日期的辅助函数
 function formatDate(dateString) {

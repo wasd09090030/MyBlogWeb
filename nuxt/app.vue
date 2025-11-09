@@ -32,13 +32,13 @@ useHead({
     { name: 'viewport', content: 'width=device-width, initial-scale=1' },
     { name: 'format-detection', content: 'telephone=no' },
     { name: 'description', content: '一个分享技术、生活和思考的个人博客' },
-    { name: 'keywords', content: '博客,技术,前端,Vue,JavaScript,生活' },
-    { name: 'author', content: '博客作者' },
+    { name: 'keywords', content: '博客,技术,前端,Vue,JavaScript,动漫资源' },
+    { name: 'author', content: 'WASD09090030' },
 
     // Open Graph
     { property: 'og:type', content: 'website' },
     { property: 'og:site_name', content: 'My Blog' },
-    { property: 'og:title', content: 'My Blog - 个人技术博客' },
+    { property: 'og:title', content: 'My Blog - 个人网站' },
     { property: 'og:description', content: '分享技术、生活和思考的个人博客' },
     { property: 'og:image', content: '/icon/og-image.jpg' },
 
