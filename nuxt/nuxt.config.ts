@@ -26,16 +26,7 @@ export default defineNuxtConfig({
 
   // 依赖配置
   build: {
-    transpile: ['@popperjs/core', 'bootstrap', 'swiper'],
-    // 优化生产构建
-    extractCSS: true, // 提取CSS到单独的文件
-    optimization: {
-      splitChunks: {
-        layouts: true,
-        pages: true,
-        commons: true
-      }
-    }
+    transpile: ['@popperjs/core', 'bootstrap', 'swiper']
   },
 
   // Vite配置
@@ -54,52 +45,6 @@ export default defineNuxtConfig({
     define: {
       // 确保Bootstrap在客户端可用
       global: 'globalThis'
-    },
-    build: {
-      // 代码分割优化
-      rollupOptions: {
-        output: {
-          // 手动配置代码分割 - 使用函数格式
-          manualChunks(id: string) {
-            // Vue核心库
-            if (id.includes('node_modules/vue') || id.includes('node_modules/vue-router')) {
-              return 'vendor-vue';
-            }
-            // Bootstrap组件
-            if (id.includes('node_modules/bootstrap') || id.includes('node_modules/@popperjs/core')) {
-              return 'vendor-bootstrap';
-            }
-            // Markdown渲染库
-            if (id.includes('node_modules/markdown-it') || id.includes('node_modules/highlight.js')) {
-              return 'vendor-markdown';
-            }
-            // Swiper图片库
-            if (id.includes('node_modules/swiper')) {
-              return 'vendor-swiper';
-            }
-            // Pinia状态管理
-            if (id.includes('node_modules/pinia')) {
-              return 'vendor-pinia';
-            }
-            // 其他node_modules的包
-            if (id.includes('node_modules')) {
-              return 'vendor-other';
-            }
-          }
-        }
-      },
-      // 启用CSS代码分割
-      cssCodeSplit: true,
-      // 压缩选项
-      minify: 'terser',
-      terserOptions: {
-        compress: {
-          drop_console: true, // 生产环境移除console
-          drop_debugger: true
-        }
-      },
-      // 减少chunk大小警告阈值
-      chunkSizeWarningLimit: 1000
     }
   },
 

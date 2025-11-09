@@ -66,7 +66,7 @@
     <footer v-if="!isGalleryRoute" class="blog-footer">
       <div class="footer-content">
         <div class="footer-copyright">
-          <p class="copyright-text">© 2025 WyrmKk Blog. Built with ❤️ using Nuxt.js & NestJS.</p>
+          <p class="copyright-text">© 2025 WyrmKk Blog. Built with ❤️ using Nuxt.js & Asp.Net Core8.0</p>
           <p class="slogan-text">用心分享，共同成长 | 让知识传播得更远</p>
         </div>
       </div>
