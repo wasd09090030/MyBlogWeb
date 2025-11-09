@@ -1,5 +1,5 @@
 /* 自定义鼠标指针样式 */
-:global(body) {
+body {
   cursor: url('/pointer/default.cur'), auto;
   min-height: 100vh;
   background-color: var(--bg-secondary);
@@ -7,28 +7,28 @@
 }
 
 /* 可点击元素使用指针样式 */
-:global(a),
-:global(button),
-:global(.btn),
-:global([role="button"]),
-:global(input[type="button"]),
-:global(input[type="submit"]),
-:global(input[type="reset"]),
-:global(.nav-link),
-:global(.dropdown-item),
-:global(.navbar-brand),
-:global(.contact-icon),
-:global(.avatar-container),
-:global(.quote-container),
-:global(.toggle-button),
-:global(.skill-item),
-:global([onclick]),
-:global(.cursor-pointer) {
+a,
+button,
+.btn,
+[role="button"],
+input[type="button"],
+input[type="submit"],
+input[type="reset"],
+.nav-link,
+.dropdown-item,
+.navbar-brand,
+.contact-icon,
+.avatar-container,
+.quote-container,
+.toggle-button,
+.skill-item,
+[onclick],
+.cursor-pointer {
   cursor: url('/pointer/pointer.cur'), pointer;
 }
 
 /* 移除暗色主题的渐变背景覆盖 - 使用主题变量 */
-:global(.dark-theme body) {
+.dark-theme body {
   background-color: var(--bg-tertiary);
 }
 

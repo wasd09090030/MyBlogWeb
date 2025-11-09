@@ -225,11 +225,26 @@ defineOptions({
 
 // SEO设置
 const route = useRoute()
-const setTitle = (title) => {
+const setTitle = () => {
   useHead({
-    title: title
+    title: 'WyrmKk - 文章列表',
+    link: [
+      { rel: 'icon', type: 'image/x-icon', href: '/icon/favicon.ico' }
+    ]
   })
 }
+
+// 设置首页标题和图标
+useHead({
+  title: '首页 - 我的博客',
+  meta: [
+    { name: 'description', content: '欢迎来到我的个人博客，分享技术文章和生活感悟' },
+    { name: 'keywords', content: '博客,文章,技术分享,个人网站' }
+  ],
+  link: [
+    { rel: 'icon', type: 'image/x-icon', href: '/icon/favicon.ico' }
+  ]
+})
 
 // 创建ref来引用ArticleList容器
 const articleListContainer = ref(null)

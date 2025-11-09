@@ -154,11 +154,11 @@ import GalleryLoadingAnimation from '~/components/GalleryLoadingAnimation.vue'
 
 // 设置页面元数据
 useHead({
-  title: '图片画廊',
+  title: 'WyrmKk - 图片画廊',
   meta: [
     {
       name: 'description',
-      content: '浏览精美的图片画廊'
+      content: '使用 SwiperJS 构建的浏览精美的图片画廊'
     }
   ]
 })
