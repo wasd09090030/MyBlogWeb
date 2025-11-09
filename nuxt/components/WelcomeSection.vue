@@ -124,9 +124,18 @@ const fetchFeaturedArticles = async () => {
     const featuredArticles = await getFeaturedArticles(5)
     slides.value = featuredArticles
 
-    // 同时获取文章总数用于显示
-    const articlesData = await getArticles({ page: 1, limit: 1 })
-    articleCount.value = articlesData.total || featuredArticles.length
+    // 获取文章总数 - 使用 summary=false 来获取包含 total 的分页数据
+    const articlesData = await getArticles({ page: 1, limit: 1, summary: false })
+    console.log('WelcomeSection: 获取文章数据响应:', articlesData)
+    
+    // 从分页数据中提取总数
+    if (articlesData && articlesData.total !== undefined) {
+      articleCount.value = articlesData.total
+      console.log('WelcomeSection: 成功获取文章总数:', articleCount.value)
+    } else {
+      console.warn('WelcomeSection: 无法从API获取准确的文章总数，使用推荐文章数量作为备选')
+      articleCount.value = featuredArticles.length
+    }
 
     console.log('WelcomeSection: 获取推荐文章成功，轮播文章数:', slides.value.length, '总文章数:', articleCount.value)
   } catch (error) {

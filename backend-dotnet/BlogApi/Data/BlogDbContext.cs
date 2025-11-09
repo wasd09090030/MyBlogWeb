@@ -23,9 +23,21 @@ namespace BlogApi.Data
             {
                 entity.ToTable("articles");
                 entity.HasKey(e => e.Id);
-                entity.Property(e => e.Title).IsRequired();
-                entity.Property(e => e.Content).IsRequired();
-                entity.Property(e => e.Category).HasConversion<string>().HasDefaultValue(ArticleCategory.Other);
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Title).HasColumnName("title").IsRequired();
+                entity.Property(e => e.Content).HasColumnName("content").IsRequired();
+                entity.Property(e => e.ContentMarkdown).HasColumnName("contentMarkdown");
+                entity.Property(e => e.CoverImage).HasColumnName("coverImage");
+                entity.Property(e => e.Category)
+                    .HasColumnName("category")
+                    .HasConversion(
+                        v => v.ToString().ToLower(),  // 存储时转为小写
+                        v => string.IsNullOrEmpty(v) ? ArticleCategory.Other : 
+                             Enum.Parse<ArticleCategory>(char.ToUpper(v[0]) + (v.Length > 1 ? v.Substring(1).ToLower() : ""), true) // 读取时首字母大写
+                    )
+                    .HasDefaultValue(ArticleCategory.Other);
+                entity.Property(e => e.CreatedAt).HasColumnName("createdAt");
+                entity.Property(e => e.UpdatedAt).HasColumnName("updatedAt");
                 entity.HasMany(e => e.Comments)
                     .WithOne(c => c.Article)
                     .HasForeignKey(c => c.ArticleId)

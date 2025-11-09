@@ -719,7 +719,7 @@ const fetchArticle = async (id) => {
       title: article.title,
       contentMarkdown: article.contentMarkdown || article.content, // 兼容没有markdown字段的旧数据
       coverImage: article.coverImage || '', // 封面图URL
-      category: article.category ? article.category.toLowerCase() : 'study', // 将后端的大写枚举转换为小写
+      category: article.category || 'study', // 数据库中存储的就是小写值，直接使用
     };    // 如果有封面图，检查其有效性
     if (article.coverImage) {
       // 延迟检查图片加载状态
@@ -748,7 +748,7 @@ const saveArticle = async () => {
       contentMarkdown: articleForm.value.contentMarkdown,
       content: htmlContent,
       coverImage: articleForm.value.coverImage || null, // 封面图URL，空值时设为null
-      category: articleForm.value.category.charAt(0).toUpperCase() + articleForm.value.category.slice(1), // 转换为首字母大写
+      category: articleForm.value.category.toLowerCase(), // 保持小写，匹配数据库约束
     };
     
     if (isEdit.value) {

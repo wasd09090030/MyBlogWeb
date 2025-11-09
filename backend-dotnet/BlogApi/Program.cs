@@ -2,6 +2,8 @@ using Microsoft.EntityFrameworkCore;
 using BlogApi.Data;
 using BlogApi.Services;
 using System.Text.Json.Serialization;
+using BlogApi.Utils;
+using BlogApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,7 +12,8 @@ builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
-        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+        // 移除全局的 JsonStringEnumConverter，因为我们在 ArticleCategory 上使用了自定义转换器
+        // options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     });
 
 builder.Services.AddEndpointsApiExplorer();

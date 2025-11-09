@@ -1,5 +1,9 @@
+using System.Text.Json.Serialization;
+using BlogApi.Utils;
+
 namespace BlogApi.Models
 {
+    [JsonConverter(typeof(LowerCaseEnumConverter<ArticleCategory>))]
     public enum ArticleCategory
     {
         Study,      // 学习
