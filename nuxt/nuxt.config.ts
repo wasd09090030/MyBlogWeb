@@ -33,6 +33,7 @@ export default defineNuxtConfig({
   vite: {
     optimizeDeps: {
       include: [
+        'vue',
         'bootstrap',
         'bootstrap/dist/js/bootstrap.bundle.min.js',
         '@popperjs/core',
@@ -45,6 +46,15 @@ export default defineNuxtConfig({
     define: {
       // 确保Bootstrap在客户端可用
       global: 'globalThis'
+    },
+    build: {
+      minify: 'terser',
+      terserOptions: {
+        compress: {
+          drop_console: true, // 生产环境移除 console.log
+          drop_debugger: true // 生产环境移除 debugger
+        }
+      }
     }
   },
 
@@ -75,11 +85,7 @@ export default defineNuxtConfig({
       ],
       link: [
         { rel: 'icon', type: 'image/x-icon', href: '/icon/favicon.ico' },
-        { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
-        {
-          rel: 'stylesheet',
-          href: 'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap'
-        }
+        { rel: 'preconnect', href: 'https://fonts.googleapis.com' }
       ]
     }
   },
@@ -98,7 +104,7 @@ export default defineNuxtConfig({
 
   // 实验性功能
   experimental: {
-    payloadExtraction: false,
+    payloadExtraction: true,
     renderJsonPayloads: true,
     viewTransition: true,
     // 启用内联路由规则
