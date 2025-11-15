@@ -1,6 +1,6 @@
 /* 主容器 */
 .welcome-section {
-  width: 90%;
+  width: 85%;
   height: 45vh;
   margin: 0 auto; /* 居中显示 */
   display: flex;

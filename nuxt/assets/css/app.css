@@ -391,7 +391,7 @@ input[type="reset"],
   margin-top: 20px;
   box-shadow: var(--shadow-lg);
   border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-  max-width: 90%;
+  max-width: 85%;
   margin-left: auto;
   margin-right: auto;
   border: 1px solid var(--border-color-light);

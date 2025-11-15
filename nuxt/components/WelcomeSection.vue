@@ -46,7 +46,7 @@
         <div class="announcement-overlay"></div>
         <div class="announcement-text-content">
           <h3 class="announcement-title">一个用于分享知识，资源的个人博客网站</h3>
-          <p class="announcement-subtitle">Build with Nest and Vue</p>
+          <p class="announcement-subtitle">Build with .Net Core8.0 and Nuxt</p>
         </div>
       </div>
 
