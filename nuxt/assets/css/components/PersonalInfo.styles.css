@@ -20,6 +20,142 @@
   box-shadow: 0 4px 12px rgba(0,0,0,0.3);
 }
 
+/* 通用区块样式 */
+.sidebar-section + .sidebar-section {
+  margin-top: 1.75rem;
+  padding-top: 1.75rem;
+  border-top: 1px solid var(--bs-border-color);
+}
+
+[data-bs-theme="dark"] .sidebar-section + .sidebar-section {
+  border-top-color: var(--bs-border-color-translucent);
+}
+
+/* 分类栅格 */
+.category-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1.1fr));
+  gap: 1rem;
+}
+
+.category-card {
+  border: 1px solid var(--bs-border-color);
+  border-radius: 16px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  background: linear-gradient(135deg, rgba(255,255,255,0.8), rgba(248,249,250,0.9));
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  cursor: pointer;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  text-align: left;
+}
+
+.category-main {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.category-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(0,0,0,0.1);
+  border-color: var(--bs-primary);
+}
+
+[data-bs-theme="dark"] .category-card {
+  background: linear-gradient(135deg, rgba(33,37,41,0.95), rgba(26,32,44,0.95));
+  border-color: var(--bs-border-color-translucent);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.4);
+}
+
+.category-icon {
+  width: 35px;
+  height: 35px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(102,126,234,0.12);
+  color: #667eea;
+  font-size: 1.1rem;
+}
+
+[data-bs-theme="dark"] .category-icon {
+  background: rgba(102,126,234,0.2);
+}
+
+.category-info {
+  flex: 1;
+}
+
+.category-label {
+  font-size: 0.8rem;
+  font-weight: 500;
+  margin: 0;
+  color: var(--bs-body-color);
+  white-space: nowrap;
+}
+
+.category-count {
+  align-self: flex-start;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--bs-body-color);
+}
+
+/* 月度归档 */
+.archive-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.archive-item {
+  border: 1px solid var(--bs-border-color);
+  border-radius: 14px;
+  padding: 0.9rem 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: rgba(248,249,250,0.9);
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.archive-item:hover {
+  border-color: var(--bs-primary);
+  transform: translateX(4px);
+}
+
+[data-bs-theme="dark"] .archive-item {
+  background-color: rgba(33,37,41,0.9);
+  border-color: var(--bs-border-color-translucent);
+}
+
+.archive-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.archive-month {
+  margin: 0;
+  font-weight: 600;
+  color: var(--bs-body-color);
+}
+
+.archive-subtitle {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--bs-text-muted);
+}
+
+.archive-count {
+  font-weight: 600;
+  color: var(--bs-primary);
+}
+
 /* 移动端浮动按钮和侧边栏 */
 .mobile-personal-info {
   position: fixed;
@@ -706,6 +842,10 @@
 @media (max-width: 576px) {
   .contact-icons {
     gap: 1rem;
+  }
+
+  .category-grid {
+    grid-template-columns: 1fr;
   }
   
   .contact-icon {

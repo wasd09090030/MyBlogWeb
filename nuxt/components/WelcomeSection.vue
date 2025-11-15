@@ -17,8 +17,8 @@
                 :style="{ backgroundImage: `url(${slide.coverImage})` }"
               ></div>
               <div class="slide-gradient"></div>
+              <div class="slide-category-badge">{{ getCategoryName(slide.category) }}</div>
               <div class="slide-content">
-                <div class="slide-category">{{ getCategoryName(slide.category) }}</div>
                 <h3 class="slide-title">{{ slide.title }}</h3>
               </div>
             </div>
