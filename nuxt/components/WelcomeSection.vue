@@ -88,6 +88,24 @@
             </div>
           </div>
         </div>
+
+        <!-- 关于站长卡片 -->
+        <div class="info-card host-card" @click="goToAbout">
+          <div class="card-background host-bg"></div>
+          <div class="card-overlay"></div>
+          <div class="card-content-wrapper">
+            <div class="card-icon">
+              <i class="bi bi-person-circle"></i>
+            </div>
+            <div class="card-content">
+              <h5 class="card-title">关于站长</h5>
+              <p class="card-stats">了解更多</p>
+            </div>
+            <div class="card-arrow">
+              <i class="bi bi-arrow-right"></i>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -261,6 +279,10 @@ const goToArticles = () => {
 
 const goToGallery = () => {
   router.push('/gallery')
+}
+
+const goToAbout = () => {
+  router.push('/about')
 }
 
 // 销毁Swiper实例
