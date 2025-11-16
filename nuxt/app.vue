@@ -5,6 +5,7 @@
 </template>
 
 <script setup>
+
 const route = useRoute()
 
 // 获取页面 key - 对于首页使用固定 key 以启用缓存
