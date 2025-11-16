@@ -246,9 +246,6 @@
   border-color: rgba(102, 126, 234, 0.2);
 }
 
-[data-bs-theme="dark"] .top-section::before {
-  opacity: 0.2;
-}
 
 /* 文字内容 */
 .announcement-text-content {
