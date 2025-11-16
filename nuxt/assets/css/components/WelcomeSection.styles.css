@@ -218,6 +218,22 @@
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
   transition: all 0.3s ease;
   min-height: auto;
+  position: relative;
+  overflow: hidden;
+}
+
+.top-section::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 200px;
+  background-image: url('/Picture/Welcome.webp');
+  background-size: cover;
+  background-position: center;
+  z-index: 0;
+  pointer-events: none;
 }
 
 .top-section:hover {
@@ -230,11 +246,17 @@
   border-color: rgba(102, 126, 234, 0.2);
 }
 
+[data-bs-theme="dark"] .top-section::before {
+  opacity: 0.2;
+}
+
 /* 文字内容 */
 .announcement-text-content {
   flex: 1;
-  text-align: left;
+  padding-left: 30%;
   color: var(--bs-body-color);
+  position: relative;
+  z-index: 1;
 }
 
 .announcement-title {
@@ -259,6 +281,8 @@
 .icon-marquee-wrapper {
   width: 150px;
   flex-shrink: 0;
+  position: relative;
+  z-index: 1;
 }
 
 /* 底部卡片容器 */
