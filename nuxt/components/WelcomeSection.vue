@@ -40,14 +40,15 @@
 
     <!-- 右侧信息区域 -->
     <div class="info-section">
-      <!-- 网站公告 -->
-      <div class="announcement-card">
-        <div class="announcement-background"></div>
-        <div class="announcement-overlay"></div>
+      <!-- 顶部区域：公告 + 图标走马灯统一容器 -->
+      <div class="top-section">
         <div class="announcement-text-content">
           <h3 class="announcement-title">一个用于分享知识，资源的个人博客网站</h3>
           <p class="announcement-subtitle">Build with .Net Core8.0 and Nuxt</p>
         </div>
+        
+        <!-- 图标走马灯 -->
+        <IconMarquee class="icon-marquee-wrapper" />
       </div>
 
       <!-- 底部两个小卡片 -->
