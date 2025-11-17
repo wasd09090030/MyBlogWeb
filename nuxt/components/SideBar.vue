@@ -90,7 +90,7 @@
 import { onBeforeUnmount, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useArticles } from '~/composables/useArticles';
-import '../assets/css/components/PersonalInfo.styles.css';
+import '../assets/css/components/SideBar.styles.css';
 
 const router = useRouter();
 const isCollapsed = ref(true);
@@ -167,12 +167,12 @@ const fetchArticleStats = async () => {
       month.count = monthCounts[month.key] || 0;
     });
 
-    console.log('PersonalInfo: 文章统计完成', {
+    console.log('SideBar: 文章统计完成', {
       categories: categoryCounts,
       months: monthCounts
     });
   } catch (error) {
-    console.error('PersonalInfo: 获取文章统计失败:', error);
+    console.error('SideBar: 获取文章统计失败:', error);
   }
 };
 
@@ -215,5 +215,5 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
-@import'../assets/css/components/PersonalInfo.styles.css';
+@import'../assets/css/components/SideBar.styles.css';
 </style>

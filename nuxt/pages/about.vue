@@ -69,7 +69,7 @@
     >
       <div class="section-header">
         <span>PROJECTS</span>
-        <h2>动手打造的社区玩具</h2>
+        <h2>我的作品集</h2>
         <p>从后台 API 到前端动效，全都为了给同好准备更有温度的体验。</p>
       </div>
       <div class="project-grid">
@@ -140,26 +140,42 @@
 
     <Motion
       tag="section"
-      class="community-section"
+      class="status-section"
       :initial="sectionMotion.initial"
       :animate="sectionMotion.enter"
     >
       <div class="section-header">
-        <span>COMMUNITY</span>
-        <h2>社区氛围笔记</h2>
-        <p>把灵感、反馈和有趣瞬间贴在留言板，保持创作的热度。</p>
+        <span>CURRENT STATUS</span>
+        <h2>最近在玩 / 当前状态</h2>
+        <p>实时更新，记录当前正在进行的游戏、项目和学习内容。</p>
       </div>
-      <div class="community-stream">
+      <div class="status-grid">
         <Motion
-          v-for="(note, index) in communityNotes"
-          :key="note.title"
+          v-for="(activity, index) in currentActivities"
+          :key="activity.title"
           tag="article"
-          class="community-note"
+          class="status-card"
+          :data-type="activity.type"
           :initial="getNoteMotion(index).initial"
           :animate="getNoteMotion(index).enter"
         >
-          <strong>{{ note.title }}</strong>
-          <p class="mb-0">{{ note.content }}</p>
+          <div class="status-header">
+            <div class="status-icon" :style="{ background: activity.iconBg }">
+              <i :class="activity.icon"></i>
+            </div>
+            <div class="status-meta">
+              <span class="status-type">{{ activity.type }}</span>
+              <h4 class="status-title">{{ activity.title }}</h4>
+            </div>
+          </div>
+          <p class="status-desc">{{ activity.description }}</p>
+          <div class="status-footer">
+            <span class="status-time"><i class="bi bi-clock"></i> {{ activity.time }}</span>
+            <span class="status-progress" :class="'progress-' + activity.status">{{ activity.statusText }}</span>
+          </div>
+          <div v-if="activity.progress !== undefined" class="progress-bar">
+            <div class="progress-fill" :style="{ width: activity.progress + '%' }"></div>
+          </div>
         </Motion>
       </div>
     </Motion>
@@ -285,18 +301,71 @@ const techStacks = [
   }
 ]
 
-const communityNotes = [
+const currentActivities = [
   {
-    title: '夜半巡逻',
-    content: '凌晨 1 点帮群友定位 SQL 死锁，顺手把监控面板也焕新。'
+    type: '游戏',
+    title: '原神 · 须弥主线',
+    description: '正在肝须弥世界任务，顺便养成新角色。',
+    icon: 'bi bi-controller',
+    iconBg: 'linear-gradient(135deg, #a78bfa, #7c3aed)',
+    time: '最近 3 天',
+    status: 'active',
+    statusText: '进行中',
+    progress: 65
   },
   {
-    title: '灵感征集中',
-    content: '欢迎投喂动效 / 主题点子，被采纳会写进感谢墙。'
+    type: '开发',
+    title: '博客评论系统',
+    description: '正在实现实时评论功能，支持表情和 Markdown 语法。',
+    icon: 'bi bi-code-slash',
+    iconBg: 'linear-gradient(135deg, #60a5fa, #3b82f6)',
+    time: '本周',
+    status: 'active',
+    statusText: '开发中',
+    progress: 40
   },
   {
-    title: 'Mini Game',
-    content: '正在尝试把评论区回复做成小游戏积分，敬请期待。'
+    type: '学习',
+    title: 'Rust 异步编程',
+    description: '深入学习 Tokio 和 async/await，准备重构部分后端服务。',
+    icon: 'bi bi-book',
+    iconBg: 'linear-gradient(135deg, #f97316, #ea580c)',
+    time: '2 周前开始',
+    status: 'learning',
+    statusText: '学习中',
+    progress: 30
+  },
+  {
+    type: '游戏',
+    title: 'Elden Ring DLC',
+    description: '正在探索黄金树幽影，已经被 Boss 干碎 N 次了。',
+    icon: 'bi bi-joystick',
+    iconBg: 'linear-gradient(135deg, #fbbf24, #f59e0b)',
+    time: '上周末',
+    status: 'paused',
+    statusText: '暂停中',
+    progress: 20
+  },
+  {
+    type: '折腾',
+    title: '自建 NAS 服务',
+    description: '配置家庭 NAS，搭建 Jellyfin 媒体服务器和自动备份系统。',
+    icon: 'bi bi-hdd-network',
+    iconBg: 'linear-gradient(135deg, #34d399, #10b981)',
+    time: '本月',
+    status: 'active',
+    statusText: '配置中',
+    progress: 50
+  },
+  {
+    type: '创作',
+    title: 'Nuxt 优化实践文章',
+    description: '整理博客性能优化心得，准备发布一篇技术文章。',
+    icon: 'bi bi-pen',
+    iconBg: 'linear-gradient(135deg, #fb7185, #f43f5e)',
+    time: '构思中',
+    status: 'planning',
+    statusText: '计划中'
   }
 ]
 

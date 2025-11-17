@@ -56,7 +56,7 @@
             </div>
             <div v-if="showSidebar" class="col-lg-4 col-xl-3 d-none d-lg-block sidebar-animate">
               <div class="sidebar-content">
-                <PersonalInfo />
+                <SideBar />
               </div>
             </div>
           </div>
@@ -71,7 +71,7 @@
         </div>
       </div>
     </footer>
-    <div v-if="showSidebar" class="mobile-personal-info d-lg-none"><PersonalInfo /></div>
+    <div v-if="showSidebar" class="mobile-personal-info d-lg-none"><SideBar /></div>
   </div>
 </template>
 
@@ -87,7 +87,8 @@ const hideTimeout = ref(null)
 const shouldShowWelcomeSection = computed(() => route.path === '/' && !route.query.search && !route.query.category)
 const isGalleryRoute = computed(() => route.path === '/gallery')
 const isArticleDetailRoute = computed(() => route.path.startsWith('/article/'))
-const showSidebar = computed(() => !isGalleryRoute.value && !isArticleDetailRoute.value)
+const isAboutRoute = computed(() => route.path === '/about')
+const showSidebar = computed(() => !isGalleryRoute.value && !isArticleDetailRoute.value && !isAboutRoute.value)
 const navbarAnimationClass = computed(() => (isNavbarVisible.value || mouseAtTop.value) ? 'navbar-visible' : '')
 const handleScroll = () => {
   const currentScrollY = window.scrollY
