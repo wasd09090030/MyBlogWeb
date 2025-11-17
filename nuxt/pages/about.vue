@@ -1,6 +1,10 @@
 <template>
   <section class="about-page">
-    <div class="about-hero" v-motion="heroMotion">
+    <Motion
+      class="about-hero"
+      :initial="heroMotion.initial"
+      :animate="heroMotion.enter"
+    >
       <div class="hero-left">
         <span class="hero-eyebrow"><i class="bi bi-cookie"></i> {{ ownerProfile.role }}</span>
         <h1 class="hero-title">{{ ownerProfile.name }} · {{ ownerProfile.alias }}</h1>
@@ -13,7 +17,7 @@
             <i class="bi bi-lightning-charge-fill me-2"></i>最新作品
           </button>
           <a class="secondary" href="https://github.com/wasd09090030" target="_blank" rel="noopener">
-            <i class="bi bi-people-fill me-2"></i>我的Github
+            <i class="bi bi-github me-2"></i>我的Github
           </a>
         </div>
       </div>
@@ -38,37 +42,46 @@
           </div>
         </div>
       </div>
-    </div>
+    </Motion>
 
     <div class="about-highlight-grid">
-      <article
+      <Motion
         v-for="(card, index) in highlightCards"
         :key="card.title"
+        tag="article"
         class="highlight-card"
-        v-motion="getStaggerMotion(index)"
+        :initial="getStaggerMotion(index).initial"
+        :animate="getStaggerMotion(index).enter"
       >
         <div class="highlight-icon" :style="{ background: card.accent }">
           <i :class="card.icon"></i>
         </div>
         <h3 class="highlight-title">{{ card.title }}</h3>
         <p class="highlight-desc">{{ card.description }}</p>
-      </article>
+      </Motion>
     </div>
 
-    <section class="project-section" v-motion="sectionMotion">
+    <Motion
+      tag="section"
+      class="project-section"
+      :initial="sectionMotion.initial"
+      :animate="sectionMotion.enter"
+    >
       <div class="section-header">
         <span>PROJECTS</span>
         <h2>动手打造的社区玩具</h2>
         <p>从后台 API 到前端动效，全都为了给同好准备更有温度的体验。</p>
       </div>
       <div class="project-grid">
-        <article
+        <Motion
           v-for="(project, index) in projects"
           :key="project.title"
+          tag="article"
           class="project-card"
           :data-status="project.status"
           :class="project.accent"
-          v-motion="getProjectMotion(index)"
+          :initial="getProjectMotion(index).initial"
+          :animate="getProjectMotion(index).enter"
         >
           <h3 class="project-title">{{ project.title }}</h3>
           <p class="project-desc">{{ project.description }}</p>
@@ -93,54 +106,80 @@
             <span>{{ project.cta }}</span>
             <i class="bi bi-arrow-up-right"></i>
           </a>
-        </article>
+        </Motion>
       </div>
-    </section>
+    </Motion>
 
-    <section class="tech-section" v-motion="sectionMotion">
+    <Motion
+      tag="section"
+      class="tech-section"
+      :initial="sectionMotion.initial"
+      :animate="sectionMotion.enter"
+    >
       <div class="section-header">
         <span>TOOLBOX</span>
         <h2>常备技术 / 小伙伴</h2>
         <p>这些技术栈让博客保持高可用，也让创作更自由。</p>
       </div>
       <div class="tech-grid">
-        <article
+        <Motion
           v-for="(stack, index) in techStacks"
           :key="stack.title"
+          tag="article"
           class="tech-card"
-          v-motion="getStaggerMotion(index, 0.2)"
+          :initial="getStaggerMotion(index, 0.2).initial"
+          :animate="getStaggerMotion(index, 0.2).enter"
         >
           <h3><i :class="[stack.icon, 'me-2']"></i>{{ stack.title }}</h3>
           <div class="tech-pills">
             <span v-for="item in stack.items" :key="item" class="tech-pill">{{ item }}</span>
           </div>
-        </article>
+        </Motion>
       </div>
-    </section>
+    </Motion>
 
-    <section class="community-section" v-motion="sectionMotion">
+    <Motion
+      tag="section"
+      class="community-section"
+      :initial="sectionMotion.initial"
+      :animate="sectionMotion.enter"
+    >
       <div class="section-header">
         <span>COMMUNITY</span>
         <h2>社区氛围笔记</h2>
         <p>把灵感、反馈和有趣瞬间贴在留言板，保持创作的热度。</p>
       </div>
       <div class="community-stream">
-        <article
+        <Motion
           v-for="(note, index) in communityNotes"
           :key="note.title"
+          tag="article"
           class="community-note"
-          v-motion="getNoteMotion(index)"
+          :initial="getNoteMotion(index).initial"
+          :animate="getNoteMotion(index).enter"
         >
           <strong>{{ note.title }}</strong>
           <p class="mb-0">{{ note.content }}</p>
-        </article>
+        </Motion>
       </div>
-    </section>
+    </Motion>
   </section>
 </template>
 
 <script setup>
+import { Motion } from 'motion-v'
 import '~/assets/css/components/AboutPage.styles.css'
+
+// 设置页面元数据
+useHead({
+  title: 'WyrmKk - 站长主页',
+  meta: [
+    {
+      name: 'description',
+      content: '站长主页，展示个人信息、项目和技术栈。'
+    }
+  ]
+})
 
 const router = useRouter()
 
@@ -222,7 +261,7 @@ const techStacks = [
   {
     title: '前端',
     icon: 'bi bi-cpu',
-    items: ['Nuxt 3', 'Vue 3', 'Pinia', '@vueuse/motion']
+    items: ['Nuxt 3', 'Vue 3', 'Pinia', 'motion-v']
   },
   {
     title: '后端',
@@ -232,7 +271,7 @@ const techStacks = [
   {
     title: 'UX Toolkit',
     icon: 'bi bi-palette',
-    items: ['Bootstrap 5', 'Tailwind CSS','Element Plus', '@vueuse/motion', 'Custom Animations']
+    items: ['Bootstrap 5', 'Tailwind CSS','Element Plus', 'motion-v', 'Custom Animations']
   },
     {
     title: '跨平台客户端',

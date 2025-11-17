@@ -21,7 +21,8 @@ export default defineNuxtConfig({
 
   // 模块配置
   modules: [
-    '@pinia/nuxt'
+    '@pinia/nuxt',
+    'motion-v/nuxt'
   ],
 
   // 依赖配置
