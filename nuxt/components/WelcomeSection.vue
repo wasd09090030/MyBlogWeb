@@ -43,8 +43,8 @@
       <!-- 顶部区域：公告 + 图标走马灯统一容器 -->
       <div class="top-section">
         <div class="announcement-text-content">
-          <h3 class="announcement-title">一个用于分享知识，资源的个人博客网站</h3>
-          <p class="announcement-subtitle">Build with .Net Core8.0 and Nuxt</p>
+          <h3 class="announcement-title">简洁、美观、高性能的个人网站</h3>
+          <p class="announcement-subtitle">Build with Asp.Net Core8.0 and Nuxt</p>
         </div>
         
         <!-- 图标走马灯 -->

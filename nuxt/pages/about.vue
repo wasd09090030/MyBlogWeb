@@ -118,8 +118,8 @@
     >
       <div class="section-header">
         <span>TOOLBOX</span>
-        <h2>常备技术 / 小伙伴</h2>
-        <p>这些技术栈让博客保持高可用，也让创作更自由。</p>
+        <h2>常备技术</h2>
+        <p>技多不压身</p>
       </div>
       <div class="tech-grid">
         <Motion
@@ -207,11 +207,11 @@ const ownerProfile = {
   tags: ['大学牲', '开摆', '天天打游戏','乐急典蚌孝','期末通关','私宅'],
   callSign: 'WyrmKk',
   location: '南京/盐城/无锡 随机刷新',
-  statusLine: '日常摸鱼'
+  statusLine: '摸鱼中'
 }
 
 const heroStats = [
-  { label: '年龄', value: '20+', caption: '每天摄入2000大卡' },
+  { label: '年龄', value: '20+', caption: '坚持每天摄入2000大卡' },
   { label: '项目', value: 'N+', caption: '写小垃圾自娱自乐' },
   { label: '冲浪经验', value: '∞', caption: '互联网乐子人' }
 ]
@@ -240,33 +240,33 @@ const highlightCards = [
 const projects = [
   {
     title: 'Blog API 中枢',
-    description: '.NET 8 + EntityFramework + PostgreSQL，负责全站内容流转。',
+    description: '.NET 8 + EntityFramework + Sqlite3，负责全站内容流转。',
     status: 'LIVE',
     vibe: 'REST · Swagger 可玩',
-    update: '每周夜更',
-    tags: ['.NET 8', 'PostgreSQL', 'JWT', 'Swagger'],
+    update: '坚持更新',
+    tags: ['.NET 8', 'Sqlite3', 'EFCore', 'Swagger'],
     cta: '查看接口蓝图',
     external: 'https://github.com/wasd09090030/MyBlogWeb/tree/master/backend-dotnet',
     accent: 'accent-violet'
   },
   {
-    title: 'Nuxt 前台花园',
+    title: 'Nuxt 前台构建',
     description: 'SSR + Pinia + 自定义动效，把内容和氛围一起呈现。',
     status: 'BETA',
     vibe: '互动动效控',
     update: '持续微调',
-    tags: ['Nuxt 3', 'Pinia', 'Swiper', '@vueuse/motion'],
+    tags: ['Nuxt 3', 'Pinia', 'Swiper', 'Motion-v'],
     cta: '回到首页',
     link: '/',
     accent: 'accent-sky'
   },
   {
-    title: 'Mini Gallery Bot',
-    description: '计划把画廊做成群聊机器人，随叫随分享高质量壁纸。',
-    status: 'PLAY',
+    title: 'SwiperJS 画廊',
+    description: '展示各个网站搜罗到的图，二次元为主，持续更新中。',
+    status: 'Show',
     vibe: '社群共创',
-    update: '筹备中',
-    tags: ['Serverless', 'Cloudflare', 'AI Tagging'],
+    update: '持续更新',
+    tags: ['Serverless', '二次元', '轮播图库'],
     cta: '浏览画廊',
     link: '/gallery',
     accent: 'accent-sunset'
