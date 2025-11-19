@@ -18,12 +18,16 @@
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  display: flex;
+  flex-direction: column;
+  /* 幻灯片与随机按钮之间保留间距，避免元素贴合或重叠 */
+  gap: 10px;
 }
 
 .swiper-container {
   width: 100%;
-  height: 100%;
-  border-radius: 12px;
+  flex: 1;
+  border-radius: 12px 12px 0 0;
   overflow: hidden;
 }
 
@@ -178,7 +182,8 @@
 
 /* Swiper分页器样式 */
 :deep(.swiper-pagination) {
-  bottom: 15px !important;
+  /* 将分页点稍微上移，避免与底部内容视觉上过于接近 */
+  bottom: 24px !important;
 }
 
 :deep(.swiper-pagination-bullet) {
@@ -194,6 +199,105 @@
   background: #fff !important;
   transform: scale(1.3);
   box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+}
+
+/* 随机文章按钮（重构：去掉夸张动画，采用更柔和的交互） */
+.random-article-btn {
+  height: 5vh;
+  min-height: 40px;
+  width: 100%;
+  background: linear-gradient(
+    135deg,
+    rgba(102, 126, 234, 0.95) 0%,
+    rgba(118, 75, 162, 0.95) 100%
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+  border-radius: 12px;
+  position: relative;
+  overflow: hidden;
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.95rem;
+  letter-spacing: 0.5px;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.12);
+  /* 只保留简洁的过渡，不再使用 keyframes 动画 */
+  transition:
+    transform 0.18s ease-out,
+    box-shadow 0.18s ease-out,
+    background 0.18s ease-out;
+}
+
+/* 柔和高光：hover 时轻微浮现，而不是整条高光扫过 */
+.random-article-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    circle at 0 0,
+    rgba(255, 255, 255, 0.22),
+    transparent 60%
+  );
+  opacity: 0;
+  transform: translateY(6px);
+  transition:
+    opacity 0.22s ease-out,
+    transform 0.22s ease-out;
+  pointer-events: none;
+}
+
+.random-article-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 -6px 18px rgba(102, 126, 234, 0.45);
+  background: linear-gradient(
+    135deg,
+    rgba(116, 137, 244, 1) 0%,
+    rgba(132, 90, 187, 1) 100%
+  );
+}
+
+.random-article-btn:hover::before {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.random-article-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 -3px 12px rgba(0, 0, 0, 0.2);
+}
+
+.btn-icon {
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  /* 删除原来的循环动画，改为轻微位移 */
+  transition:
+    transform 0.18s ease-out,
+    opacity 0.18s ease-out;
+}
+
+.btn-text {
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+  transition:
+    letter-spacing 0.18s ease-out,
+    transform 0.18s ease-out,
+    opacity 0.18s ease-out;
+}
+
+.random-article-btn:hover .btn-icon {
+  transform: translateX(2px);
+}
+
+.random-article-btn:hover .btn-text {
+  letter-spacing: 1.5px;
+  transform: translateX(1px);
+  opacity: 0.95;
 }
 
 /* 右侧信息区域 */
@@ -428,19 +532,24 @@
     height: auto;
     gap: 15px;
   }
-  
+
   .carousel-section {
-    height: 35vh;
+    height: 40vh;
     flex: none;
   }
-  
+
   .info-section {
     flex: none;
     height: auto;
   }
-  
+
   .bottom-cards {
     flex-direction: row;
+  }
+
+  .random-article-btn {
+    height: 45px;
+    min-height: 45px;
   }
 }
 
@@ -582,6 +691,16 @@
 }
 
 /* 暗色主题适配 */
+[data-bs-theme="dark"] .random-article-btn {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.85) 0%, rgba(118, 75, 162, 0.85) 100%);
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3);
+}
+
+[data-bs-theme="dark"] .random-article-btn:hover {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 1) 0%, rgba(118, 75, 162, 1) 100%);
+  box-shadow: 0 -4px 15px rgba(102, 126, 234, 0.5);
+}
+
 [data-bs-theme="dark"] .info-card {
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
 }
@@ -650,6 +769,165 @@
 
 [data-bs-theme="dark"] .carousel-slide.active .slide-card {
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+/* 淡蓝配色覆盖：随机文章按钮最终样式 */
+.random-article-btn {
+  height: 5vh;
+  min-height: 44px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+  outline: none;
+  z-index: 0;
+  border: 1px solid rgba(129, 179, 255, 0.9);
+  background: rgba(239, 246, 255, 0.96);
+  color: #2563eb;
+  font-weight: 600;
+  font-size: 0.95rem;
+  letter-spacing: 0.6px;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.06);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition:
+    transform 0.22s ease-out,
+    box-shadow 0.22s ease-out,
+    border-color 0.22s ease-out,
+    color 0.22s ease-out,
+    background-color 0.22s ease-out;
+}
+
+.random-article-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 100%;
+  z-index: -1;
+  background: linear-gradient(
+    135deg,
+    #bfdbfe 0%,
+    #93c5fd 50%,
+    #60a5fa 100%
+  );
+  transition: width 0.28s ease-out;
+}
+
+.random-article-btn:hover::before {
+  width: 115%;
+}
+
+.random-article-btn:hover {
+  color: #fff;
+  border-color: rgba(191, 219, 254, 0.9);
+  transform: translateY(-1px);
+  box-shadow: 0 -6px 20px rgba(96, 165, 250, 0.45);
+}
+
+.random-article-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 -3px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* 覆盖随机文章按钮样式：滑动填充 + 渐变玻璃效果 */
+.random-article-btn {
+  height: 5vh;
+  min-height: 44px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+  outline: none;
+  z-index: 0;
+  border: 1px solid rgba(129, 179, 255, 0.9);
+  background: rgba(239, 246, 255, 0.96);
+  color: #2563eb;
+  font-weight: 600;
+  font-size: 0.95rem;
+  letter-spacing: 0.6px;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.06);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition:
+    transform 0.22s ease-out,
+    box-shadow 0.22s ease-out,
+    border-color 0.22s ease-out,
+    color 0.22s ease-out,
+    background-color 0.22s ease-out;
+}
+
+.random-article-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 100%;
+  z-index: -1;
+  background: linear-gradient(
+    135deg,
+    #bfdbfe 0%,
+    #93c5fd 50%,
+    #60a5fa 100%
+  );
+  transition: width 0.28s ease-out;
+}
+
+.random-article-btn:hover::before {
+  width: 115%;
+}
+
+.random-article-btn:hover {
+  color: #fff;
+  border-color: rgba(191, 219, 254, 0.9);
+  transform: translateY(-1px);
+  box-shadow: 0 -6px 20px rgba(96, 165, 250, 0.45);
+}
+
+.random-article-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 -3px 12px rgba(0, 0, 0, 0.2);
+}
+
+.btn-icon {
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  transition:
+    transform 0.2s ease-out,
+    opacity 0.2s ease-out;
+}
+
+.btn-text {
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.8px;
+  transition:
+    letter-spacing 0.2s ease-out,
+    transform 0.2s ease-out,
+    opacity 0.2s ease-out;
+}
+
+.random-article-btn:hover .btn-icon {
+  transform: translateX(3px);
+}
+
+.random-article-btn:hover .btn-text {
+  letter-spacing: 1.4px;
+  transform: translateX(1px);
+  opacity: 0.96;
 }
 
 [data-bs-theme="dark"] .slide-card {

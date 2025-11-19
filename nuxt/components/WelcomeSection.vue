@@ -1,40 +1,50 @@
 <template>
   <div class="welcome-section">
-    <!-- 左侧幻灯片轮播区域 -->
-    <div class="carousel-section">
-      <div class="swiper-container" ref="swiperContainer">
-        <div class="swiper-wrapper">
-          <div
-            v-for="(slide, index) in slides"
-            :key="`slide-${slide.id}-${index}`"
-            class="swiper-slide carousel-slide"
-            @click="slide.id ? goToArticle(slide.id) : null"
-            :style="{ cursor: slide.id ? 'pointer' : 'default' }"
-          >
-            <div class="slide-card">
-              <div
-                class="slide-background"
-                :style="{ backgroundImage: `url(${slide.coverImage})` }"
-              ></div>
-              <div class="slide-gradient"></div>
-              <div class="slide-category-badge">{{ getCategoryName(slide.category) }}</div>
-              <div class="slide-content">
-                <h3 class="slide-title">{{ slide.title }}</h3>
+    <!-- 左侧幻灯片轮播区域包裹容器 -->
+    <div class="carousel-wrapper">
+      <div class="carousel-section">
+        <div class="swiper-container" ref="swiperContainer">
+          <div class="swiper-wrapper">
+            <div
+              v-for="(slide, index) in slides"
+              :key="`slide-${slide.id}-${index}`"
+              class="swiper-slide carousel-slide"
+              @click="slide.id ? goToArticle(slide.id) : null"
+              :style="{ cursor: slide.id ? 'pointer' : 'default' }"
+            >
+              <div class="slide-card">
+                <div
+                  class="slide-background"
+                  :style="{ backgroundImage: `url(${slide.coverImage})` }"
+                ></div>
+                <div class="slide-gradient"></div>
+                <div class="slide-category-badge">{{ getCategoryName(slide.category) }}</div>
+                <div class="slide-content">
+                  <h3 class="slide-title">{{ slide.title }}</h3>
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        <!-- 导航按钮 -->
-        <div class="swiper-button-next carousel-nav-btn carousel-nav-next">
-          <i class="bi bi-chevron-right"></i>
-        </div>
-        <div class="swiper-button-prev carousel-nav-btn carousel-nav-prev">
-          <i class="bi bi-chevron-left"></i>
-        </div>
+          <!-- 导航按钮 -->
+          <div class="swiper-button-next carousel-nav-btn carousel-nav-next">
+            <i class="bi bi-chevron-right"></i>
+          </div>
+          <div class="swiper-button-prev carousel-nav-btn carousel-nav-prev">
+            <i class="bi bi-chevron-left"></i>
+          </div>
 
-        <!-- 分页器 -->
-        <div class="swiper-pagination"></div>
+          <!-- 分页器 -->
+          <div class="swiper-pagination"></div>
+        </div>
+      </div>
+
+      <!-- 随机文章按钮 -->
+      <div class="random-article-btn" @click="goToRandomArticle">
+        <div class="btn-icon">
+          <i class="bi bi-shuffle"></i>
+        </div>
+        <span class="btn-text">随机阅读</span>
       </div>
     </div>
 
@@ -129,7 +139,7 @@ const loading = ref(false)
 let swiperInstance = null
 
 // API composable
-const { getFeaturedArticles, getArticles } = useArticles()
+const { getFeaturedArticles, getArticles, getAllArticles } = useArticles()
 
 // 获取推荐文章数据 - 专为轮播设计的轻量级API
 const fetchFeaturedArticles = async () => {
@@ -283,6 +293,46 @@ const goToGallery = () => {
 
 const goToAbout = () => {
   router.push('/about')
+}
+
+// 随机跳转文章
+const goToRandomArticle = async () => {
+  try {
+    let articles = []
+
+    // 优先从已加载的轮播文章中随机选择（最快）
+    if (slides.value && slides.value.length > 0) {
+      articles = slides.value
+      console.log('从轮播文章中随机选择，共', articles.length, '篇')
+    } else {
+      // 如果轮播文章为空，获取所有文章
+      console.log('获取所有文章...')
+      const allArticles = await getAllArticles()
+
+      if (allArticles && allArticles.length > 0) {
+        articles = allArticles
+        console.log('成功获取所有文章，共', articles.length, '篇')
+      } else {
+        console.warn('没有找到可用的文章')
+        return
+      }
+    }
+
+    // 从文章列表中随机选择一篇
+    if (articles.length > 0) {
+      const randomIndex = Math.floor(Math.random() * articles.length)
+      const randomArticle = articles[randomIndex]
+
+      if (randomArticle && randomArticle.id) {
+        console.log('随机跳转到文章:', randomArticle.id, '-', randomArticle.title)
+        router.push(`/article/${randomArticle.id}`)
+      } else {
+        console.warn('选中的文章没有有效的ID')
+      }
+    }
+  } catch (error) {
+    console.error('获取随机文章失败:', error)
+  }
 }
 
 // 销毁Swiper实例

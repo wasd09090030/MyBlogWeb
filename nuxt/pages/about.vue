@@ -138,47 +138,6 @@
       </div>
     </Motion>
 
-    <Motion
-      tag="section"
-      class="status-section"
-      :initial="sectionMotion.initial"
-      :animate="sectionMotion.enter"
-    >
-      <div class="section-header">
-        <span>CURRENT STATUS</span>
-        <h2>最近在玩 / 当前状态</h2>
-        <p>实时更新，记录当前正在进行的游戏、项目和学习内容。</p>
-      </div>
-      <div class="status-grid">
-        <Motion
-          v-for="(activity, index) in currentActivities"
-          :key="activity.title"
-          tag="article"
-          class="status-card"
-          :data-type="activity.type"
-          :initial="getNoteMotion(index).initial"
-          :animate="getNoteMotion(index).enter"
-        >
-          <div class="status-header">
-            <div class="status-icon" :style="{ background: activity.iconBg }">
-              <i :class="activity.icon"></i>
-            </div>
-            <div class="status-meta">
-              <span class="status-type">{{ activity.type }}</span>
-              <h4 class="status-title">{{ activity.title }}</h4>
-            </div>
-          </div>
-          <p class="status-desc">{{ activity.description }}</p>
-          <div class="status-footer">
-            <span class="status-time"><i class="bi bi-clock"></i> {{ activity.time }}</span>
-            <span class="status-progress" :class="'progress-' + activity.status">{{ activity.statusText }}</span>
-          </div>
-          <div v-if="activity.progress !== undefined" class="progress-bar">
-            <div class="progress-fill" :style="{ width: activity.progress + '%' }"></div>
-          </div>
-        </Motion>
-      </div>
-    </Motion>
   </section>
 </template>
 
@@ -301,73 +260,6 @@ const techStacks = [
   }
 ]
 
-const currentActivities = [
-  {
-    type: '游戏',
-    title: '原神 · 须弥主线',
-    description: '正在肝须弥世界任务，顺便养成新角色。',
-    icon: 'bi bi-controller',
-    iconBg: 'linear-gradient(135deg, #a78bfa, #7c3aed)',
-    time: '最近 3 天',
-    status: 'active',
-    statusText: '进行中',
-    progress: 65
-  },
-  {
-    type: '开发',
-    title: '博客评论系统',
-    description: '正在实现实时评论功能，支持表情和 Markdown 语法。',
-    icon: 'bi bi-code-slash',
-    iconBg: 'linear-gradient(135deg, #60a5fa, #3b82f6)',
-    time: '本周',
-    status: 'active',
-    statusText: '开发中',
-    progress: 40
-  },
-  {
-    type: '学习',
-    title: 'Rust 异步编程',
-    description: '深入学习 Tokio 和 async/await，准备重构部分后端服务。',
-    icon: 'bi bi-book',
-    iconBg: 'linear-gradient(135deg, #f97316, #ea580c)',
-    time: '2 周前开始',
-    status: 'learning',
-    statusText: '学习中',
-    progress: 30
-  },
-  {
-    type: '游戏',
-    title: 'Elden Ring DLC',
-    description: '正在探索黄金树幽影，已经被 Boss 干碎 N 次了。',
-    icon: 'bi bi-joystick',
-    iconBg: 'linear-gradient(135deg, #fbbf24, #f59e0b)',
-    time: '上周末',
-    status: 'paused',
-    statusText: '暂停中',
-    progress: 20
-  },
-  {
-    type: '折腾',
-    title: '自建 NAS 服务',
-    description: '配置家庭 NAS，搭建 Jellyfin 媒体服务器和自动备份系统。',
-    icon: 'bi bi-hdd-network',
-    iconBg: 'linear-gradient(135deg, #34d399, #10b981)',
-    time: '本月',
-    status: 'active',
-    statusText: '配置中',
-    progress: 50
-  },
-  {
-    type: '创作',
-    title: 'Nuxt 优化实践文章',
-    description: '整理博客性能优化心得，准备发布一篇技术文章。',
-    icon: 'bi bi-pen',
-    iconBg: 'linear-gradient(135deg, #fb7185, #f43f5e)',
-    time: '构思中',
-    status: 'planning',
-    statusText: '计划中'
-  }
-]
 
 const createMotion = (delay = 0.1, offset = 24) => ({
   initial: { opacity: 0, y: offset },
@@ -402,8 +294,6 @@ const getProjectMotion = (index) => ({
     }
   }
 })
-
-const getNoteMotion = (index) => createMotion(0.2 + index * 0.05, 18)
 
 const goToArticles = () => {
   router.push({ path: '/', query: { category: 'work' } })
