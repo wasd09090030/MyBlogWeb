@@ -117,10 +117,10 @@
   padding: 18px;
   z-index: 2;
   color: white;
-  text-align: center;
+  text-align: left;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   justify-content: flex-end;
 }
 
@@ -135,7 +135,7 @@
   line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  max-width: 85%;
+  max-width: 90%;
 }
 
 /* 导航按钮样式 */
@@ -173,17 +173,26 @@
 }
 
 .carousel-nav-prev {
-  left: 15px !important;
+  right: 60px !important;
+  left: auto !important;
+  bottom: 15px !important;
+  top: auto !important;
 }
 
 .carousel-nav-next {
   right: 15px !important;
+  bottom: 15px !important;
+  top: auto !important;
 }
 
 /* Swiper分页器样式 */
 :deep(.swiper-pagination) {
   /* 将分页点稍微上移，避免与底部内容视觉上过于接近 */
-  bottom: 24px !important;
+  bottom: 12px !important;
+  left: 20% !important;
+  right: auto !important;
+  width: auto !important;
+  text-align: left !important;
 }
 
 :deep(.swiper-pagination-bullet) {
@@ -622,13 +631,16 @@
     height: 35px !important;
     font-size: 0.9rem;
   }
-  
+
   .carousel-nav-prev {
-    left: 10px !important;
+    right: 50px !important;
+    left: auto !important;
+    bottom: 10px !important;
   }
-  
+
   .carousel-nav-next {
     right: 10px !important;
+    bottom: 10px !important;
   }
   
   .slide-content {
@@ -680,13 +692,16 @@
     height: 30px !important;
     font-size: 0.8rem;
   }
-  
+
   .carousel-nav-prev {
-    left: 8px !important;
+    right: 45px !important;
+    left: auto !important;
+    bottom: 8px !important;
   }
-  
+
   .carousel-nav-next {
     right: 8px !important;
+    bottom: 8px !important;
   }
 }
 
