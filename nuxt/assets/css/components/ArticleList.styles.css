@@ -197,43 +197,91 @@
   -webkit-box-orient: vertical;
 }
 
-/* 阅读更多按钮 */
-.read-more-btn {
-  display: inline-flex;
-  align-items: center;
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: #007bff;
-  text-decoration: none;
-  transition: all 0.3s ease;
-  align-self: flex-start;
+
+.learn-more {
   position: relative;
-  overflow: hidden;
+  display: inline-block;
+  cursor: pointer;
+  outline: none;
+  border: 0;
+  vertical-align: middle;
+  text-decoration: none;
+  background: transparent;
+  padding: 0;
+  font-size: inherit;
+  font-family: inherit;
+  width: 12rem;
+  height: auto;
+  margin-top: 1rem;
 }
 
-.read-more-btn::before {
-  content: '';
+.learn-more .circle {
+  transition: all 0.45s cubic-bezier(0.65, 0, 0.076, 1);
+  position: relative;
+  display: block;
+  margin: 0;
+  width: 3rem;
+  height: 3rem;
+  background: #282936;
+  border-radius: 1.625rem;
+}
+
+.learn-more .circle .icon {
+  transition: all 0.45s cubic-bezier(0.65, 0, 0.076, 1);
   position: absolute;
   top: 0;
-  left: -100%;
+  bottom: 0;
+  margin: auto;
+  background: #fff;
+}
+
+.learn-more .circle .icon.arrow {
+  transition: all 0.45s cubic-bezier(0.65, 0, 0.076, 1);
+  left: 0.625rem;
+  width: 1.125rem;
+  height: 0.125rem;
+  background: none;
+}
+
+.learn-more .circle .icon.arrow::before {
+  position: absolute;
+  content: "";
+  top: -0.29rem;
+  right: 0.0625rem;
+  width: 0.625rem;
+  height: 0.625rem;
+  border-top: 0.125rem solid #fff;
+  border-right: 0.125rem solid #fff;
+  transform: rotate(45deg);
+}
+
+.learn-more .button-text {
+  transition: all 0.45s cubic-bezier(0.65, 0, 0.076, 1);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 0.75rem 0;
+  margin: 0 0 0 1.85rem;
+  color: #1787ff;
+  font-weight: 700;
+  line-height: 1.6;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.learn-more:hover .circle {
   width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-  transition: left 0.5s;
 }
 
-.read-more-btn:hover::before {
-  left: 100%;
+.learn-more:hover .circle .icon.arrow {
+  background: #fff;
+  transform: translate(1rem, 0);
 }
 
-.read-more-btn:hover {
-  color: #0056b3;
-  text-decoration: none;
-  transform: translateX(5px);
-}
-
-.read-more-btn:hover i {
-  animation: bounce 1s infinite;
+.learn-more:hover .button-text {
+  color: #fff;
 }
 
 @keyframes bounce {
@@ -445,13 +493,6 @@
   background: linear-gradient(135deg, #2d3748, #1a202c);
 }
 
-.dark-theme .read-more-btn {
-  color: #4299e1;
-}
-
-.dark-theme .read-more-btn:hover {
-  color: #63b3ed;
-}
 
 /* 分页样式 */
 .pagination-container {

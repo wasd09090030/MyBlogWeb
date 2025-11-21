@@ -72,9 +72,11 @@
               <div v-html="getExcerpt(article.content)" class="article-content-preview"></div>
             </div>
 
-            <NuxtLink :to="getArticleDetailRoute(article.id)" class="read-more-btn">
-              阅读全文
-              <i class="bi bi-arrow-right ms-1"></i>
+            <NuxtLink :to="getArticleDetailRoute(article.id)" class="learn-more">
+              <span class="circle" aria-hidden="true">
+                <span class="icon arrow"></span>
+              </span>
+              <span class="button-text">阅读全文</span>
             </NuxtLink>
           </div>
         </div>
@@ -163,9 +165,11 @@
               <div v-html="getExcerpt(article.content)" class="article-content-preview"></div>
             </div>
 
-            <NuxtLink :to="getArticleDetailRoute(article.id)" class="read-more-btn">
-              阅读全文
-              <i class="bi bi-arrow-right ms-1"></i>
+            <NuxtLink :to="getArticleDetailRoute(article.id)" class="learn-more">
+              <span class="circle" aria-hidden="true">
+                <span class="icon arrow"></span>
+              </span>
+              <span class="button-text">阅读全文</span>
             </NuxtLink>
           </div>
         </div>
