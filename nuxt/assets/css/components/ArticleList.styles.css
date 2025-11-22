@@ -250,6 +250,7 @@
 /* 文章元信息 */
 .article-meta {
   display: flex;
+  justify-content: flex-start;
   flex-wrap: wrap;
   gap: 0.5rem;
   margin-bottom: 1rem;

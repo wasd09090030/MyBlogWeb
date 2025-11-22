@@ -141,7 +141,7 @@ const scrollToHeading = (headingId) => {
   }, 2000);
 };
 
-// 处理滚动事件
+// 处理滚动事件 - 仅用于阅读进度
 const handleScroll = () => {
   if (headings.value.length === 0) return;
   
@@ -153,28 +153,32 @@ const handleScroll = () => {
   const maxScroll = documentHeight - windowHeight;
   const progress = maxScroll > 0 ? (scrollTop / maxScroll) * 100 : 0;
   readingProgress.value = Math.min(Math.max(progress, 0), 100);
+};
+
+// 使用 IntersectionObserver 优化标题高亮
+let observer = null;
+
+const setupIntersectionObserver = () => {
+  if (observer) observer.disconnect();
   
-  // 确定当前活跃的标题
-  let currentActiveHeading = '';
-  const buffer = 100; // 缓冲区域
+  const options = {
+    root: null,
+    rootMargin: '-70px 0px -80% 0px', // 调整触发区域，使其更符合阅读习惯
+    threshold: 0
+  };
   
-  // 从下往上检查，找到第一个在视口上方的标题
-  for (let i = headings.value.length - 1; i >= 0; i--) {
-    const heading = headings.value[i];
-    const element = document.getElementById(heading.id);
-    
-    if (element) {
-      const rect = element.getBoundingClientRect();
-      const elementTop = rect.top + scrollTop;
-      
-      if (scrollTop >= elementTop - buffer) {
-        currentActiveHeading = heading.id;
-        break;
+  observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        activeHeading.value = entry.target.id;
       }
-    }
-  }
+    });
+  }, options);
   
-  activeHeading.value = currentActiveHeading;
+  headings.value.forEach(heading => {
+    const element = document.getElementById(heading.id);
+    if (element) observer.observe(element);
+  });
 };
 
 // 初始化折叠状态
@@ -216,11 +220,15 @@ onMounted(() => {
   // 初始调用
   handleScroll();
   handleResize();
+  
+  // 设置观察器
+  setTimeout(setupIntersectionObserver, 500);
 });
 
 onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll);
   window.removeEventListener('resize', handleResize);
+  if (observer) observer.disconnect();
 });
 </script>
 

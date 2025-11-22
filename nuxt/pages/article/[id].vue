@@ -11,7 +11,7 @@
     </div>
 
     <div v-else-if="article" class="article-container card shadow-sm">
-      <div class="card-body">
+      <div class="card-body article-layout-wrapper">
         <!-- 文章结构组件 - 在大屏幕上固定在右侧，在小屏幕上显示在顶部 -->
         <div class="article-structure-wrapper">
           <ArticleStructure :article-content="article.content" />
@@ -29,15 +29,17 @@
             />
           </div>
 
-          <div class="article-header mb-4 header-fade-in">
+          <div class="article-header header-fade-in">
             <h1 class="article-title">{{ article.title }}</h1>
             <div class="article-meta">
-              <span class="badge" :class="getCategoryBadgeClass(article.category)">
-                {{ getCategoryName(article.category) }}
+              <span class="badge rounded-pill px-3 py-2" :class="getCategoryBadgeClass(article.category)">
+                <i class="bi bi-folder2-open me-1"></i>{{ getCategoryName(article.category) }}
               </span>
-              <span class="badge bg-secondary ms-2">{{ formatDate(article.createdAt) }}</span>
-              <span v-if="article.updatedAt && article.updatedAt !== article.createdAt" class="ms-2 text-muted">
-                最后更新: {{ formatDate(article.updatedAt) }}
+              <span class="badge rounded-pill bg-secondary px-3 py-2">
+                <i class="bi bi-calendar3 me-1"></i>{{ formatDate(article.createdAt) }}
+              </span>
+              <span v-if="article.updatedAt && article.updatedAt !== article.createdAt" class="text-muted d-inline-flex align-items-center small">
+                <i class="bi bi-pencil-square me-1"></i>更新: {{ formatDate(article.updatedAt) }}
               </span>
             </div>
           </div>
@@ -78,6 +80,7 @@
 import { useArticles } from '~/composables/useArticles'
 import ArticleStructure from '~/components/ArticleStructure.vue'
 import CommentSection from '~/components/CommentSection.vue'
+import '~/assets/css/components/ArticleDetail.styles.css'
 
 // 动态导入 highlight.js 和 katex
 let hljs = null
