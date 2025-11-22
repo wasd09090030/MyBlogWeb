@@ -259,8 +259,8 @@ const ownerProfile = {
   name: 'WyrmKk',
   alias: 'Fullstack Dev',
   role: 'Developer & Gamer',
-  description: '热衷探索，最爱白嫖；常年开摆，偶尔奋起，三天写代码两天查Bug',
-  tags: ['大学生','全栈开发', '.NET', 'Vue/Nuxt', '开源爱好者', '休闲玩家','Duelist','宝藏猎人','galgame高手','PJSK低手','赤石大王'],
+  description: '热衷探索,最爱白嫖;常年开摆,偶尔奋起,三天写代码两天查Bug',
+  tags: ['大学生','全栈', '.NET', 'Vue/Nuxt', '开源爱好者', '休闲玩家','Duelist','宝藏猎人','galgame高手','PJSK低手','赤石大王'],
   callSign: 'WyrmKk',
   location: 'Jiangsu, CN',
   statusLine: '正在构建下一个有趣的项目...'
@@ -326,7 +326,7 @@ const projects = [
   },
     {
     title: 'Unity2D Mario Game',
-    description: '类似马里奥的2D平台跳跃游戏，包含三个关卡和敌人设计。',
+    description: '类似马里奥的2D平台跳跃游戏，包含三个关卡和不同的敌人设计。',
     status: 'Playable',
     update: 'Playable Demo',
     tags: ['Unity2D', 'WebGL', 'C#'],
@@ -353,6 +353,36 @@ const projects = [
     cta: 'Repo',
     external: 'https://github.com/wasd09090030/Flutter_musicPlayer',
     accent: 'theme-dark'
+  },
+  {
+    title: 'Live2D Miku',
+    description: '基于Electron和Live2D SDK开发的桌面宠物，支持多种互动功能以及即时的AI api对话。',
+    status: 'Release',
+    update: 'V1.0',
+    tags: ['Electron', 'JS', 'Live2D'],
+    cta: 'Repo',
+    external: 'https://github.com/wasd09090030/live2Dpet_Miku',
+    accent: 'theme-LightGreen'
+  },
+    {
+    title: 'Bilibili大数据可视化面板',
+    description: '一个现代化的数据可视化平台，基于 React + FastAPI + ECharts 构建，提供多种交互式图表展示和数据分析功能',
+    status: 'Release',
+    update: 'V1.0',
+    tags: ['React', 'ECharts', 'Python'],
+    cta: 'Repo',
+    external: 'https://github.com/wasd09090030/BigData_EChart',
+    accent: 'theme-LightPink'
+  },
+   {
+    title: 'QT后台交易管理系统',
+    description: '使用QT开发的管理系统课设，使用Sqlite3储存数据，QT内置的图表实现可视化。',
+    status: 'Debug',
+    update: 'Source Code',
+    tags: ['QT', 'C++'],
+    cta: 'Repo',
+    external: 'https://github.com/wasd09090030/Qwidget-Management_System',
+    accent: 'theme-LightOrange'
   }
 ]
 

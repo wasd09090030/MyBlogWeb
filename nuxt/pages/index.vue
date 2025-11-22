@@ -1,213 +1,175 @@
 <template>
   <div class="article-list-page" ref="articleListContainer">
-    <div class="d-flex align-items-center mb-4 pb-2 border-bottom pagetitle">
-      <img src="/icon/IcBaselineLibraryBooks.svg" alt="icon" style="height: 28px;" />
-      <h3 class="mb-0 ms-2">{{ pageTitle }}</h3>
-    </div>
+    <div class="page-header">
+      <div class="page-header__title">
+        <div class="page-header__icon">
+          <img src="/icon/IcBaselineLibraryBooks.svg" alt="文章列表图标" />
+        </div>
+        <div class="page-header__title-text">
+          <h1 class="page-header__heading">{{ pageTitle }}</h1>
+          <p class="page-header__subtitle">{{ pageDescription }}</p>
+        </div>
+      </div>
 
-    <div v-if="error" class="alert alert-danger" role="alert">
-      加载或操作文章失败: {{ error.message }}
-    </div>
-
-    <div v-if="route.query.search" class="mb-4">
-      <div class="alert alert-info">
-        搜索结果： "{{ route.query.search }}"
-        <button class="btn btn-sm btn-outline-secondary ms-3" @click="clearSearch">
-          <i class="bi bi-x-circle me-1"></i>清除搜索
+      <div class="page-header__actions" role="group" aria-label="视图切换">
+        <button
+          type="button"
+          class="view-toggle-btn"
+          :class="{ active: isListView }"
+          @click="setViewMode('list')"
+          :aria-pressed="isListView"
+        >
+          <i class="bi bi-view-stacked me-1"></i>列表视图
+        </button>
+        <button
+          type="button"
+          class="view-toggle-btn"
+          :class="{ active: isGridView }"
+          @click="setViewMode('grid')"
+          :aria-pressed="isGridView"
+        >
+          <i class="bi bi-grid-3x3-gap-fill me-1"></i>网格视图
         </button>
       </div>
     </div>
 
-    <!-- 显示筛选结果 -->
-    <template v-if="route.query.search || route.query.category">
-      <!-- 加载状态 -->
-      <SkeletonLoader
-        v-if="loading && useSkeletonLoader"
-        :count="4"
-      />
-      <LoadingSpinner
-        v-else-if="loading"
-        text="正在搜索文章..."
-        :size="'medium'"
-      />
+    <div v-if="error" class="alert alert-danger" role="alert">
+      加载或操作文章失败：{{ error.message }}
+    </div>
 
-      <div v-else-if="paginatedFilteredArticles.length" class="articles-container">
-        <div
-          v-for="(article, index) in paginatedFilteredArticles"
-          :key="article.id"
-          v-memo="[article.id, article.title, article.coverImage, article.createdAt, article.category, currentFilteredPage, route.query.search, route.query.category]"
-          :class="['article-card',  { 'article-card-reverse': (currentFilteredIndex + index + 1) % 2 === 0 }]"
-        >
-          <!-- 封面图片区域 -->
-          <div class="article-image-section">
-            <img
-              v-if="article.coverImage && article.coverImage !== 'null'"
-              :src="article.coverImage"
-              :alt="article.title"
-              class="article-image lazy-image"
-              style="height: 300px; aspect-ratio: 16/9; object-fit: cover; width: 100%;"
-              @error="handleImageError"
-              @load="handleImageLoad"
-              loading="lazy"
-            />
-            <div v-else class="article-image-placeholder">
-              <i class="bi bi-image fs-1 text-muted"></i>
-            </div>
-          </div>
+    <div v-if="route.query.search || route.query.category" class="mb-4">
+      <div class="alert alert-info d-flex flex-wrap align-items-center justify-content-between gap-2">
+        <div class="d-flex flex-wrap align-items-center gap-3">
+          <span v-if="route.query.search">搜索结果：“{{ route.query.search }}”</span>
+          <span v-if="route.query.category">分类筛选：{{ getCategoryName(route.query.category) }}</span>
+        </div>
+        <button class="btn btn-sm btn-outline-secondary" @click="clearSearch">
+          <i class="bi bi-x-circle me-1"></i>清除条件
+        </button>
+      </div>
+    </div>
 
-          <!-- 内容区域 -->
-          <div class="article-content-section">
-            <div class="article-meta mb-2">
-              <span class="article-date">{{ formatDate(article.createdAt) }}</span>
-              <span :class="['article-category', getCategoryClass(article.category)]">
-                {{ getCategoryName(article.category) }}
-              </span>
-            </div>
+    <SkeletonLoader
+      v-if="loading && useSkeletonLoader"
+      :count="4"
+    />
+    <LoadingSpinner
+      v-else-if="loading"
+      :text="loadingText"
+      size="medium"
+    />
 
-            <NuxtLink :to="getArticleDetailRoute(article.id)" class="article-title-link">
-              <h3 class="article-title">{{ article.title }}</h3>
-            </NuxtLink>
-
-            <div class="article-excerpt">
-              <div v-html="getExcerpt(article.content)" class="article-content-preview"></div>
-            </div>
-
-            <NuxtLink :to="getArticleDetailRoute(article.id)" class="learn-more">
-              <span class="circle" aria-hidden="true">
-                <span class="icon arrow"></span>
-              </span>
-              <span class="button-text">阅读全文</span>
-            </NuxtLink>
+    <TransitionGroup
+      v-else-if="listContext.articles.length"
+      tag="div"
+      name="layout-fade"
+      :class="articlesContainerClasses"
+    >
+      <div
+        v-for="(article, index) in listContext.articles"
+        :key="article.id"
+        v-memo="[article.id, article.title, article.coverImage, article.createdAt, article.category, listContext.currentPage, viewMode]"
+        :class="[
+          'article-card',
+          {
+            'article-card-reverse': isListView && (listContext.indexOffset + index + 1) % 2 === 0,
+            'article-card-grid': isGridView
+          }
+        ]"
+      >
+        <!-- 封面图片区域 -->
+        <div class="article-image-section">
+          <img
+            v-if="article.coverImage && article.coverImage !== 'null'"
+            :src="article.coverImage"
+            :alt="article.title"
+            class="article-image lazy-image"
+            style="height: 300px; aspect-ratio: 16/9; object-fit: cover; width: 100%;"
+            @error="handleImageError"
+            @load="handleImageLoad"
+            loading="lazy"
+          />
+          <div v-else class="article-image-placeholder">
+            <i class="bi bi-image fs-1 text-muted"></i>
           </div>
         </div>
-      </div>
 
-      <!-- 分页控件 - 筛选结果 -->
-      <div v-if="totalFilteredPages > 1" class="pagination-container mt-4">
-        <nav aria-label="筛选结果分页">
-          <ul class="pagination justify-content-center">
-            <li class="page-item" :class="{ disabled: currentFilteredPage === 1 }">
-              <button class="page-link" @click="goToFilteredPage(currentFilteredPage - 1)" :disabled="currentFilteredPage === 1">
-                <i class="bi bi-chevron-left"></i>
-              </button>
-            </li>
-
-            <li v-for="page in getFilteredPageNumbers()" :key="page" class="page-item" :class="{ active: page === currentFilteredPage }">
-              <button v-if="page === '...'" class="page-link disabled">...</button>
-              <button v-else class="page-link" @click="goToFilteredPage(page)">{{ page }}</button>
-            </li>
-
-            <li class="page-item" :class="{ disabled: currentFilteredPage === totalFilteredPages }">
-              <button class="page-link" @click="goToFilteredPage(currentFilteredPage + 1)" :disabled="currentFilteredPage === totalFilteredPages">
-                <i class="bi bi-chevron-right"></i>
-              </button>
-            </li>
-          </ul>
-        </nav>
-
-        <div class="text-center text-muted mt-2">
-          共 {{ filteredArticles.length }} 篇文章，第 {{ currentFilteredPage }} / {{ totalFilteredPages }} 页
-        </div>
-      </div>
-    </template>
-
-    <!-- 默认显示所有文章 -->
-    <template v-else>
-      <!-- 加载状态 -->
-      <SkeletonLoader
-        v-if="loading && useSkeletonLoader"
-        :count="4"
-      />
-      <LoadingSpinner
-        v-else-if="loading"
-        text="正在加载文章列表..."
-        :size="'medium'"
-      />
-
-      <div v-else-if="paginatedArticles.length" class="articles-container">
-        <div
-          v-for="(article, index) in paginatedArticles"
-          :key="article.id"
-          v-memo="[article.id, article.title, article.coverImage, article.createdAt, article.category, currentPage]"
-          :class="['article-card', { 'article-card-reverse': (currentIndex + index + 1) % 2 === 0 }]"
-        >
-          <!-- 封面图片区域 -->
-          <div class="article-image-section">
-            <img
-              v-if="article.coverImage && article.coverImage !== 'null'"
-              :src="article.coverImage"
-              :alt="article.title"
-              class="article-image lazy-image"
-              style="height: 300px; aspect-ratio: 16/9; object-fit: cover; width: 100%;"
-              @error="handleImageError"
-              @load="handleImageLoad"
-              loading="lazy"
-            />
-            <div v-else class="article-image-placeholder">
-              <i class="bi bi-image fs-1 text-muted"></i>
-            </div>
+        <!-- 内容区域 -->
+        <div class="article-content-section">
+          <div class="article-meta mb-2">
+            <span class="article-date">{{ formatDate(article.createdAt) }}</span>
+            <span :class="['article-category', getCategoryClass(article.category)]">
+              {{ getCategoryName(article.category) }}
+            </span>
           </div>
 
-          <!-- 内容区域 -->
-          <div class="article-content-section">
-            <div class="article-meta mb-2">
-              <span class="article-date">{{ formatDate(article.createdAt) }}</span>
-              <span :class="['article-category', getCategoryClass(article.category)]">
-                {{ getCategoryName(article.category) }}
-              </span>
-            </div>
+          <NuxtLink :to="getArticleDetailRoute(article.id)" class="article-title-link">
+            <h3 class="article-title">{{ article.title }}</h3>
+          </NuxtLink>
 
-            <NuxtLink :to="getArticleDetailRoute(article.id)" class="article-title-link">
-              <h3 class="article-title">{{ article.title }}</h3>
-            </NuxtLink>
-
-            <div class="article-excerpt">
-              <div v-html="getExcerpt(article.content)" class="article-content-preview"></div>
-            </div>
-
-            <NuxtLink :to="getArticleDetailRoute(article.id)" class="learn-more">
-              <span class="circle" aria-hidden="true">
-                <span class="icon arrow"></span>
-              </span>
-              <span class="button-text">阅读全文</span>
-            </NuxtLink>
+          <div class="article-excerpt">
+            <div v-html="getExcerpt(article.content)" class="article-content-preview"></div>
           </div>
+
+          <NuxtLink :to="getArticleDetailRoute(article.id)" class="learn-more">
+            <span class="circle" aria-hidden="true">
+              <span class="icon arrow"></span>
+            </span>
+            <span class="button-text">阅读全文</span>
+          </NuxtLink>
         </div>
       </div>
+    </TransitionGroup>
 
-      <!-- 分页控件 - 所有文章 -->
-      <div v-if="totalPages > 1" class="pagination-container mt-4">
-        <nav aria-label="文章分页">
-          <ul class="pagination justify-content-center">
-            <li class="page-item" :class="{ disabled: currentPage === 1 }">
-              <button class="page-link page-btn" @click="goToPage(currentPage - 1)" :disabled="currentPage === 1">
-                <i class="bi bi-chevron-left"></i>
-              </button>
-            </li>
+    <div v-else class="alert alert-info text-center" role="alert">
+      {{ listContext.emptyText }}
+    </div>
 
-            <li v-for="page in getPageNumbers()" :key="page" class="page-item" :class="{ active: page === currentPage }">
-              <button v-if="page === '...'" class="page-link disabled">...</button>
-              <button v-else class="page-link page-btn" @click="goToPage(page)">{{ page }}</button>
-            </li>
+    <div v-if="listContext.totalPages > 1" class="pagination-container mt-4">
+      <nav :aria-label="listContext.paginationLabel">
+        <ul class="pagination justify-content-center">
+          <li class="page-item" :class="{ disabled: listContext.currentPage === 1 }">
+            <button
+              class="page-link page-btn"
+              @click="listContext.goToPage(listContext.currentPage - 1)"
+              :disabled="listContext.currentPage === 1"
+            >
+              <i class="bi bi-chevron-left"></i>
+            </button>
+          </li>
 
-            <li class="page-item" :class="{ disabled: currentPage === totalPages }">
-              <button class="page-link page-btn" @click="goToPage(currentPage + 1)" :disabled="currentPage === totalPages">
-                <i class="bi bi-chevron-right"></i>
-              </button>
-            </li>
-          </ul>
-        </nav>
+          <li
+            v-for="(page, pageIndex) in listContext.pageNumbers"
+            :key="page === '...' ? `ellipsis-${pageIndex}` : page"
+            class="page-item"
+            :class="{ active: page === listContext.currentPage }"
+          >
+            <button v-if="page === '...'" class="page-link disabled">...</button>
+            <button
+              v-else
+              class="page-link page-btn"
+              @click="listContext.goToPage(page)"
+            >
+              {{ page }}
+            </button>
+          </li>
 
-        <div class="text-center text-muted mt-2">
-          共 {{ articles.length }} 篇文章，第 {{ currentPage }} / {{ totalPages }} 页
-        </div>
+          <li class="page-item" :class="{ disabled: listContext.currentPage === listContext.totalPages }">
+            <button
+              class="page-link page-btn"
+              @click="listContext.goToPage(listContext.currentPage + 1)"
+              :disabled="listContext.currentPage === listContext.totalPages"
+            >
+              <i class="bi bi-chevron-right"></i>
+            </button>
+          </li>
+        </ul>
+      </nav>
+
+      <div class="text-center text-muted mt-2">
+        共 {{ listContext.totalCount }} 篇文章，当前 {{ listContext.currentPage }} / {{ listContext.totalPages }} 页
       </div>
-
-      <!-- 无文章时的显示 -->
-      <div v-else-if="!loading" class="alert alert-info text-center" role="alert">
-        暂无文章
-      </div>
-    </template>
+    </div>
   </div>
 </template>
 
@@ -215,32 +177,49 @@
 import { useArticles } from '~/composables/useArticles'
 import '~/assets/css/components/ArticleList.styles.css'
 
-// 设置页面元数据 - 使用 Nuxt 的 keepalive 配置
+// 设置页面元数据，启用 keepalive
 definePageMeta({
   name: 'index',
   keepalive: true,
-  key: () => 'index-page' // ✅ 使用函数形式返回固定的 key
+  key: () => 'index-page'
 })
 
-// 定义组件名称（重要：用于 keep-alive）
+// 定义组件名称，方便 keep-alive 缓存命中
 defineOptions({
   name: 'ArticleListPage'
 })
 
-// SEO设置
 const route = useRoute()
-const setTitle = () => {
-  useHead({
-    title: 'WyrmKk - 文章列表',
-    link: [
-      { rel: 'icon', type: 'image/x-icon', href: '/icon/favicon.ico' }
-    ]
-  })
-}
+const viewMode = ref('list')
+const isSwitchingView = ref(false)
+let viewSwitchTimer = null
 
-// 设置首页标题和图标
-useHead({
-  title: '首页 - 我的博客',
+const pageTitle = computed(() => {
+  if (route.query.search) return '搜索结果'
+  if (route.query.category === 'study') return '学习'
+  if (route.query.category === 'game') return '游戏'
+  if (route.query.category === 'work') return '个人作品'
+  if (route.query.category === 'resource') return '资源分享'
+  return '文章列表'
+})
+
+const pageDescription = computed(() => {
+  if (route.query.search) return '根据关键词实时筛选出的相关文章'
+  const categoryDescriptions = {
+    'study': '记录学习心得和技术沉淀',
+    'game': '游戏体验与创意灵感',
+    'work': '个人作品与项目总结',
+    'resource': '精选资源与效率工具'
+  }
+  if (route.query.category) {
+    const key = route.query.category.toLowerCase()
+    return categoryDescriptions[key] || '精选文章与阅读灵感'
+  }
+  return '精选文章与最新动态，欢迎随时探索更多内容'
+})
+
+useHead(() => ({
+  title: `WyrmKk - ${pageTitle.value}`,
   meta: [
     { name: 'description', content: '欢迎来到我的个人博客，分享技术文章和生活感悟' },
     { name: 'keywords', content: '博客,文章,技术分享,个人网站' }
@@ -248,50 +227,50 @@ useHead({
   link: [
     { rel: 'icon', type: 'image/x-icon', href: '/icon/favicon.ico' }
   ]
-})
+}))
 
-// 创建ref来引用ArticleList容器
 const articleListContainer = ref(null)
 const articles = ref([])
 const error = ref(null)
 const loading = ref(false)
-
-// 保存滚动位置
 const savedScrollPosition = ref(0)
 
-// API composable
 const { getAllArticles, getArticlesByCategory, searchArticles } = useArticles()
 
-// 分页相关变量
 const currentPage = ref(1)
 const currentFilteredPage = ref(1)
 const articlesPerPage = 8
-
-// 加载样式偏好设置
 const useSkeletonLoader = ref(true)
 
-// 根据路由参数计算页面标题
-const pageTitle = computed(() => {
-  const title = (() => {
-    if (route.query.search) return '搜索结果'
-    if (route.query.category === 'study') return '学习'
-    if (route.query.category === 'game') return '游戏'
-    if (route.query.category === 'work') return '个人作品'
-    if (route.query.category === 'resource') return '资源分享'
-    return '文章列表'
-  })()
+const isFilteredMode = computed(() => Boolean(route.query.search || route.query.category))
+const isListView = computed(() => viewMode.value === 'list')
+const isGridView = computed(() => viewMode.value === 'grid')
+const articlesContainerClasses = computed(() => [
+  'articles-container',
+  {
+    'grid-mode': isGridView.value,
+    'list-mode': isListView.value,
+    'view-switching': isSwitchingView.value
+  }
+])
 
-  setTitle(title)
-  return title
+const loadingText = computed(() => {
+  if (route.query.search) return '正在搜索文章...'
+  if (route.query.category) return '正在筛选文章...'
+  return '正在加载文章列表...'
 })
 
-// 根据搜索关键词或分类筛选文章
+const emptyMessage = computed(() => {
+  if (route.query.search) return '没有找到匹配搜索条件的文章'
+  if (route.query.category) return '该分类暂时没有文章'
+  return '暂无文章'
+})
+
 const filteredArticles = computed(() => {
-  // 搜索结果直接从后端获取，不需要前端再过滤
   if (route.query.search) {
     return articles.value
-  } else if (route.query.category) {
-    // 直接使用路由参数中的category值过滤文章（不区分大小写）
+  }
+  if (route.query.category) {
     const queryCategory = route.query.category.toLowerCase()
     return articles.value.filter(article =>
       article.category && article.category.toLowerCase() === queryCategory
@@ -300,27 +279,121 @@ const filteredArticles = computed(() => {
   return articles.value
 })
 
-// 分页计算
 const totalPages = computed(() => Math.ceil(articles.value.length / articlesPerPage))
 const totalFilteredPages = computed(() => Math.ceil(filteredArticles.value.length / articlesPerPage))
 
-// 当前页的文章
 const currentIndex = computed(() => (currentPage.value - 1) * articlesPerPage)
 const currentFilteredIndex = computed(() => (currentFilteredPage.value - 1) * articlesPerPage)
 
 const paginatedArticles = computed(() => {
   const start = (currentPage.value - 1) * articlesPerPage
-  const end = start + articlesPerPage
-  return articles.value.slice(start, end)
+  return articles.value.slice(start, start + articlesPerPage)
 })
 
 const paginatedFilteredArticles = computed(() => {
   const start = (currentFilteredPage.value - 1) * articlesPerPage
-  const end = start + articlesPerPage
-  return filteredArticles.value.slice(start, end)
+  return filteredArticles.value.slice(start, start + articlesPerPage)
 })
 
-// 获取分类中文名称
+const scrollToListTop = () => {
+  nextTick(() => {
+    if (articleListContainer.value) {
+      articleListContainer.value.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+  })
+}
+
+const updatePageState = (targetPage, totalRef, pageRef) => {
+  if (targetPage >= 1 && targetPage <= totalRef.value) {
+    pageRef.value = targetPage
+    scrollToListTop()
+  }
+}
+
+const goToPage = (page) => updatePageState(page, totalPages, currentPage)
+const goToFilteredPage = (page) => updatePageState(page, totalFilteredPages, currentFilteredPage)
+
+const buildPageNumbers = (total, current) => {
+  const pages = []
+  if (total <= 7) {
+    for (let i = 1; i <= total; i++) {
+      pages.push(i)
+    }
+    return pages
+  }
+
+  pages.push(1)
+  if (current > 4) {
+    pages.push('...')
+  }
+
+  const start = Math.max(2, current - 1)
+  const end = Math.min(total - 1, current + 1)
+
+  for (let i = start; i <= end; i++) {
+    pages.push(i)
+  }
+
+  if (current < total - 3) {
+    pages.push('...')
+  }
+
+  pages.push(total)
+  return pages
+}
+
+const getPageNumbers = () => buildPageNumbers(totalPages.value, currentPage.value)
+const getFilteredPageNumbers = () => buildPageNumbers(totalFilteredPages.value, currentFilteredPage.value)
+
+// 统一封装模板所需的分页上下文，避免模板重复逻辑
+const listContext = computed(() => {
+  if (isFilteredMode.value) {
+    return {
+      articles: paginatedFilteredArticles.value,
+      totalPages: totalFilteredPages.value,
+      totalCount: filteredArticles.value.length,
+      currentPage: currentFilteredPage.value,
+      pageNumbers: getFilteredPageNumbers(),
+      goToPage: goToFilteredPage,
+      indexOffset: currentFilteredIndex.value,
+      paginationLabel: '筛选结果分页',
+      emptyText: emptyMessage.value
+    }
+  }
+
+  return {
+    articles: paginatedArticles.value,
+    totalPages: totalPages.value,
+    totalCount: articles.value.length,
+    currentPage: currentPage.value,
+    pageNumbers: getPageNumbers(),
+    goToPage,
+    indexOffset: currentIndex.value,
+    paginationLabel: '文章分页',
+    emptyText: emptyMessage.value
+  }
+})
+
+const articleRoutesMap = computed(() => {
+  const query = {}
+  if (route.query.search) {
+    query.search = route.query.search
+  }
+  if (route.query.category) {
+    query.category = route.query.category
+  }
+
+  const routesMap = new Map()
+  listContext.value.articles.forEach(article => {
+    routesMap.set(article.id, {
+      path: `/article/${article.id}`,
+      query: { ...query }
+    })
+  })
+
+  return routesMap
+})
+
 const getCategoryName = (category) => {
   if (!category) return '其他'
   const lowerCategory = category.toLowerCase()
@@ -333,7 +406,6 @@ const getCategoryName = (category) => {
   return categoryMap[lowerCategory] || '其他'
 }
 
-// 获取分类样式类
 const getCategoryClass = (category) => {
   if (!category) return 'category-other'
   const lowerCategory = category.toLowerCase()
@@ -346,165 +418,50 @@ const getCategoryClass = (category) => {
   return categoryClassMap[lowerCategory] || 'category-other'
 }
 
-// 获取文章摘要
 const getExcerpt = (content) => {
   if (!content) return ''
-  // 移除HTML标签并限制字数
   const plainText = content.replace(/<[^>]*>/g, '')
-  return plainText.length > 150 ? plainText.substring(0, 150) + '...' : plainText
+  return plainText.length > 150 ? `${plainText.substring(0, 150)}...` : plainText
 }
 
-// 清除搜索
 const clearSearch = () => {
   navigateTo({ path: '/' })
 }
 
-// 计算属性：为当前页面的文章预先生成路由对象，避免重复计算
-const articleRoutesMap = computed(() => {
-  const query = {}
-
-  // 保持原有的搜索和分类参数
-  if (route.query.search) {
-    query.search = route.query.search
+const triggerViewSwitchAnimation = () => {
+  isSwitchingView.value = true
+  if (viewSwitchTimer) {
+    clearTimeout(viewSwitchTimer)
   }
-  if (route.query.category) {
-    query.category = route.query.category
-  }
+  viewSwitchTimer = setTimeout(() => {
+    isSwitchingView.value = false
+    viewSwitchTimer = null
+  }, 480)
+}
 
-  // 为当前页面的所有文章生成路由映射
-  const routesMap = new Map()
-  const currentArticles = route.query.search || route.query.category
-    ? paginatedFilteredArticles.value
-    : paginatedArticles.value
+const setViewMode = (mode) => {
+  if (mode !== 'list' && mode !== 'grid') return
+  if (viewMode.value === mode) return
+  viewMode.value = mode
+  triggerViewSwitchAnimation()
+}
 
-  currentArticles.forEach(article => {
-    routesMap.set(article.id, {
-      path: `/article/${article.id}`,
-      query: { ...query }
-    })
-  })
-
-  return routesMap
-})
-
-// 生成文章详情路由的简化函数
 const getArticleDetailRoute = (articleId) => {
-  // 验证 articleId 是否有效
   if (!articleId || articleId === 'null' || articleId === 'undefined') {
-    console.warn('无效的 articleId:', articleId)
-    return { path: '/' } // 返回首页，避免跳转到无效路由
+    console.warn('ArticleList: 无效的 articleId:', articleId)
+    return { path: '/' }
   }
-  
-  return articleRoutesMap.value.get(articleId) || {
-    path: `/article/${articleId}`,
-    query: {}
-  }
+  return articleRoutesMap.value.get(articleId) || { path: `/article/${articleId}`, query: {} }
 }
 
-// 分页方法
-const goToPage = (page) => {
-  if (page >= 1 && page <= totalPages.value) {
-    currentPage.value = page
-    // 滚动到ArticleList容器的顶部而不是页面顶部
-    nextTick(() => {
-      if (articleListContainer.value) {
-        articleListContainer.value.scrollIntoView({ behavior: 'smooth', block: 'start' })
-      }
-    })
-  }
-}
-
-const goToFilteredPage = (page) => {
-  if (page >= 1 && page <= totalFilteredPages.value) {
-    currentFilteredPage.value = page
-    // 滚动到ArticleList容器的顶部而不是页面顶部
-    nextTick(() => {
-      if (articleListContainer.value) {
-        articleListContainer.value.scrollIntoView({ behavior: 'smooth', block: 'start' })
-      }
-    })
-  }
-}
-
-// 获取页码数组（智能省略）
-const getPageNumbers = () => {
-  const total = totalPages.value
-  const current = currentPage.value
-  const pages = []
-
-  if (total <= 7) {
-    for (let i = 1; i <= total; i++) {
-      pages.push(i)
-    }
-  } else {
-    pages.push(1)
-
-    if (current > 4) {
-      pages.push('...')
-    }
-
-    const start = Math.max(2, current - 1)
-    const end = Math.min(total - 1, current + 1)
-
-    for (let i = start; i <= end; i++) {
-      pages.push(i)
-    }
-
-    if (current < total - 3) {
-      pages.push('...')
-    }
-
-    pages.push(total)
-  }
-
-  return pages
-}
-
-const getFilteredPageNumbers = () => {
-  const total = totalFilteredPages.value
-  const current = currentFilteredPage.value
-  const pages = []
-
-  if (total <= 7) {
-    for (let i = 1; i <= total; i++) {
-      pages.push(i)
-    }
-  } else {
-    pages.push(1)
-
-    if (current > 4) {
-      pages.push('...')
-    }
-
-    const start = Math.max(2, current - 1)
-    const end = Math.min(total - 1, current + 1)
-
-    for (let i = start; i <= end; i++) {
-      pages.push(i)
-    }
-
-    if (current < total - 3) {
-      pages.push('...')
-    }
-
-    pages.push(total)
-  }
-
-  return pages
-}
-
-// 处理图片加载错误
 const handleImageError = (event) => {
-  // 隐藏加载失败的图片
   event.target.style.display = 'none'
 }
 
-// 处理图片加载成功
 const handleImageLoad = (event) => {
   event.target.classList.add('lazy-loaded')
 }
 
-// 格式化日期的辅助函数
 function formatDate(dateString) {
   if (!dateString) return '未知日期'
   const date = new Date(dateString)
@@ -515,21 +472,32 @@ function formatDate(dateString) {
   })
 }
 
-// 监听路由变化，重新获取文章
-watch(() => route.query, (newQuery, oldQuery) => {
-  const newSearch = newQuery.search
-  const oldSearch = oldQuery?.search
-  const newCategory = newQuery.category
-  const oldCategory = oldQuery?.category
+const syncPageFromQuery = (pageParam) => {
+  const pageNum = parseInt(pageParam)
+  if (isNaN(pageNum) || pageNum <= 0) {
+    return
+  }
 
-  if (newSearch !== oldSearch || newCategory !== oldCategory) {
+  if (isFilteredMode.value) {
+    if (pageNum <= totalFilteredPages.value) {
+      currentFilteredPage.value = pageNum
+    }
+  } else if (pageNum <= totalPages.value) {
+    currentPage.value = pageNum
+  }
+}
+
+watch(
+  () => [route.query.search, route.query.category],
+  async ([newSearch, newCategory], [oldSearch, oldCategory]) => {
+    if (newSearch === oldSearch && newCategory === oldCategory) return
     currentPage.value = 1
     currentFilteredPage.value = 1
-    fetchArticles()
+    await fetchArticles()
+    syncPageFromQuery(route.query.page)
   }
-}, { deep: true })
+)
 
-// 获取文章数据
 const fetchArticles = async () => {
   if (loading.value) return
 
@@ -540,13 +508,11 @@ const fetchArticles = async () => {
     console.log('ArticleList: 开始获取文章数据...')
 
     if (route.query.search) {
-      // 如果有搜索关键词，使用搜索API
       console.log('ArticleList: 执行搜索，关键词:', route.query.search)
       const searchResults = await searchArticles(route.query.search)
       articles.value = searchResults
       console.log('ArticleList: 搜索完成，结果数量:', articles.value.length)
     } else if (route.query.category) {
-      // 如果有分类筛选，使用原来的分类API
       const fetchedArticles = await getArticlesByCategory(route.query.category)
       articles.value = fetchedArticles.sort((a, b) => {
         const idA = parseInt(a.id) || 0
@@ -554,7 +520,6 @@ const fetchArticles = async () => {
         return idB - idA
       })
     } else {
-      // 否则获取所有文章摘要
       const articlesData = await getAllArticles()
       articles.value = articlesData
     }
@@ -562,7 +527,7 @@ const fetchArticles = async () => {
     console.log('ArticleList: 获取文章数据成功，总数:', articles.value.length)
   } catch (e) {
     error.value = e
-    console.error("ArticleList: 获取文章失败:", e)
+    console.error('ArticleList: 获取文章失败:', e)
   } finally {
     loading.value = false
   }
@@ -571,71 +536,32 @@ const fetchArticles = async () => {
 onMounted(async () => {
   console.log('ArticleList: 组件挂载，开始获取文章数据...')
   await fetchArticles()
+  syncPageFromQuery(route.query.page)
+})
 
-  // 检查URL query中是否有页码信息
-  const pageFromQuery = route.query.page
-  if (pageFromQuery) {
-    const pageNum = parseInt(pageFromQuery)
-    console.log('从URL query恢复页码:', pageNum)
+onActivated(() => {
+  console.log('ArticleList: 组件被激活（从缓存恢复）')
+})
 
-    if (!isNaN(pageNum) && pageNum > 0) {
-      await nextTick()
+onDeactivated(() => {
+  console.log('ArticleList: 组件被停用（进入缓存）')
+  savedScrollPosition.value = window.scrollY || window.pageYOffset || document.documentElement.scrollTop
+  console.log('ArticleList: 保存滚动位置:', savedScrollPosition.value)
+  console.log('ArticleList: 当前页码:', currentPage.value)
+  console.log('ArticleList: 当前筛选页码:', currentFilteredPage.value)
+})
 
-      if (route.query.search || route.query.category) {
-        console.log('设置筛选页码:', pageNum, '总页数:', totalFilteredPages.value)
-        if (pageNum <= totalFilteredPages.value) {
-          currentFilteredPage.value = pageNum
-        }
-      } else {
-        console.log('设置普通页码:', pageNum, '总页数:', totalPages.value)
-        if (pageNum <= totalPages.value) {
-          currentPage.value = pageNum
-        }
-      }
-    }
+onBeforeUnmount(() => {
+  if (viewSwitchTimer) {
+    clearTimeout(viewSwitchTimer)
   }
 })
 
-// Keep-alive 生命周期：组件被激活时（从缓存中恢复）
-onActivated(() => {
-  console.log('ArticleList: 组件被激活（从缓存恢复）')
-
-  // // 恢复滚动位置 - 需要等待 DOM 完全渲染
-  // if (savedScrollPosition.value > 0) {
-  //   console.log('准备恢复滚动位置:', savedScrollPosition.value)
-
-  //   // 使用多重延迟确保 DOM 已完全渲染
-  //   nextTick(() => {
-  //     setTimeout(() => {
-  //       console.log('执行滚动位置恢复:', savedScrollPosition.value)
-  //       window.scrollTo({
-  //         top: savedScrollPosition.value,
-  //         left: 0,
-  //         behavior: 'instant' // 使用 instant 立即跳转
-  //       })
-  //     }, 50) // 50ms 延迟确保渲染完成
-  //   })
-  // }
-})
-
-// Keep-alive 生命周期：组件被停用时（进入缓存）
-onDeactivated(() => {
-  console.log('ArticleList: 组件被停用（进入缓存）')
-
-  // 保存当前滚动位置
-  savedScrollPosition.value = window.scrollY || window.pageYOffset || document.documentElement.scrollTop
-  console.log('保存滚动位置:', savedScrollPosition.value)
-  console.log('当前页码:', currentPage.value)
-  console.log('当前筛选页码:', currentFilteredPage.value)
-})
-
-// 添加一个手动刷新方法
 const refreshData = async () => {
-  console.log('手动刷新文章数据')
+  console.log('ArticleList: 手动刷新文章数据')
   await fetchArticles()
 }
 
-// 暴露刷新方法给父组件使用
 defineExpose({
   refreshData
 })
@@ -644,4 +570,3 @@ defineExpose({
 <style scoped>
 @import '~/assets/css/components/ArticleList.styles.css';
 </style>
-

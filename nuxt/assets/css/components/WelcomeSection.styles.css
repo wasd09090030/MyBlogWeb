@@ -272,8 +272,8 @@
   /* 外观属性 */
   font-family: inherit;
   font-size: 20px;
-  background: royalblue;
-  color: white;
+  background: rgb(255, 255, 255);
+  color: rgb(24, 21, 28);
   padding: 0.7em 1em;
   padding-left: 0.9em;
   border: none;
@@ -283,7 +283,6 @@
   
   /* 动画 */
   transition: all 0.2s;
-  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.12);
 }
 
 /* 确保旧的伪元素不干扰 */
@@ -295,7 +294,7 @@
 
 .random-article-btn span {
   display: block;
-  margin-left: 0.3em;
+  margin-left: 0.35em;
   transition: all 0.3s ease-in-out;
 }
 
@@ -310,7 +309,7 @@
 }
 
 .random-article-btn:hover svg {
-  transform: translateX(1.2em) rotate(45deg) scale(1.1);
+  transform: translateX(1.8em) rotate(45deg) scale(1.1);
 }
 
 .random-article-btn:hover span {
@@ -731,14 +730,10 @@
 
 /* 暗色主题适配 */
 [data-bs-theme="dark"] .random-article-btn {
-  background: linear-gradient(135deg, rgb(2, 48, 255) 0%, rgb(2, 48, 255) 100%);
-  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3);
+  background: linear-gradient(135deg, rgb(59, 56, 94) 0%,  rgb(59, 56, 94)  0%);
+  color: rgb(240, 240, 245);
 }
 
-[data-bs-theme="dark"] .random-article-btn:hover {
-  background: linear-gradient(135deg, rgb(2, 48, 255) 0%, rgb(2, 48, 255) 100%);
-  box-shadow: 0 -4px 15px rgba(102, 126, 234, 0.5);
-}
 
 [data-bs-theme="dark"] .info-card {
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
