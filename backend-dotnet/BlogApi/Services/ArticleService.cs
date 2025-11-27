@@ -40,7 +40,7 @@ namespace BlogApi.Services
                 .ToListAsync();
         }
 
-        public async Task<List<ArticleSummaryDto>> GetAllSummaryAsync(ArticleCategory? category = null, int? page = null, int? limit = null)
+        public async Task<object> GetAllSummaryAsync(ArticleCategory? category = null, int? page = null, int? limit = null)
         {
             var query = _context.Articles.AsQueryable();
 
@@ -49,13 +49,18 @@ namespace BlogApi.Services
                 query = query.Where(a => a.Category == category.Value);
             }
 
+            // 先统计总数
+            var total = await query.CountAsync();
+            
+            // 排序后再分页
+            query = query.OrderByDescending(a => a.CreatedAt);
+
             if (page.HasValue && limit.HasValue)
             {
                 query = query.Skip((page.Value - 1) * limit.Value).Take(limit.Value);
             }
 
-            return await query
-                .OrderByDescending(a => a.CreatedAt)
+            var data = await query
                 .Select(a => new ArticleSummaryDto
                 {
                     Id = a.Id,
@@ -70,6 +75,19 @@ namespace BlogApi.Services
                         : a.ContentMarkdown
                 })
                 .ToListAsync();
+
+            // 返回分页结构，与 GetWithPaginationAsync 保持一致
+            var currentPage = page ?? 1;
+            var pageSize = limit ?? data.Count;
+
+            return new
+            {
+                data,
+                total,
+                page = currentPage,
+                pageSize,
+                totalPages = pageSize > 0 ? (int)Math.Ceiling((double)total / pageSize) : 1
+            };
         }
 
         public async Task<object> GetWithPaginationAsync(ArticleCategory? category = null, int? page = null, int? limit = null)

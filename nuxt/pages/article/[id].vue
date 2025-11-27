@@ -130,7 +130,7 @@ useSeoMeta({
   twitterImage: () => article.value?.coverImage && article.value.coverImage !== 'null' ? article.value.coverImage : '',
   articlePublishedTime: () => article.value?.createdAt || '',
   articleModifiedTime: () => article.value?.updatedAt || '',
-  articleAuthor: () => article.value?.author || '',
+  articleAuthor: () => article.value?.author || 'Wasd09090030',
   articleTag: () => article.value?.category || '',
 })
 
