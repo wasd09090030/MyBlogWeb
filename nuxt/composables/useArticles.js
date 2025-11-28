@@ -39,8 +39,8 @@ export const useArticles = () => {
   // 获取所有文章
   const getAllArticles = async () => {
     try {
-      // 先获取第一页来了解总数
-      const firstPage = await getArticles({ page: 1, limit: 50, summary: true })
+      // 先获取第一页来了解总数（每页20篇，减少单次请求数据量）
+      const firstPage = await getArticles({ page: 1, limit: 20, summary: true })
 
       // 检查返回的数据结构
       if (Array.isArray(firstPage)) {
@@ -60,7 +60,7 @@ export const useArticles = () => {
       const promises = []
 
       for (let page = 2; page <= totalPages; page++) {
-        promises.push(getArticles({ page, limit: 50, summary: true }))
+        promises.push(getArticles({ page, limit: 20, summary: true }))
       }
 
       const results = await Promise.all(promises)

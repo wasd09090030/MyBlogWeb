@@ -63,6 +63,13 @@ defineProps({
   justify-content: center;
   z-index: 10000;
   overflow: hidden;
+  /* 添加退出动画 */
+  transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+}
+
+.initial-loading-overlay.fade-out {
+  opacity: 0;
+  transform: scale(1.02);
 }
 
 .loading-container {
