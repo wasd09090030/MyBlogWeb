@@ -2,96 +2,132 @@
   <div class="article-editor">
     <div class="d-flex justify-content-between align-items-center mb-4">
       <h2>{{ isEdit ? '编辑文章' : '创建文章' }}</h2>
-      <button class="btn btn-outline-secondary" @click="goBack">
-        <i class="bi bi-arrow-left me-2"></i>返回
-      </button>
+      <div class="d-flex gap-2">
+        <button class="btn btn-outline-secondary" @click="goBack">
+          <i class="bi bi-arrow-left me-2"></i>返回
+        </button>
+        <button class="btn btn-primary action-btn" @click="saveArticle" :disabled="isSaving">
+          <span v-if="isSaving" class="spinner-border spinner-border-sm me-2" role="status"></span>
+          <i v-else class="bi bi-save me-2"></i>保存文章
+        </button>
+      </div>
     </div>
 
-    <div class="card">
-      <div class="card-body">
-        <div v-if="loading" class="text-center py-5">
-          <div class="spinner-border text-primary" role="status"></div>
-        </div>
+    <div v-if="loading" class="text-center py-5">
+      <div class="spinner-border text-primary" role="status"></div>
+      <p class="mt-3 text-muted">加载中...</p>
+    </div>
         
-        <form v-else @submit.prevent="saveArticle">      
-              <div class="mb-3">
-            <label for="title" class="form-label">标题</label>
-            <input 
-              type="text" 
-              class="form-control form-input" 
-              id="title" 
-              v-model="articleForm.title" 
-              required
-            >
+    <div v-else class="editor-layout">
+      <!-- 左侧：文章元信息 -->
+      <div class="editor-sidebar">
+        <div class="card sticky-top" style="top: 1rem;">
+          <div class="card-header">
+            <h5 class="mb-0"><i class="bi bi-gear me-2"></i>文章设置</h5>
           </div>
+          <div class="card-body">
+            <!-- 标题 -->
+            <div class="mb-3">
+              <label for="title" class="form-label">
+                <i class="bi bi-type-h1 me-1"></i>文章标题 <span class="text-danger">*</span>
+              </label>
+              <input 
+                type="text" 
+                class="form-control form-input" 
+                id="title" 
+                v-model="articleForm.title" 
+                placeholder="输入文章标题..."
+                required
+              >
+            </div>
 
-          <!-- 添加封面图URL输入 -->
-          <div class="mb-3">
-            <label for="coverImage" class="form-label">封面图片URL（可选）</label>
-            <input 
-              type="url" 
-              class="form-control" 
-              id="coverImage" 
-              v-model="articleForm.coverImage" 
-              placeholder="https://example.com/image.jpg"
-            >
-            <div class="form-text">请输入有效的图片URL地址</div>
+            <!-- 文章类别 -->
+            <div class="mb-3">
+              <label for="category" class="form-label">
+                <i class="bi bi-folder me-1"></i>文章类别
+              </label>
+              <select 
+                class="form-select" 
+                id="category" 
+                v-model="articleForm.category"
+                required
+              >
+                <option value="study">📚 学习</option>
+                <option value="game">🎮 游戏</option>
+                <option value="work">💼 个人作品</option>
+                <option value="resource">📦 资源分享</option>
+                <option value="other">📝 其他</option>
+              </select>
+            </div>
+
+            <!-- 封面图URL -->
+            <div class="mb-3">
+              <label for="coverImage" class="form-label">
+                <i class="bi bi-image me-1"></i>封面图片
+              </label>
+              <input 
+                type="url" 
+                class="form-control" 
+                id="coverImage" 
+                v-model="articleForm.coverImage" 
+                placeholder="https://example.com/image.jpg"
+              >
+              <div class="form-text">输入有效的图片URL地址</div>
+              
               <!-- 封面图预览 -->
-            <div v-if="articleForm.coverImage" class="mt-2">
-              <small class="text-muted">封面图预览:</small>
-              <div class="cover-preview mt-1">
-                <img 
-                  :src="articleForm.coverImage" 
-                  alt="封面图预览" 
-                  @error="handleImageError"
-                  @load="handleImageLoad"
-                />
+              <div v-if="articleForm.coverImage" class="mt-2">
+                <div class="cover-preview">
+                  <img 
+                    :src="articleForm.coverImage" 
+                    alt="封面图预览" 
+                    @error="handleImageError"
+                    @load="handleImageLoad"
+                  />
+                </div>
+                <div v-if="!isValidImageUrl" class="mt-2 small">
+                  <span class="text-warning">
+                    <i class="bi bi-exclamation-triangle me-1"></i>
+                    图片预览加载失败
+                  </span>
+                </div>
               </div>
-              <div v-if="!isValidImageUrl" class="mt-1">
-                <small class="text-warning">
-                  <i class="bi bi-exclamation-triangle me-1"></i>
-                  图片预览加载失败，但这不影响保存文章。可能的原因：
-                </small>
-                <ul class="small text-muted mt-1 mb-0">
-                  <li>图片服务器设置了跨域限制</li>
-                  <li>网络连接问题</li>
-                  <li>图片URL格式不正确</li>
-                </ul>
-                <small class="text-info">
-                  <i class="bi bi-info-circle me-1"></i>
-                  提示：如果图片在浏览器中能正常打开，通常在前端显示时也能正常加载
-                </small>
+            </div>
+
+            <!-- 统计信息 -->
+            <div class="stats-info mt-4">
+              <div class="d-flex justify-content-between text-muted small mb-2">
+                <span><i class="bi bi-text-paragraph me-1"></i>字数统计</span>
+                <span>{{ contentStats.chars }} 字符</span>
+              </div>
+              <div class="d-flex justify-content-between text-muted small mb-2">
+                <span><i class="bi bi-list-ol me-1"></i>行数</span>
+                <span>{{ contentStats.lines }} 行</span>
+              </div>
+              <div class="d-flex justify-content-between text-muted small">
+                <span><i class="bi bi-clock me-1"></i>预计阅读</span>
+                <span>{{ contentStats.readTime }} 分钟</span>
               </div>
             </div>
           </div>
-            <!-- 添加文章类别选择 -->
-          <div class="mb-3">
-            <label for="category" class="form-label">文章类别</label>
-            <select 
-              class="form-select" 
-              id="category" 
-              v-model="articleForm.category"
-              required
-            >
-              <option value="study">学习</option>
-              <option value="game">游戏</option>
-              <option value="work">个人作品</option>
-              <option value="resource">资源分享</option>
-              <option value="other">其他</option>
-            </select>
-          </div>
-            <div class="mb-3">
-            <label class="form-label">内容 (Markdown编辑器)</label>
-            <div class="editor-info mb-2">
-              <small class="text-info">
+        </div>
+      </div>
+
+      <!-- 右侧：Markdown 编辑器 -->
+      <div class="editor-main">
+        <div class="card h-100">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="bi bi-markdown me-2"></i>内容编辑</h5>
+            <div class="editor-tips">
+              <small class="text-muted">
                 <i class="bi bi-info-circle me-1"></i>
-                支持 Markdown 语法和 HTML 标签混合使用，例如：
-                <code>&lt;div style="color: red;"&gt;红色文字&lt;/div&gt;</code>
+                支持 Markdown 语法和 HTML 标签
               </small>
             </div>
+          </div>
+          <div class="card-body p-0">
             <MdEditor
               v-model="articleForm.contentMarkdown"
-              height="500px"
+              :height="editorHeight"
               :toolbars="toolbars"
               preview-theme="github"
               code-theme="github"
@@ -122,22 +158,14 @@
               required
             />
           </div>
-          
-          <div class="d-flex justify-content-between">
-            <button type="button" class="btn btn-outline-secondary" @click="goBack">取消</button>
-            <button type="submit" class="btn btn-primary action-btn" :disabled="isSaving">
-              <span v-if="isSaving" class="spinner-border spinner-border-sm me-2" role="status"></span>
-              保存
-            </button>
-          </div>
-        </form>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue';
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import articleService from '../../services/articleService';
 import MarkdownIt from 'markdown-it';
@@ -260,6 +288,39 @@ const loading = ref(false);
 const isSaving = ref(false);
 const isValidImageUrl = ref(false);
 const isEdit = computed(() => !!route.params.id);
+
+// 编辑器高度 - 响应式计算
+const windowHeight = ref(window.innerHeight);
+const editorHeight = computed(() => {
+  // 留出顶部导航和底部空间
+  return `${Math.max(500, windowHeight.value - 250)}px`;
+});
+
+// 内容统计
+const contentStats = computed(() => {
+  const content = articleForm.value.contentMarkdown || '';
+  const chars = content.length;
+  const lines = content.split('\n').length;
+  // 中文阅读速度约400字/分钟
+  const readTime = Math.max(1, Math.ceil(chars / 400));
+  return { chars, lines, readTime };
+});
+
+// 监听窗口大小变化
+const handleResize = () => {
+  windowHeight.value = window.innerHeight;
+};
+
+onMounted(() => {
+  window.addEventListener('resize', handleResize);
+  if (isEdit.value) {
+    fetchArticle(route.params.id);
+  }
+});
+
+onUnmounted(() => {
+  window.removeEventListener('resize', handleResize);
+});
 
 // GitHub Markdown CSS 样式配置
 const githubMarkdownCss = `
@@ -775,16 +836,44 @@ const saveArticle = async () => {
 const goBack = () => {
   router.push({ name: 'ArticleManager' });
 };
-
-// 当组件加载时，如果是编辑模式则获取文章详情
-onMounted(() => {
-  if (isEdit.value) {
-    fetchArticle(route.params.id);
-  }
-});
 </script>
 
 <style scoped>
+/* 双栏编辑器布局 */
+.editor-layout {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.editor-sidebar {
+  min-width: 0;
+}
+
+.editor-main {
+  min-width: 0;
+  min-height: 600px;
+}
+
+/* 响应式布局 */
+@media (max-width: 1200px) {
+  .editor-layout {
+    grid-template-columns: 280px 1fr;
+    gap: 1rem;
+  }
+}
+
+@media (max-width: 992px) {
+  .editor-layout {
+    grid-template-columns: 1fr;
+  }
+  
+  .editor-sidebar .card {
+    position: static !important;
+  }
+}
+
 /* 表单输入动画 */
 .form-input {
   transition: all 0.3s ease;
@@ -828,42 +917,49 @@ onMounted(() => {
   transform: translateY(0) scale(0.98);
 }
 
-/* Markdown编辑器容器动画 */
-.markdown-editor-container {
-  transition: all 0.3s ease;
-}
-
-.markdown-editor-container:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+/* 统计信息区域 */
+.stats-info {
+  padding-top: 1rem;
+  border-top: 1px solid #dee2e6;
 }
 
 /* 封面图预览样式 */
 .cover-preview {
-  max-width: 300px;
   border: 1px solid #dee2e6;
-  border-radius: 0.25rem;
+  border-radius: 0.5rem;
   overflow: hidden;
+  background-color: #f8f9fa;
 }
 
 .cover-preview img {
   width: 100%;
   height: auto;
-  max-height: 200px;
+  max-height: 150px;
   object-fit: cover;
   display: block;
 }
 
+/* 卡片头部样式 */
+.card-header {
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.card-header h5 {
+  font-size: 1rem;
+  color: #495057;
+}
+
 /* 编辑器样式覆盖 */
 :deep(.md-editor) {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05) !important;
-  border: 1px solid #ced4da;
-  border-radius: 0.25rem;
+  box-shadow: none !important;
+  border: none;
+  border-radius: 0;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
 }
 
 :deep(.md-editor-toolbar) {
-  border-bottom: 1px solid #ced4da;
+  border-bottom: 1px solid #dee2e6;
   background-color: #f8f9fa;
   padding: 8px 16px;
   flex-wrap: wrap;
