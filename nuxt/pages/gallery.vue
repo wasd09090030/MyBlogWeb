@@ -33,93 +33,39 @@
     <!-- 有内容时显示所有画廊 -->
     <Transition name="gallery-fade" @after-enter="onGalleryVisible">
       <div v-if="!isInitialLoading && !loading && !error && galleries.length > 0" class="gallery-content" :class="{ 'gallery-ready': isGalleryReady }">
-      <!-- 淡入淡出幻灯片效果 - 在导航栏下方显示 -->
-      <section class="fade-section">
-        <div class="fade-gallery" ref="loopContainer">
-          <div class="swiper-wrapper">
-            <div
-              v-for="(gallery, index) in getGallerySlice(0, 5)"
-              :key="`loop-${gallery.id}`"
-              class="swiper-slide fade-slide"
-            >
-              <div
-                class="fade-item"
-                @click="openFullscreen(gallery)"
-              >
-                <img
-                  :src="gallery.imageUrl"
-                  alt="画廊图片"
-                  class="fade-image"
-                />
-                <div class="fade-overlay">
-                  <div class="fade-content">
-                    <!-- 移除标题和描述显示 -->
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+        
+        <!-- 淡入淡出幻灯片效果 -->
+        <FadeSlideshow
+          ref="fadeSlideshowRef"
+          :images="getGallerySlice(0, 5)"
+          @image-click="openFullscreen"
+        />
+
+        <!-- 手风琴和3D覆盖流展示 -->
+        <div class="gallery-sections">
+          <!-- 手风琴横向展示 -->
+          <AccordionGallery
+            ref="accordionGalleryRef"
+            :images="getGallerySlice(5, 10)"
+            @image-click="openFullscreen"
+          />
+
+          <!-- 3D 覆盖流效果 -->
+          <CoverflowGallery
+            ref="coverflowGalleryRef"
+            :images="getGallerySlice(10, 15)"
+            @image-click="openFullscreen"
+          />
         </div>
-      </section>
 
-      <!-- 手风琴和3D覆盖流展示 -->
-      <div class="gallery-sections">
-        <!-- 第一部分：手风琴横向展示 -->
-        <section class="gallery-section">
-          <div class="accordion-container">
-            <div class="accordion-gallery" ref="accordionContainer">
-              <div class="swiper-wrapper">
-                <div
-                  v-for="(gallery, index) in getGallerySlice(5, 10)"
-                  :key="`accordion-${gallery.id}`"
-                  class="swiper-slide accordion-slide"
-                  :class="{ 'accordion-expanded': index === expandedAccordionIndex }"
-                >
-                  <div
-                    class="accordion-item"
-                    @click="toggleAccordion(index)"
-                    @dblclick="openFullscreen(gallery)"
-                  >
-                    <img
-                      :src="gallery.imageUrl"
-                      alt="画廊图片"
-                      class="accordion-image"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <!-- 第二部分：3D 覆盖流效果 -->
-        <section class="coverflow-section mb-5">
-          <div class="coverflow-gallery" ref="coverflowContainer">
-            <div class="swiper-wrapper">
-              <div
-                v-for="(gallery, index) in getGallerySlice(10, 15)"
-                :key="`coverflow-${gallery.id}`"
-                class="swiper-slide coverflow-slide"
-              >
-                <div
-                  class="coverflow-item"
-                  @click="openFullscreen(gallery)"
-                >
-                  <img
-                    :src="gallery.imageUrl"
-                    alt="画廊图片"
-                    class="coverflow-image"
-                  />
-                  <div class="coverflow-info">
-                    <!-- 移除标题显示 -->
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
+        <!-- 瀑布流画廊 -->
+        <MasonryWaterfall
+          ref="masonryWaterfallRef"
+          :images="getGallerySlice(0, galleries.length)"
+          :column-count="4"
+          @image-click="openFullscreen"
+        />
       </div>
-    </div>
     </Transition>
 
     <!-- 全屏查看模态框 (使用自定义实现) -->
@@ -188,6 +134,10 @@
 <script setup>
 import { useGallery } from '~/composables/useGallery'
 import GalleryLoadingAnimation from '~/components/GalleryLoadingAnimation.vue'
+import FadeSlideshow from '~/components/gallery/FadeSlideshow.vue'
+import AccordionGallery from '~/components/gallery/AccordionGallery.vue'
+import CoverflowGallery from '~/components/gallery/CoverflowGallery.vue'
+import MasonryWaterfall from '~/components/gallery/MasonryWaterfall.vue'
 
 // 设置页面元数据
 useHead({
@@ -199,9 +149,6 @@ useHead({
     }
   ]
 })
-
-// 动态导入Swiper以避免SSR问题
-let Swiper, Navigation, Pagination, Autoplay, EffectCoverflow, EffectFade
 
 // 导入Swiper CSS
 import 'swiper/css'
@@ -216,7 +163,6 @@ const loading = ref(true)
 const error = ref(null)
 const showFullscreen = ref(false)
 const selectedImage = ref(null)
-const expandedAccordionIndex = ref(0) // 默认第一个展开
 
 // 初始加载状态
 const isInitialLoading = ref(true)
@@ -226,15 +172,11 @@ const loadedImagesCount = ref(0)
 const totalImagesToLoad = ref(0)
 const isGalleryReady = ref(false)
 
-// Swiper 实例
-const accordionSwiper = ref(null)
-const coverflowSwiper = ref(null)
-const loopSwiper = ref(null)
-
-// DOM 引用
-const accordionContainer = ref(null)
-const coverflowContainer = ref(null)
-const loopContainer = ref(null)
+// 组件引用
+const fadeSlideshowRef = ref(null)
+const accordionGalleryRef = ref(null)
+const coverflowGalleryRef = ref(null)
+const masonryWaterfallRef = ref(null)
 const fullscreenContent = ref(null)
 
 // 全屏查看相关状态
@@ -252,36 +194,6 @@ const imageTransformStyle = computed(() => ({
 
 // API composable
 const { getGalleries } = useGallery()
-
-// 动态加载Swiper
-const loadSwiper = async () => {
-  try {
-    const swiperModule = await import('swiper')
-    const modulesModule = await import('swiper/modules')
-
-    Swiper = swiperModule.Swiper
-    Navigation = modulesModule.Navigation
-    Pagination = modulesModule.Pagination
-    Autoplay = modulesModule.Autoplay
-    EffectCoverflow = modulesModule.EffectCoverflow
-    EffectFade = modulesModule.EffectFade
-
-    console.log('Swiper modules loaded successfully')
-  } catch (err) {
-    console.error('Failed to load Swiper:', err)
-  }
-}
-
-// 手风琴展开控制 - 改为点击切换
-const toggleAccordion = (index) => {
-  // 如果点击的是当前展开的项，则收起（回到默认第一个）
-  if (expandedAccordionIndex.value === index) {
-    expandedAccordionIndex.value = 0
-  } else {
-    // 否则展开点击的项
-    expandedAccordionIndex.value = index
-  }
-}
 
 // 预加载图片
 const preloadImage = (src) => {
@@ -398,106 +310,31 @@ const getGallerySlice = (start, end) => {
   return result
 }
 
-// 初始化手风琴效果
-const initAccordionSwiper = () => {
-  if (!accordionContainer.value || !Swiper) return
-
-  accordionSwiper.value = new Swiper(accordionContainer.value, {
-    modules: [Navigation, Pagination],
-    slidesPerView: 5,
-    spaceBetween: 0,
-    loop: false,
-    grabCursor: true,
-    breakpoints: {
-      320: { slidesPerView: 2 },
-      768: { slidesPerView: 3 },
-      1024: { slidesPerView: 4 },
-      1200: { slidesPerView: 5 }
-    }
-  })
-}
-
-// 初始化3D覆盖流效果
-const initCoverflowSwiper = () => {
-  if (!coverflowContainer.value || !Swiper) return
-
-  coverflowSwiper.value = new Swiper(coverflowContainer.value, {
-    modules: [EffectCoverflow],
-    effect: 'coverflow',
-    grabCursor: true,
-    centeredSlides: true,
-    slidesPerView: 3,
-    loop: true,
-    speed: 600,
-    coverflowEffect: {
-      rotate: 30,
-      stretch: 0,
-      depth: 100,
-      modifier: 1,
-      slideShadows: true,
-    },
-    breakpoints: {
-      320: {
-        slidesPerView: 1,
-      },
-      768: {
-        slidesPerView: 2,
-      },
-      1024: {
-        slidesPerView: 3,
-      }
-    }
-  })
-}
-
-// 初始化淡入淡出幻灯片效果
-const initLoopSwiper = () => {
-  if (!loopContainer.value || !Swiper) return
-
-  loopSwiper.value = new Swiper(loopContainer.value, {
-    modules: [Autoplay, EffectFade],
-    effect: 'fade',
-    fadeEffect: {
-      crossFade: true
-    },
-    slidesPerView: 1,
-    spaceBetween: 0,
-    loop: true,
-    speed: 800, // 过渡速度
-    autoplay: {
-      delay: 4000,
-      disableOnInteraction: false,
-      waitForTransition: true, // 等待过渡完成
-    },
-    allowTouchMove: true,
-    watchSlidesProgress: true,
-    observer: true,
-    observeParents: true,
-    on: {
-      init: function() {
-        // Swiper 初始化完成后的回调
-        this.el.classList.add('swiper-initialized')
-      }
-    }
-  })
-}
-
-// 初始化所有Swiper
+// 初始化所有子组件的 Swiper
 const initSwipers = async () => {
-  await loadSwiper()
   await nextTick()
 
   if (galleries.value.length > 0 && !isInitialLoading.value) {
     // 使用 requestAnimationFrame 确保 DOM 完全渲染
     requestAnimationFrame(() => {
-      setTimeout(() => {
+      setTimeout(async () => {
         // 按顺序初始化，先初始化主要的幻灯片
-        initLoopSwiper()
+        if (fadeSlideshowRef.value) {
+          await fadeSlideshowRef.value.initSwiper()
+        }
         
         // 稍后初始化其他 Swiper
-        setTimeout(() => {
-          initAccordionSwiper()
-          initCoverflowSwiper()
+        setTimeout(async () => {
+          if (accordionGalleryRef.value) {
+            await accordionGalleryRef.value.initSwiper()
+          }
+          if (coverflowGalleryRef.value) {
+            await coverflowGalleryRef.value.initSwiper()
+          }
+          // 初始化瀑布流
+          if (masonryWaterfallRef.value) {
+            await masonryWaterfallRef.value.initSwiper()
+          }
         }, 200)
       }, 150)
     })
@@ -613,19 +450,19 @@ const goBack = () => {
   navigateTo('/')
 }
 
-// 销毁Swiper实例
+// 销毁所有子组件的 Swiper 实例
 const destroySwipers = () => {
-  if (accordionSwiper.value) {
-    accordionSwiper.value.destroy(true, true)
-    accordionSwiper.value = null
+  if (fadeSlideshowRef.value) {
+    fadeSlideshowRef.value.destroySwiper()
   }
-  if (coverflowSwiper.value) {
-    coverflowSwiper.value.destroy(true, true)
-    coverflowSwiper.value = null
+  if (accordionGalleryRef.value) {
+    accordionGalleryRef.value.destroySwiper()
   }
-  if (loopSwiper.value) {
-    loopSwiper.value.destroy(true, true)
-    loopSwiper.value = null
+  if (coverflowGalleryRef.value) {
+    coverflowGalleryRef.value.destroySwiper()
+  }
+  if (masonryWaterfallRef.value) {
+    masonryWaterfallRef.value.destroySwiper()
   }
 }
 
