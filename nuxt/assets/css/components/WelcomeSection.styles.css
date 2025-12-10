@@ -556,160 +556,205 @@
   color: white;
 }
 
-/* 响应式设计 */
+/* ========== 移动端悬浮按钮样式 ========== */
+
+/* 默认在桌面端隐藏悬浮按钮 */
+.mobile-fab-container {
+  display: none;
+}
+
+/* ========== 响应式设计 ========== */
+
+/* 平板端 (992px以下) */
 @media (max-width: 992px) {
   .welcome-section {
-    width: 90%; /* 平板端稍微增加宽度 */
+    width: 92%;
     flex-direction: column;
     height: auto;
     gap: 15px;
   }
 
   .carousel-wrapper {
-    height: 40vh;
+    max-width: 100%;
+    height: 35vh;
+    min-height: 220px;
     flex: none;
   }
 
+  /* 平板端隐藏随机文章按钮 */
+  .random-article-btn {
+    display: none;
+  }
+
   .info-section {
+    max-width: 100%;
     flex: none;
     height: auto;
+  }
+
+  .top-section {
+    padding: 1rem 1.5rem;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .top-section::before {
+    width: 120px;
+    opacity: 0.6;
+  }
+
+  .announcement-text-content {
+    padding-left: 0;
+    width: 100%;
+  }
+
+  .announcement-title {
+    font-size: 1.1rem;
+  }
+
+  .announcement-subtitle {
+    font-size: 0.8rem;
+  }
+
+  .icon-marquee-wrapper {
+    width: 100%;
+    max-width: 200px;
   }
 
   .bottom-cards {
     flex-direction: row;
-  }
-
-  .random-article-btn {
-    height: 45px;
-    min-height: 45px;
-  }
-}
-
-@media (max-width: 768px) {
-  .welcome-container {
-    flex-direction: column;
-    gap: 15px;
-  }
-
-  .carousel-wrapper {
-    width: 100%;
-  }
-  
-  .sidebar {
-    width: 100%;
-    flex-direction: row;
-    overflow-x: auto;
-    padding-bottom: 10px;
-  }
-  
-  .info-cards {
-    flex-direction: row;
     gap: 10px;
-    min-width: fit-content;
   }
-  
+
   .info-card {
-    min-width: 120px;
-    height: 100px;
-    padding: 10px;
+    min-height: 100px;
   }
-  
-  .card-content-wrapper {
-    padding: 10px;
-  }
-  
+
   .card-icon {
-    font-size: 1.5rem;
-    margin-bottom: 5px;
+    font-size: 1.6rem;
+    margin-bottom: 6px;
   }
-  
+
   .card-content h5 {
-    font-size: 0.9rem;
+    font-size: 0.95rem;
   }
-  
+
   .card-stats {
     font-size: 0.75rem;
   }
-  
-  .announcement-card {
-    min-width: 200px;
-    margin-right: 10px;
-    min-height: 200px;
+}
+
+/* 移动端 (768px以下) */
+@media (max-width: 768px) {
+  .welcome-section {
+    width: 95%;
+    gap: 0;
   }
-  
-  .announcement-bg {
-    background-attachment: scroll;
+
+  .carousel-wrapper {
+    height: 38vh;
+    min-height: 240px;
   }
-  
-  .announcement-title {
-    font-size: 1rem;
+
+  /* 移动端隐藏随机文章按钮 */
+  .random-article-btn {
+    display: none;
   }
-  
-  .announcement-subtitle {
-    font-size: 0.8rem;
+
+  /* 移动端隐藏右侧信息区域 */
+  .info-section {
+    display: none;
   }
-  
+
+  /* 显示悬浮按钮 */
+  .mobile-fab-container {
+    display: block;
+    position: fixed;
+    right: 16px;
+    bottom: 80px;
+    z-index: 1000;
+  }
+
+  .carousel-section {
+    border-radius: 12px;
+  }
+
+  .swiper-container {
+    border-radius: 12px;
+  }
+
+  .slide-card {
+    border-radius: 12px;
+  }
+
+  .slide-category-badge {
+    top: 12px;
+    left: 12px;
+    padding: 5px 12px;
+    font-size: 0.75rem;
+  }
+
+  .slide-content {
+    padding: 14px;
+  }
+
+  .slide-title {
+    font-size: 1.1rem;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+  }
+
   .carousel-nav-btn {
-    width: 35px !important;
-    height: 35px !important;
+    width: 34px !important;
+    height: 34px !important;
     font-size: 0.9rem;
   }
 
   .carousel-nav-prev {
-    right: 50px !important;
+    right: 52px !important;
     left: auto !important;
-    bottom: 10px !important;
+    bottom: 12px !important;
   }
 
   .carousel-nav-next {
-    right: 10px !important;
-    bottom: 10px !important;
-  }
-  
-  .slide-content {
-    padding: 12px;
-  }
-  
-  .slide-title {
-    font-size: 1rem;
-  }
-  
-  .slide-category {
-    font-size: 0.65rem;
+    right: 12px !important;
+    bottom: 12px !important;
   }
 }
 
+/* 小屏移动端 (576px以下) */
 @media (max-width: 576px) {
-  .welcome-container {
-    gap: 10px;
+  .welcome-section {
+    width: 96%;
   }
-  
-  .info-card {
-    min-width: 100px;
-    height: 80px;
+
+  .carousel-wrapper {
+    height: 35vh;
+    min-height: 220px;
   }
-  
-  .card-content-wrapper {
-    padding: 8px;
+
+  /* 小屏移动端隐藏随机文章按钮 */
+  .random-article-btn {
+    display: none;
   }
-  
-  .card-icon {
-    font-size: 1.2rem;
-    margin-bottom: 3px;
-  }
-  
-  .card-content h5 {
-    font-size: 0.8rem;
-  }
-  
-  .card-stats {
+
+  .slide-category-badge {
+    top: 10px;
+    left: 10px;
+    padding: 4px 10px;
     font-size: 0.7rem;
   }
-  
-  .announcement-card {
-    min-width: 180px;
+
+  .slide-content {
+    padding: 12px;
   }
-  
+
+  .slide-title {
+    font-size: 1rem;
+    margin-bottom: 6px;
+  }
+
   .carousel-nav-btn {
     width: 30px !important;
     height: 30px !important;
@@ -717,15 +762,223 @@
   }
 
   .carousel-nav-prev {
-    right: 45px !important;
-    left: auto !important;
-    bottom: 8px !important;
+    right: 46px !important;
+    bottom: 10px !important;
   }
 
   .carousel-nav-next {
-    right: 8px !important;
-    bottom: 8px !important;
+    right: 10px !important;
+    bottom: 10px !important;
   }
+
+  :deep(.swiper-pagination) {
+    bottom: 10px !important;
+    left: 10px !important;
+  }
+
+  :deep(.swiper-pagination-bullet) {
+    width: 6px;
+    height: 6px;
+    margin: 0 3px !important;
+  }
+
+  .mobile-fab-container {
+    right: 14px;
+    bottom: 70px;
+  }
+}
+
+/* ========== 悬浮按钮组件样式 ========== */
+
+/* 遮罩层 */
+.fab-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0);
+  pointer-events: none;
+  transition: background 0.3s ease;
+  z-index: 999;
+}
+
+.fab-overlay-active {
+  background: rgba(0, 0, 0, 0.4);
+  pointer-events: auto;
+}
+
+/* 主悬浮按钮 */
+.fab-main-btn {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: none;
+  background: linear-gradient(135deg, #207dff 0%, #207dff 100%);
+  color: white;
+  font-size: 1.3rem;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 1001;
+}
+
+.fab-main-btn:hover {
+  transform: scale(1.08);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+}
+
+.fab-main-btn:active {
+  transform: scale(0.95);
+}
+
+.fab-main-btn .fab-icon-default {
+  transition: all 0.3s ease;
+  position: absolute;
+}
+
+.fab-main-btn .fab-icon-close {
+  transition: all 0.3s ease;
+  position: absolute;
+  opacity: 0;
+  transform: rotate(-90deg);
+}
+
+.fab-main-btn-active .fab-icon-default {
+  opacity: 0;
+  transform: rotate(90deg);
+}
+
+.fab-main-btn-active .fab-icon-close {
+  opacity: 1;
+  transform: rotate(0deg);
+}
+
+.fab-main-btn-active {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+/* 展开菜单 */
+.fab-menu {
+  position: absolute;
+  bottom: 65px;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1002;
+}
+
+.fab-menu-expanded {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* 菜单项 */
+.fab-menu-item {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  cursor: pointer;
+  transform: translateY(20px) scale(0.8);
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1002;
+}
+
+.fab-menu-expanded .fab-menu-item {
+  transform: translateY(0) scale(1);
+  opacity: 1;
+}
+
+.fab-menu-expanded .fab-menu-item:nth-child(1) {
+  transition-delay: 0.05s;
+}
+
+.fab-menu-expanded .fab-menu-item:nth-child(2) {
+  transition-delay: 0.1s;
+}
+
+.fab-menu-expanded .fab-menu-item:nth-child(3) {
+  transition-delay: 0.15s;
+}
+
+/* 菜单标签 */
+.fab-menu-label {
+  background: rgba(255, 255, 255, 0.95);
+  color: #333;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+  white-space: nowrap;
+  backdrop-filter: blur(10px);
+}
+
+/* 菜单图标 */
+.fab-menu-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  color: white;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease;
+}
+
+.fab-menu-icon:hover {
+  transform: scale(1.1);
+}
+
+.fab-menu-icon:active {
+  transform: scale(0.95);
+}
+
+.articles-icon {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+.gallery-icon {
+  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+}
+
+.about-icon {
+  background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+}
+
+/* 暗色主题悬浮按钮适配 */
+[data-bs-theme="dark"] .fab-main-btn {
+  background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
+  box-shadow: 0 4px 15px rgba(90, 103, 216, 0.4);
+}
+
+[data-bs-theme="dark"] .fab-main-btn:hover {
+  box-shadow: 0 6px 20px rgba(90, 103, 216, 0.5);
+}
+
+[data-bs-theme="dark"] .fab-main-btn-active {
+  background: linear-gradient(135deg, #ed64a6 0%, #e53e3e 100%);
+}
+
+[data-bs-theme="dark"] .fab-menu-label {
+  background: rgba(45, 45, 55, 0.95);
+  color: #f0f0f5;
+}
+
+[data-bs-theme="dark"] .fab-overlay-active {
+  background: rgba(0, 0, 0, 0.6);
 }
 
 /* 暗色主题适配 */

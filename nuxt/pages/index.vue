@@ -68,7 +68,7 @@
       <div
         v-for="(article, index) in listContext.articles"
         :key="article.id"
-        v-memo="[article.id, article.title, article.coverImage, article.createdAt, article.category, listContext.currentPage, viewMode]"
+        v-memo="[article.id, article.title, article.coverImage, article.createdAt, article.category, listContext.currentPage, effectiveViewMode]"
         :class="[
           'article-card',
           {
@@ -192,7 +192,20 @@ defineOptions({
 const route = useRoute()
 const viewMode = ref('list')
 const isSwitchingView = ref(false)
+const isMobile = ref(false)
 let viewSwitchTimer = null
+
+// 检测是否为移动端
+const checkMobile = () => {
+  if (import.meta.client) {
+    isMobile.value = window.innerWidth <= 768
+  }
+}
+
+// 实际使用的视图模式（移动端强制网格视图）
+const effectiveViewMode = computed(() => {
+  return isMobile.value ? 'grid' : viewMode.value
+})
 
 const pageTitle = computed(() => {
   if (route.query.search) return '搜索结果'
@@ -243,8 +256,8 @@ const articlesPerPage = 8
 const useSkeletonLoader = ref(true)
 
 const isFilteredMode = computed(() => Boolean(route.query.search || route.query.category))
-const isListView = computed(() => viewMode.value === 'list')
-const isGridView = computed(() => viewMode.value === 'grid')
+const isListView = computed(() => effectiveViewMode.value === 'list')
+const isGridView = computed(() => effectiveViewMode.value === 'grid')
 const articlesContainerClasses = computed(() => [
   'articles-container',
   {
@@ -535,6 +548,13 @@ const fetchArticles = async () => {
 
 onMounted(async () => {
   console.log('ArticleList: 组件挂载，开始获取文章数据...')
+  
+  // 检测移动端并监听窗口大小变化
+  checkMobile()
+  if (import.meta.client) {
+    window.addEventListener('resize', checkMobile)
+  }
+  
   await fetchArticles()
   syncPageFromQuery(route.query.page)
 })
@@ -554,6 +574,10 @@ onDeactivated(() => {
 onBeforeUnmount(() => {
   if (viewSwitchTimer) {
     clearTimeout(viewSwitchTimer)
+  }
+  // 移除窗口大小监听
+  if (import.meta.client) {
+    window.removeEventListener('resize', checkMobile)
   }
 })
 

@@ -74,7 +74,7 @@
         <IconMarquee class="icon-marquee-wrapper" />
       </div>
 
-      <!-- 底部两个小卡片 -->
+      <!-- 底部三个小卡片 -->
       <div class="bottom-cards">
         <!-- 文章卡片 -->
         <div class="info-card articles-card" @click="goToArticles">
@@ -131,6 +131,48 @@
         </div>
       </div>
     </div>
+
+    <!-- 移动端悬浮导航按钮 -->
+    <div class="mobile-fab-container">
+      <!-- 遮罩层 -->
+      <div 
+        class="fab-overlay" 
+        :class="{ 'fab-overlay-active': isFabExpanded }"
+        @click="toggleFab"
+      ></div>
+      
+      <!-- 展开的菜单项 -->
+      <div class="fab-menu" :class="{ 'fab-menu-expanded': isFabExpanded }">
+        <div class="fab-menu-item" @click="handleFabArticles">
+          <span class="fab-menu-label">文章</span>
+          <div class="fab-menu-icon articles-icon">
+            <i class="bi bi-file-text"></i>
+          </div>
+        </div>
+        <div class="fab-menu-item" @click="handleFabGallery">
+          <span class="fab-menu-label">画廊</span>
+          <div class="fab-menu-icon gallery-icon">
+            <i class="bi bi-images"></i>
+          </div>
+        </div>
+        <div class="fab-menu-item" @click="handleFabAbout">
+          <span class="fab-menu-label">关于</span>
+          <div class="fab-menu-icon about-icon">
+            <i class="bi bi-person-circle"></i>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 主悬浮按钮 -->
+      <button 
+        class="fab-main-btn" 
+        :class="{ 'fab-main-btn-active': isFabExpanded }"
+        @click="toggleFab"
+      >
+        <i class="bi bi-grid-3x3-gap-fill fab-icon-default"></i>
+        <i class="bi bi-x-lg fab-icon-close"></i>
+      </button>
+    </div>
   </div>
 </template>
 
@@ -149,6 +191,7 @@ const swiperContainer = ref(null)
 const slides = ref([])
 const articleCount = ref(0)
 const loading = ref(false)
+const isFabExpanded = ref(false)
 let swiperInstance = null
 
 // API composable
@@ -306,6 +349,26 @@ const goToGallery = () => {
 
 const goToAbout = () => {
   router.push('/about')
+}
+
+// 悬浮按钮相关方法
+const toggleFab = () => {
+  isFabExpanded.value = !isFabExpanded.value
+}
+
+const handleFabArticles = () => {
+  isFabExpanded.value = false
+  goToArticles()
+}
+
+const handleFabGallery = () => {
+  isFabExpanded.value = false
+  goToGallery()
+}
+
+const handleFabAbout = () => {
+  isFabExpanded.value = false
+  goToAbout()
 }
 
 // 随机跳转文章

@@ -71,7 +71,6 @@
         </div>
       </div>
     </footer>
-    <div v-if="showSidebar" class="mobile-personal-info d-lg-none"><SideBar /></div>
   </div>
 </template>
 

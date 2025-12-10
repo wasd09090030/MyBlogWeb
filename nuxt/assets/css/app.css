@@ -424,14 +424,6 @@ main {
   height: fit-content;
 }
 
-/* 移动端个人信息 */
-.mobile-personal-info {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  z-index: 1025;
-}
-
 /* Footer 样式 */
 .blog-footer {
   background: var(--footer-bg);
