@@ -23,6 +23,8 @@ namespace BlogApi.Services
                 ContentMarkdown = dto.ContentMarkdown,
                 CoverImage = dto.CoverImage,
                 Category = dto.Category,
+                Tags = dto.Tags ?? new List<string>(),
+                AiSummary = dto.AiSummary,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };
@@ -72,7 +74,9 @@ namespace BlogApi.Services
                     Content = a.Content.Length > 240 ? a.Content.Substring(0, 240) : a.Content,  // 只返回前 240 字符
                     ContentMarkdown = a.ContentMarkdown != null && a.ContentMarkdown.Length > 240
                         ? a.ContentMarkdown.Substring(0, 200) 
-                        : a.ContentMarkdown
+                        : a.ContentMarkdown,
+                    Tags = a.Tags,
+                    AiSummary = a.AiSummary
                 })
                 .ToListAsync();
 
@@ -178,7 +182,9 @@ namespace BlogApi.Services
                     Content = a.Content.Length > 240 ? a.Content.Substring(0, 240) : a.Content,
                     ContentMarkdown = a.ContentMarkdown != null && a.ContentMarkdown.Length > 240
                         ? a.ContentMarkdown.Substring(0, 200) 
-                        : a.ContentMarkdown
+                        : a.ContentMarkdown,
+                    Tags = a.Tags,
+                    AiSummary = a.AiSummary
                 })
                 .ToListAsync();
         }
@@ -200,6 +206,8 @@ namespace BlogApi.Services
             if (dto.ContentMarkdown != null) article.ContentMarkdown = dto.ContentMarkdown;
             if (dto.CoverImage != null) article.CoverImage = dto.CoverImage;
             if (dto.Category.HasValue) article.Category = dto.Category.Value;
+            if (dto.Tags != null) article.Tags = dto.Tags;
+            if (dto.AiSummary != null) article.AiSummary = dto.AiSummary;
 
             article.UpdatedAt = DateTime.UtcNow;
 

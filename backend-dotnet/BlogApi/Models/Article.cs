@@ -21,6 +21,17 @@ namespace BlogApi.Models
         public string? ContentMarkdown { get; set; }
         public string? CoverImage { get; set; }
         public ArticleCategory Category { get; set; } = ArticleCategory.Other;
+        
+        /// <summary>
+        /// 自定义标签列表（存储为 JSON 字符串）
+        /// </summary>
+        public List<string> Tags { get; set; } = new List<string>();
+        
+        /// <summary>
+        /// AI 生成的文章概要
+        /// </summary>
+        public string? AiSummary { get; set; }
+        
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 

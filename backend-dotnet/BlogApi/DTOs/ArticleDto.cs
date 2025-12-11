@@ -9,6 +9,8 @@ namespace BlogApi.DTOs
         public string? ContentMarkdown { get; set; }
         public string? CoverImage { get; set; }
         public ArticleCategory Category { get; set; }
+        public List<string>? Tags { get; set; }
+        public string? AiSummary { get; set; }
     }
 
     public class UpdateArticleDto
@@ -18,6 +20,8 @@ namespace BlogApi.DTOs
         public string? ContentMarkdown { get; set; }
         public string? CoverImage { get; set; }
         public ArticleCategory? Category { get; set; }
+        public List<string>? Tags { get; set; }
+        public string? AiSummary { get; set; }
     }
 
     public class ArticleSummaryDto
@@ -30,6 +34,8 @@ namespace BlogApi.DTOs
         public DateTime UpdatedAt { get; set; }
         public string? Content { get; set; }  // 添加内容字段用于生成摘要
         public string? ContentMarkdown { get; set; }  // 可选的 Markdown 内容
+        public List<string>? Tags { get; set; }
+        public string? AiSummary { get; set; }
     }
 
     public class ArticleWithCommentsDto
@@ -43,5 +49,7 @@ namespace BlogApi.DTOs
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
         public int CommentCount { get; set; }
+        public List<string>? Tags { get; set; }
+        public string? AiSummary { get; set; }
     }
 }

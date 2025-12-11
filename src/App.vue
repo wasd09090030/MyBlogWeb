@@ -1,8 +1,8 @@
 <template>
   <div id="app" :class="['min-vh-100', isDarkMode ? 'dark-theme' : 'light-theme']">
-    <!-- 导航栏 - 在画廊页面隐藏 -->
-    <SakuraFalling />
-    <nav :class="['navbar navbar-expand-lg transition-all', isDarkMode ? 'navbar-dark' : 'navbar-light', navbarClass, navbarAnimationClass]" ref="navbar">
+    <!-- 导航栏 - 在画廊页面和Admin页面隐藏 -->
+    <SakuraFalling v-if="!isAdminRoute" />
+    <nav v-if="!isAdminRoute" :class="['navbar navbar-expand-lg transition-all', isDarkMode ? 'navbar-dark' : 'navbar-light', navbarClass, navbarAnimationClass]" ref="navbar">
       <div class="container-fluid d-flex align-items-center">
         <router-link to="/" class="navbar-brand">WyrmKk</router-link>
         
@@ -80,12 +80,12 @@
  
     
     <!-- 主内容区 -->
-  <div class="main-container">
-    <div class="main-content" :class="{ 'admin-full-width': isAdminRoute }">
+  <div class="main-container" v-if="!isAdminRoute">
+    <div class="main-content">
       <div class="container-fluid">
         <div class="row">
           <!-- 文章内容区域 -->
-          <div class="col-12 col-lg-8 col-xl-9" :class="{ 'col-lg-12 col-xl-12': isAdminRoute || isGalleryRoute || isArticleDetailRoute }">
+          <div class="col-12 col-lg-8 col-xl-9" :class="{ 'col-lg-12 col-xl-12': isGalleryRoute || isArticleDetailRoute }">
             <main>
               <!-- 使用 Vue Router 4 推荐的 slot props 语法 -->
               <router-view v-slot="{ Component, route }">
@@ -97,7 +97,7 @@
           </div>
           
           <!-- 侧边栏个人信息 - 大屏显示 -->
-          <div class="col-lg-4 col-xl-3 d-none d-lg-block sidebar-animate" v-if="!isAdminRoute && !isGalleryRoute && !isArticleDetailRoute">
+          <div class="col-lg-4 col-xl-3 d-none d-lg-block sidebar-animate" v-if="!isGalleryRoute && !isArticleDetailRoute">
             <div class="sidebar-content">
               <PersonalInfo />
                 <div class="mobile-music-player-container">
@@ -108,6 +108,11 @@
         </div>
       </div>
     </div>
+    </div>
+    
+    <!-- Admin 路由使用独立布局 -->
+    <div v-else class="admin-wrapper">
+      <router-view />
     </div>
     
     <!-- Footer 底部信息 -->

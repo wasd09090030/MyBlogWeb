@@ -28,6 +28,7 @@ builder.Services.AddScoped<ArticleService>();
 builder.Services.AddScoped<CommentService>();
 builder.Services.AddScoped<GalleryService>();
 builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<DeepSeekService>();
 
 // Add CORS
 builder.Services.AddCors(options =>

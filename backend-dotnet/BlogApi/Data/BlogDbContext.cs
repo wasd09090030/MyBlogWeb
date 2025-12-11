@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using BlogApi.Models;
+using System.Text.Json;
 
 namespace BlogApi.Data
 {
@@ -36,6 +38,27 @@ namespace BlogApi.Data
                              Enum.Parse<ArticleCategory>(char.ToUpper(v[0]) + (v.Length > 1 ? v.Substring(1).ToLower() : ""), true) // 读取时首字母大写
                     )
                     .HasDefaultValue(ArticleCategory.Other);
+                
+                // Tags 字段配置 - 存储为 JSON 字符串
+                entity.Property(e => e.Tags)
+                    .HasColumnName("tags")
+                    .HasConversion(
+                        v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                        v => string.IsNullOrEmpty(v) 
+                            ? new List<string>() 
+                            : JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null) ?? new List<string>()
+                    )
+                    .Metadata.SetValueComparer(new ValueComparer<List<string>>(
+                        (c1, c2) => c1 != null && c2 != null && c1.SequenceEqual(c2),
+                        c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
+                        c => c.ToList()
+                    ));
+                
+                // AiSummary 字段配置
+                entity.Property(e => e.AiSummary)
+                    .HasColumnName("aiSummary")
+                    .HasMaxLength(2000);
+                
                 entity.Property(e => e.CreatedAt).HasColumnName("createdAt");
                 entity.Property(e => e.UpdatedAt).HasColumnName("updatedAt");
                 entity.HasMany(e => e.Comments)

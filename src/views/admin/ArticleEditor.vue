@@ -93,6 +93,87 @@
               </div>
             </div>
 
+            <!-- 自定义标签 -->
+            <div class="mb-3">
+              <label class="form-label">
+                <i class="bi bi-tags me-1"></i>文章标签
+              </label>
+              <div class="tags-input-container">
+                <div class="tags-display mb-2" v-if="articleForm.tags && articleForm.tags.length > 0">
+                  <span 
+                    v-for="(tag, index) in articleForm.tags" 
+                    :key="index" 
+                    class="badge bg-primary me-1 mb-1 tag-badge"
+                  >
+                    {{ tag }}
+                    <button 
+                      type="button" 
+                      class="btn-close btn-close-white ms-1" 
+                      style="font-size: 0.6rem;"
+                      @click="removeTag(index)"
+                      aria-label="删除标签"
+                    ></button>
+                  </span>
+                </div>
+                <div class="input-group">
+                  <input 
+                    type="text" 
+                    class="form-control form-control-sm" 
+                    v-model="newTag"
+                    placeholder="输入标签后按回车添加"
+                    @keyup.enter="addTag"
+                    @keyup.comma="addTag"
+                  >
+                  <button class="btn btn-outline-primary btn-sm" type="button" @click="addTag">
+                    <i class="bi bi-plus"></i>
+                  </button>
+                </div>
+                <div class="form-text">常用标签：
+                  <span 
+                    v-for="tag in suggestedTags" 
+                    :key="tag" 
+                    class="suggested-tag"
+                    @click="addSuggestedTag(tag)"
+                  >{{ tag }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- AI 概要 -->
+            <div class="mb-3">
+              <label for="aiSummary" class="form-label">
+                <i class="bi bi-robot me-1"></i>AI 概要
+              </label>
+              <div class="d-flex gap-2 mb-2">
+                <button 
+                  type="button" 
+                  class="btn btn-outline-info btn-sm flex-grow-1" 
+                  @click="generateAiSummary"
+                  :disabled="isGeneratingAi || !articleForm.contentMarkdown"
+                >
+                  <span v-if="isGeneratingAi" class="spinner-border spinner-border-sm me-1" role="status"></span>
+                  <i v-else class="bi bi-magic me-1"></i>
+                  {{ isGeneratingAi ? '生成中...' : '生成概要' }}
+                </button>
+                <button 
+                  type="button" 
+                  class="btn btn-outline-secondary btn-sm" 
+                  @click="clearAiSummary"
+                  :disabled="!articleForm.aiSummary"
+                >
+                  <i class="bi bi-x-lg"></i>
+                </button>
+              </div>
+              <textarea 
+                id="aiSummary"
+                class="form-control" 
+                v-model="articleForm.aiSummary" 
+                rows="3"
+                placeholder="点击上方按钮使用 AI 生成概要，或手动输入..."
+              ></textarea>
+              <div class="form-text">AI 生成的文章概要将用于文章预览</div>
+            </div>
+
             <!-- 统计信息 -->
             <div class="stats-info mt-4">
               <div class="d-flex justify-content-between text-muted small mb-2">
@@ -282,12 +363,19 @@ const articleForm = ref({
   contentMarkdown: '',
   coverImage: '', // 封面图URL
   category: 'study', // 默认类别
+  tags: [], // 自定义标签
+  aiSummary: '', // AI 概要
 });
 
 const loading = ref(false);
 const isSaving = ref(false);
 const isValidImageUrl = ref(false);
 const isEdit = computed(() => !!route.params.id);
+const newTag = ref(''); // 新标签输入
+const isGeneratingAi = ref(false); // AI 生成中状态
+
+// 推荐标签列表
+const suggestedTags = ['前端', '后端', 'Vue', 'React', 'JavaScript', 'TypeScript', 'Python', 'CSS', '教程', '分享'];
 
 // 编辑器高度 - 响应式计算
 const windowHeight = ref(window.innerHeight);
@@ -781,6 +869,8 @@ const fetchArticle = async (id) => {
       contentMarkdown: article.contentMarkdown || article.content, // 兼容没有markdown字段的旧数据
       coverImage: article.coverImage || '', // 封面图URL
       category: article.category || 'study', // 数据库中存储的就是小写值，直接使用
+      tags: article.tags || [], // 自定义标签
+      aiSummary: article.aiSummary || '', // AI 概要
     };    // 如果有封面图，检查其有效性
     if (article.coverImage) {
       // 延迟检查图片加载状态
@@ -804,12 +894,14 @@ const saveArticle = async () => {
   try {
     // 将Markdown转换为HTML
     const htmlContent = md.render(articleForm.value.contentMarkdown);
-      const payload = {
+    const payload = {
       title: articleForm.value.title,
       contentMarkdown: articleForm.value.contentMarkdown,
       content: htmlContent,
       coverImage: articleForm.value.coverImage || null, // 封面图URL，空值时设为null
       category: articleForm.value.category.toLowerCase(), // 保持小写，匹配数据库约束
+      tags: articleForm.value.tags || [], // 自定义标签
+      aiSummary: articleForm.value.aiSummary || null, // AI 概要
     };
     
     if (isEdit.value) {
@@ -830,6 +922,65 @@ const saveArticle = async () => {
   } finally {
     isSaving.value = false;
   }
+};
+
+// 标签管理函数
+const addTag = () => {
+  const tag = newTag.value.trim().replace(/,/g, '');
+  if (tag && !articleForm.value.tags.includes(tag)) {
+    articleForm.value.tags.push(tag);
+  }
+  newTag.value = '';
+};
+
+const removeTag = (index) => {
+  articleForm.value.tags.splice(index, 1);
+};
+
+const addSuggestedTag = (tag) => {
+  if (!articleForm.value.tags.includes(tag)) {
+    articleForm.value.tags.push(tag);
+  }
+};
+
+// AI 概要相关函数
+const generateAiSummary = async () => {
+  if (!articleForm.value.contentMarkdown) {
+    alert('请先输入文章内容');
+    return;
+  }
+  
+  isGeneratingAi.value = true;
+  
+  try {
+    // 调用 DeepSeek API 生成概要
+    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || (import.meta.env.PROD ? '/api' : 'http://localhost:5000/api')}/ai/summary`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        content: articleForm.value.contentMarkdown,
+        title: articleForm.value.title || '未命名文章'
+      })
+    });
+    
+    if (!response.ok) {
+      throw new Error('AI 服务暂不可用');
+    }
+    
+    const data = await response.json();
+    articleForm.value.aiSummary = data.summary;
+  } catch (error) {
+    console.error('生成 AI 概要失败:', error);
+    alert('生成 AI 概要失败: ' + error.message);
+  } finally {
+    isGeneratingAi.value = false;
+  }
+};
+
+const clearAiSummary = () => {
+  articleForm.value.aiSummary = '';
 };
 
 // 返回上一页
@@ -854,6 +1005,60 @@ const goBack = () => {
 .editor-main {
   min-width: 0;
   min-height: 600px;
+}
+
+/* 标签相关样式 */
+.tags-input-container {
+  background-color: #f8f9fa;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid #dee2e6;
+}
+
+.tags-display {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.tag-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.35em 0.65em;
+  font-size: 0.85rem;
+  cursor: default;
+  transition: all 0.2s ease;
+}
+
+.tag-badge:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.tag-badge .btn-close {
+  opacity: 0.7;
+  cursor: pointer;
+}
+
+.tag-badge .btn-close:hover {
+  opacity: 1;
+}
+
+.suggested-tag {
+  display: inline-block;
+  padding: 0.15em 0.4em;
+  margin: 0.1em;
+  background-color: #e9ecef;
+  border-radius: 0.25rem;
+  font-size: 0.8rem;
+  color: #495057;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.suggested-tag:hover {
+  background-color: #0d6efd;
+  color: white;
 }
 
 /* 响应式布局 */
