@@ -484,55 +484,55 @@ onUnmounted(() => {
 }
 
 /* 暗色主题支持 */
-[data-bs-theme="dark"] .article-structure {
+.dark-theme .article-structure {
   background: rgba(30, 41, 59, 0.95);
   border-color: rgba(148, 163, 184, 0.2);
 }
 
-[data-bs-theme="dark"] .structure-header {
+.dark-theme .structure-header {
   background: linear-gradient(135deg, #2a46ff 0%, #0000db 100%);
 }
 
-[data-bs-theme="dark"] .structure-header:hover {
+.dark-theme .structure-header:hover {
   background: linear-gradient(135deg, #4338ca 0%, #6d28d9 100%);
 }
 
-[data-bs-theme="dark"] .toc-link {
+.dark-theme .toc-link {
   color: #cbd5e1;
 }
 
-[data-bs-theme="dark"] .toc-link:hover {
+.dark-theme .toc-link:hover {
   background: rgba(99, 102, 241, 0.15);
   color: #a5b4fc;
 }
 
-[data-bs-theme="dark"] .toc-item.active .toc-link {
+.dark-theme .toc-item.active .toc-link {
   background: rgba(99, 102, 241, 0.2);
   color: #a5b4fc;
 }
 
-[data-bs-theme="dark"] .toc-item.active .toc-bullet {
+.dark-theme .toc-item.active .toc-bullet {
   background: #a5b4fc;
 }
 
-[data-bs-theme="dark"] .toc-bullet {
+.dark-theme .toc-bullet {
   background: #64748b;
 }
 
-[data-bs-theme="dark"] .reading-progress-section {
+.dark-theme .reading-progress-section {
   border-top-color: rgba(148, 163, 184, 0.2);
   background: rgba(99, 102, 241, 0.08);
 }
 
-[data-bs-theme="dark"] .progress-label {
+.dark-theme .progress-label {
   color: #a5b4fc;
 }
 
-[data-bs-theme="dark"] .progress-bar {
+.dark-theme .progress-bar {
   background: rgba(99, 102, 241, 0.3);
 }
 
-[data-bs-theme="dark"] .progress-percentage {
+.dark-theme .progress-percentage {
   color: #a5b4fc;
 }
 

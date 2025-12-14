@@ -33,21 +33,18 @@
       </div>
     </div>
 
-    <div v-if="error" class="alert alert-danger" role="alert">
+    <n-alert v-if="error" type="error" title="加载失败" class="mb-4">
       加载或操作文章失败：{{ error.message }}
-    </div>
+    </n-alert>
 
-    <div v-if="route.query.search || route.query.category" class="mb-4">
-      <div class="alert alert-info d-flex flex-wrap align-items-center justify-content-between gap-2">
+    <n-alert v-if="route.query.search || route.query.category" type="info" class="mb-4" closable @close="clearSearch">
+      <template #header>
         <div class="d-flex flex-wrap align-items-center gap-3">
-          <span v-if="route.query.search">搜索结果：“{{ route.query.search }}”</span>
+          <span v-if="route.query.search">搜索结果："{{ route.query.search }}"</span>
           <span v-if="route.query.category">分类筛选：{{ getCategoryName(route.query.category) }}</span>
         </div>
-        <button class="btn btn-sm btn-outline-secondary" @click="clearSearch">
-          <i class="bi bi-x-circle me-1"></i>清除条件
-        </button>
-      </div>
-    </div>
+      </template>
+    </n-alert>
 
     <SkeletonLoader
       v-if="loading && useSkeletonLoader"
@@ -128,52 +125,22 @@
       </div>
     </TransitionGroup>
 
-    <div v-else class="alert alert-info text-center" role="alert">
-      {{ listContext.emptyText }}
-    </div>
+    <n-empty v-else :description="listContext.emptyText" class="my-5">
+      <template #icon>
+        <i class="bi bi-journal-text fs-1"></i>
+      </template>
+    </n-empty>
 
     <div v-if="listContext.totalPages > 1" class="pagination-container mt-4">
-      <nav :aria-label="listContext.paginationLabel">
-        <ul class="pagination justify-content-center">
-          <li class="page-item" :class="{ disabled: listContext.currentPage === 1 }">
-            <button
-              class="page-link page-btn"
-              @click="listContext.goToPage(listContext.currentPage - 1)"
-              :disabled="listContext.currentPage === 1"
-            >
-              <i class="bi bi-chevron-left"></i>
-            </button>
-          </li>
+      <div class="d-flex justify-content-center">
+        <n-pagination
+          v-model:page="paginationPage"
+          :page-count="listContext.totalPages"
+          :page-slot="7"
+        />
+      </div>
 
-          <li
-            v-for="(page, pageIndex) in listContext.pageNumbers"
-            :key="page === '...' ? `ellipsis-${pageIndex}` : page"
-            class="page-item"
-            :class="{ active: page === listContext.currentPage }"
-          >
-            <button v-if="page === '...'" class="page-link disabled">...</button>
-            <button
-              v-else
-              class="page-link page-btn"
-              @click="listContext.goToPage(page)"
-            >
-              {{ page }}
-            </button>
-          </li>
-
-          <li class="page-item" :class="{ disabled: listContext.currentPage === listContext.totalPages }">
-            <button
-              class="page-link page-btn"
-              @click="listContext.goToPage(listContext.currentPage + 1)"
-              :disabled="listContext.currentPage === listContext.totalPages"
-            >
-              <i class="bi bi-chevron-right"></i>
-            </button>
-          </li>
-        </ul>
-      </nav>
-
-      <div class="text-center text-muted mt-2">
+      <div class="text-center text-muted mt-3">
         共 {{ listContext.totalCount }} 篇文章，当前 {{ listContext.currentPage }} / {{ listContext.totalPages }} 页
       </div>
     </div>
@@ -261,6 +228,18 @@ const currentPage = ref(1)
 const currentFilteredPage = ref(1)
 const articlesPerPage = 8
 const useSkeletonLoader = ref(true)
+
+// Naive UI 分页组件需要的响应式变量
+const paginationPage = computed({
+  get: () => isFilteredMode.value ? currentFilteredPage.value : currentPage.value,
+  set: (val) => {
+    if (isFilteredMode.value) {
+      goToFilteredPage(val)
+    } else {
+      goToPage(val)
+    }
+  }
+})
 
 const isFilteredMode = computed(() => Boolean(route.query.search || route.query.category))
 const isListView = computed(() => effectiveViewMode.value === 'list')

@@ -417,25 +417,25 @@ onMounted(() => {
 }
 
 /* 暗色主题支持 */
-[data-bs-theme="dark"] .comment-form,
-[data-bs-theme="dark"] .comment-item {
+.dark-theme .comment-form,
+.dark-theme .comment-item {
   background: linear-gradient(135deg, var(--bs-dark), #2c2c2c);
   border-color: var(--bs-border-color-translucent);
 }
 
-[data-bs-theme="dark"] .comment-form .card-title {
+.dark-theme .comment-form .card-title {
   color: #fff;
 }
 
-[data-bs-theme="dark"] .author-name {
+.dark-theme .author-name {
   color: #fff;
 }
 
-[data-bs-theme="dark"] .comment-content {
+.dark-theme .comment-content {
   color: #dee2e6;
 }
 
-[data-bs-theme="dark"] .like-btn {
+.dark-theme .like-btn {
   box-shadow: 0 4px 15px rgba(255, 107, 107, 0.2);
 }
 

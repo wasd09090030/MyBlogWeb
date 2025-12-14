@@ -116,7 +116,7 @@
 }
 
 /* ==================== 暗色主题 (Dark Theme) ==================== */
-:root[data-bs-theme="dark"] {
+:root.dark-theme {
   /* 背景色 */
   --bg-primary: #0f172a;
   --bg-secondary: #1a2332;

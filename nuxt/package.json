@@ -11,20 +11,21 @@
   },
   "dependencies": {
     "@pinia/nuxt": "^0.5.1",
-    "@popperjs/core": "^2.11.8",
-    "bootstrap": "^5.3.6",
+    "@vicons/ionicons5": "^0.13.0",
     "bootstrap-icons": "^1.13.1",
     "github-markdown-css": "^5.8.1",
     "highlight.js": "^11.11.1",
     "katex": "^0.16.25",
     "markdown-it": "^14.1.0",
     "motion-v": "^1.7.4",
+    "naive-ui": "^2.43.2",
     "nuxt": "^3.11.2",
     "pinia": "^2.1.7",
     "swiper": "^11.2.10",
     "vue": "^3.4.21"
   },
   "devDependencies": {
+    "@bg-dev/nuxt-naiveui": "^2.0.0",
     "@nuxt/devtools": "latest",
     "sass": "^1.75.0"
   }

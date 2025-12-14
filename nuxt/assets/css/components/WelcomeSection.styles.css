@@ -377,7 +377,7 @@
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
 }
 
-[data-bs-theme="dark"] .top-section {
+.dark-theme .top-section {
   background: linear-gradient(135deg, rgba(102, 126, 234, 0.12) 0%, rgba(118, 75, 162, 0.08) 100%);
   border-color: rgba(102, 126, 234, 0.2);
 }
@@ -959,52 +959,52 @@
 }
 
 /* 暗色主题悬浮按钮适配 */
-[data-bs-theme="dark"] .fab-main-btn {
+.dark-theme .fab-main-btn {
   background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
   box-shadow: 0 4px 15px rgba(90, 103, 216, 0.4);
 }
 
-[data-bs-theme="dark"] .fab-main-btn:hover {
+.dark-theme .fab-main-btn:hover {
   box-shadow: 0 6px 20px rgba(90, 103, 216, 0.5);
 }
 
-[data-bs-theme="dark"] .fab-main-btn-active {
+.dark-theme .fab-main-btn-active {
   background: linear-gradient(135deg, #ed64a6 0%, #e53e3e 100%);
 }
 
-[data-bs-theme="dark"] .fab-menu-label {
+.dark-theme .fab-menu-label {
   background: rgba(45, 45, 55, 0.95);
   color: #f0f0f5;
 }
 
-[data-bs-theme="dark"] .fab-overlay-active {
+.dark-theme .fab-overlay-active {
   background: rgba(0, 0, 0, 0.6);
 }
 
 /* 暗色主题适配 */
-[data-bs-theme="dark"] .random-article-btn {
+.dark-theme .random-article-btn {
   background: linear-gradient(135deg, rgb(59, 56, 94) 0%,  rgb(59, 56, 94)  0%);
   color: rgb(240, 240, 245);
 }
 
 
-[data-bs-theme="dark"] .info-card {
+.dark-theme .info-card {
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
 }
 
-[data-bs-theme="dark"] .info-card:hover {
+.dark-theme .info-card:hover {
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
 }
 
-[data-bs-theme="dark"] .announcement-card {
+.dark-theme .announcement-card {
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
 }
 
-[data-bs-theme="dark"] .announcement-card:hover {
+.dark-theme .announcement-card:hover {
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
 }
 
-[data-bs-theme="dark"] .card-overlay {
+.dark-theme .card-overlay {
   background: linear-gradient(
     135deg,
     rgba(0, 0, 0, 0.6) 0%,
@@ -1013,7 +1013,7 @@
   );
 }
 
-[data-bs-theme="dark"] .announcement-overlay {
+.dark-theme .announcement-overlay {
   background: linear-gradient(
     145deg,
     rgba(0, 0, 0, 0.8) 0%,
@@ -1024,7 +1024,7 @@
 }
 
 /* 暗色主题下的公告遮罩层调整 */
-[data-bs-theme="dark"] .announcement-overlay {
+.dark-theme .announcement-overlay {
   background: linear-gradient(
     135deg,
     rgba(0, 0, 0, 0.6) 0%,
@@ -1033,27 +1033,27 @@
   );
 }
 
-[data-bs-theme="dark"] .carousel-nav-btn {
+.dark-theme .carousel-nav-btn {
   background: rgba(26, 26, 26, 0.9) !important;
   color: #ffffff !important;
 }
 
-[data-bs-theme="dark"] .carousel-nav-btn:hover {
+.dark-theme .carousel-nav-btn:hover {
   background: rgba(26, 26, 26, 1) !important;
 }
 
-[data-bs-theme="dark"] :deep(.swiper-pagination-bullet) {
+.dark-theme :deep(.swiper-pagination-bullet) {
   background: rgba(255, 255, 255, 0.3) !important;
 }
 
-[data-bs-theme="dark"] :deep(.swiper-pagination-bullet-active) {
+.dark-theme :deep(.swiper-pagination-bullet-active) {
   background: #fff !important;
 }
 
-[data-bs-theme="dark"] .slide-card {
+.dark-theme .slide-card {
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
 
-[data-bs-theme="dark"] .carousel-slide.active .slide-card {
+.dark-theme .carousel-slide.active .slide-card {
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
 }

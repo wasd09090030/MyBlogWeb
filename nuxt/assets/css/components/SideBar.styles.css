@@ -14,7 +14,7 @@
   transition: all 0.3s ease;
 }
 
-[data-bs-theme="dark"] .desktop-sidebar .sidebar-content {
+.dark-theme .desktop-sidebar .sidebar-content {
   background-color: var(--bs-dark);
   border-color: var(--bs-border-color-translucent);
   box-shadow: 0 4px 12px rgba(0,0,0,0.3);
@@ -27,7 +27,7 @@
   border-top: 1px solid var(--bs-border-color);
 }
 
-[data-bs-theme="dark"] .sidebar-section + .sidebar-section {
+.dark-theme .sidebar-section + .sidebar-section {
   border-top-color: var(--bs-border-color-translucent);
 }
 
@@ -64,7 +64,7 @@
   border-color: var(--bs-primary);
 }
 
-[data-bs-theme="dark"] .category-card {
+.dark-theme .category-card {
   background: linear-gradient(135deg, rgba(33,37,41,0.95), rgba(26,32,44,0.95));
   border-color: var(--bs-border-color-translucent);
   box-shadow: 0 6px 16px rgba(0,0,0,0.4);
@@ -82,7 +82,7 @@
   font-size: 1.1rem;
 }
 
-[data-bs-theme="dark"] .category-icon {
+.dark-theme .category-icon {
   background: rgba(102,126,234,0.2);
 }
 
@@ -128,7 +128,7 @@
   transform: translateX(4px);
 }
 
-[data-bs-theme="dark"] .archive-item {
+.dark-theme .archive-item {
   background-color: rgba(33,37,41,0.9);
   border-color: var(--bs-border-color-translucent);
 }
@@ -181,7 +181,7 @@
   margin-right: 10px;
 }
 
-[data-bs-theme="dark"] .personal-info-sidebar {
+.dark-theme .personal-info-sidebar {
   background-color: var(--bs-dark);
   border-color: var(--bs-border-color-translucent);
   box-shadow: -5px 0 20px rgba(0,0,0,0.4);
@@ -465,7 +465,7 @@
 }
 
 /* 暗色主题适配 */
-[data-bs-theme="dark"] .quote-wrapper {
+.dark-theme .quote-wrapper {
   background: linear-gradient(135deg, rgba(45, 55, 72, 0.9) 0%, rgba(26, 32, 44, 0.9) 100%);
   border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 
@@ -473,58 +473,58 @@
     0 1px 3px rgba(0, 0, 0, 0.4);
 }
 
-[data-bs-theme="dark"] .quote-wrapper:hover {
+.dark-theme .quote-wrapper:hover {
   box-shadow: 
     0 8px 30px rgba(0, 0, 0, 0.4),
     0 4px 8px rgba(0, 0, 0, 0.5);
 }
 
-[data-bs-theme="dark"] .quote-wrapper::before {
+.dark-theme .quote-wrapper::before {
   background: linear-gradient(90deg, #4299e1 0%, #9f7aea 50%, #ed64a6 100%);
 }
 
-[data-bs-theme="dark"] .quote-header {
+.dark-theme .quote-header {
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-[data-bs-theme="dark"] .quote-title {
+.dark-theme .quote-title {
   color: #e2e8f0;
 }
 
-[data-bs-theme="dark"] .quote-title i {
+.dark-theme .quote-title i {
   color: #fbb863;
 }
 
-[data-bs-theme="dark"] .quote-refresh-btn {
+.dark-theme .quote-refresh-btn {
   color: #a0aec0;
 }
 
-[data-bs-theme="dark"] .quote-refresh-btn:hover {
+.dark-theme .quote-refresh-btn:hover {
   background: rgba(66, 153, 225, 0.2);
   color: #4299e1;
 }
 
-[data-bs-theme="dark"] .quote-mark {
+.dark-theme .quote-mark {
   color: #4299e1;
 }
 
-[data-bs-theme="dark"] .quote-text {
+.dark-theme .quote-text {
   color: #e2e8f0;
 }
 
-[data-bs-theme="dark"] .quote-author {
+.dark-theme .quote-author {
   color: #a0aec0;
 }
 
-[data-bs-theme="dark"] .quote-author::before {
+.dark-theme .quote-author::before {
   color: #718096;
 }
 
-[data-bs-theme="dark"] .quote-decoration {
+.dark-theme .quote-decoration {
   background: linear-gradient(90deg, #4299e1, #9f7aea);
 }
 
-[data-bs-theme="dark"] .dot {
+.dark-theme .dot {
   background: #4a5568;
 }
 
@@ -609,7 +609,7 @@
   transform: translateX(5px);
 }
 
-[data-bs-theme="dark"] .skill-item:hover {
+.dark-theme .skill-item:hover {
   background-color: var(--bs-gray-800);
 }
 
@@ -746,15 +746,15 @@
 }
 
 /* 深色主题适配 */
-[data-bs-theme="dark"] .contact-icon {
+.dark-theme .contact-icon {
   box-shadow: 0 4px 15px rgba(0,0,0,0.3);
 }
 
-[data-bs-theme="dark"] .email-icon:hover {
+.dark-theme .email-icon:hover {
   box-shadow: 0 10px 25px rgba(102, 126, 234, 0.6);
 }
 
-[data-bs-theme="dark"] .github-icon:hover {
+.dark-theme .github-icon:hover {
   box-shadow: 0 10px 25px rgba(36, 41, 46, 0.6);
 }
 
@@ -960,11 +960,11 @@
   background: var(--bs-primary);
 }
 
-[data-bs-theme="dark"] .personal-info-sidebar::-webkit-scrollbar-track {
+.dark-theme .personal-info-sidebar::-webkit-scrollbar-track {
   background: var(--bs-gray-800);
 }
 
-[data-bs-theme="dark"] .personal-info-sidebar::-webkit-scrollbar-thumb {
+.dark-theme .personal-info-sidebar::-webkit-scrollbar-thumb {
   background: var(--bs-gray-600);
 }
 

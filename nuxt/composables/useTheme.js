@@ -19,7 +19,9 @@ export const useTheme = () => {
   // 应用主题
   const applyTheme = () => {
     if (process.client) {
-      document.documentElement.setAttribute('data-bs-theme', isDarkMode.value ? 'dark' : 'light')
+      // 使用自定义类名替代 Bootstrap 的 data-bs-theme
+      document.documentElement.classList.toggle('dark-theme', isDarkMode.value)
+      document.documentElement.classList.toggle('light-theme', !isDarkMode.value)
     }
   }
 

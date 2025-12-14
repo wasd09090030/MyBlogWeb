@@ -157,12 +157,12 @@ const iconsColumn2 = [
 }
 
 /* 暗色主题适配 */
-[data-bs-theme="dark"] .icon-item {
+.dark-theme .icon-item {
   background: rgba(255, 255, 255, 0.05);
   border-color: rgba(255, 255, 255, 0.1);
 }
 
-[data-bs-theme="dark"] .icon-item:hover {
+.dark-theme .icon-item:hover {
   background: rgba(255, 255, 255, 0.12);
   border-color: rgba(255, 255, 255, 0.25);
 }

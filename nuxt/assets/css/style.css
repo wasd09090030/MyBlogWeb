@@ -61,7 +61,7 @@ button:focus-visible {
 }
 
 /* Global dark/light theme styles */
-[data-bs-theme="dark"] {
+.dark-theme {
   --bs-body-bg: var(--bg-secondary);
   --bs-body-color: var(--text-primary);
   --bs-border-color: var(--border-color);
@@ -76,25 +76,25 @@ button:focus-visible {
 }
 
 /* Card theme support */
-[data-bs-theme="dark"] .card {
+.dark-theme .card {
   background-color: var(--card-bg);
   border-color: var(--card-border);
   color: var(--text-primary);
 }
 
-[data-bs-theme="dark"] .card-title {
+.dark-theme .card-title {
   color: var(--text-primary);
 }
 
-[data-bs-theme="dark"] .text-primary {
+.dark-theme .text-primary {
   color: var(--accent-primary) !important;
 }
 
-[data-bs-theme="dark"] .bg-light {
+.dark-theme .bg-light {
   background-color: var(--bg-tertiary) !important;
 }
 
-[data-bs-theme="dark"] .alert-info {
+.dark-theme .alert-info {
   background-color: var(--accent-info);
   border-color: var(--accent-primary);
   color: var(--text-primary);

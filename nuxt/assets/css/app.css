@@ -72,7 +72,7 @@ nav.navbar-light {
 /* 亮色主题导航栏样式 */
 .light-theme nav.navbar,
 .light-theme nav.navbar-light,
-:root:not([data-bs-theme="dark"]) nav.navbar {
+:root:not(.dark-theme) nav.navbar {
   background: var(--navbar-bg) !important;
   box-shadow: var(--navbar-shadow) !important;
 }
@@ -80,7 +80,7 @@ nav.navbar-light {
 /* 暗色主题导航栏样式 */
 .dark-theme nav.navbar,
 .dark-theme nav.navbar-dark,
-:root[data-bs-theme="dark"] nav.navbar {
+:root.dark-theme nav.navbar {
   background: var(--navbar-bg) !important;
   box-shadow: var(--navbar-shadow) !important;
 }
@@ -733,63 +733,63 @@ main {
 }
 
 /* 暗色主题下的代码块样式 - 全局样式确保覆盖 highlight.js */
-:global([data-bs-theme="dark"]) .markdown-body pre,
-:global([data-bs-theme="dark"]) pre.hljs,
+:global(.dark-theme) .markdown-body pre,
+:global(.dark-theme) pre.hljs,
 :global(.dark-theme) .markdown-body pre,
 :global(.dark-theme) pre.hljs {
   background-color: #161b22 !important;
   color: #e6edf3 !important;
 }
 
-:global([data-bs-theme="dark"]) .markdown-body pre code,
-:global([data-bs-theme="dark"]) pre code.hljs,
+:global(.dark-theme) .markdown-body pre code,
+:global(.dark-theme) pre code.hljs,
 :global(.dark-theme) .markdown-body pre code,
 :global(.dark-theme) pre code.hljs {
   background-color: transparent !important;
   color: inherit !important;
 }
 
-:global([data-bs-theme="dark"]) .markdown-body code,
+:global(.dark-theme) .markdown-body code,
 :global(.dark-theme) .markdown-body code {
   background-color: rgba(110,118,129,0.4) !important;
   color: #e6edf3 !important;
 }
 
 /* 确保 highlight.js 的语法高亮在暗色主题下可见 */
-:global([data-bs-theme="dark"]) .hljs-keyword,
-:global([data-bs-theme="dark"]) .hljs-selector-tag,
-:global([data-bs-theme="dark"]) .hljs-literal,
+:global(.dark-theme) .hljs-keyword,
+:global(.dark-theme) .hljs-selector-tag,
+:global(.dark-theme) .hljs-literal,
 :global(.dark-theme) .hljs-keyword,
 :global(.dark-theme) .hljs-selector-tag,
 :global(.dark-theme) .hljs-literal {
   color: #ff7b72 !important;
 }
 
-:global([data-bs-theme="dark"]) .hljs-string,
-:global([data-bs-theme="dark"]) .hljs-title,
-:global([data-bs-theme="dark"]) .hljs-name,
+:global(.dark-theme) .hljs-string,
+:global(.dark-theme) .hljs-title,
+:global(.dark-theme) .hljs-name,
 :global(.dark-theme) .hljs-string,
 :global(.dark-theme) .hljs-title,
 :global(.dark-theme) .hljs-name {
   color: #a5d6ff !important;
 }
 
-:global([data-bs-theme="dark"]) .hljs-comment,
-:global([data-bs-theme="dark"]) .hljs-quote,
+:global(.dark-theme) .hljs-comment,
+:global(.dark-theme) .hljs-quote,
 :global(.dark-theme) .hljs-comment,
 :global(.dark-theme) .hljs-quote {
   color: #8b949e !important;
 }
 
-:global([data-bs-theme="dark"]) .hljs-number,
-:global([data-bs-theme="dark"]) .hljs-tag,
+:global(.dark-theme) .hljs-number,
+:global(.dark-theme) .hljs-tag,
 :global(.dark-theme) .hljs-number,
 :global(.dark-theme) .hljs-tag {
   color: #79c0ff !important;
 }
 
-:global([data-bs-theme="dark"]) .hljs-variable,
-:global([data-bs-theme="dark"]) .hljs-attr,
+:global(.dark-theme) .hljs-variable,
+:global(.dark-theme) .hljs-attr,
 :global(.dark-theme) .hljs-variable,
 :global(.dark-theme) .hljs-attr {
   color: #ffa657 !important;
