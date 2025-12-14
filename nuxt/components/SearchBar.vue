@@ -362,39 +362,39 @@ const onBlur = (e) => {
 }
 
 /* 暗色主题适配 */
-:global(.dark-theme) .search-bar-wrapper {
+:global(.dark-theme .search-bar-wrapper) {
   background: var(--bg-secondary) !important;
   border: 1px solid var(--border-color) !important;
 }
 
-:global(.dark-theme) .search-toggle-btn {
+:global(.dark-theme .search-toggle-btn) {
   color: var(--accent-primary) !important;
   background: var(--bg-tertiary) !important;
   border: 1px solid var(--border-color-light) !important;
 }
 
-:global(.dark-theme) .search-toggle-btn:hover {
+:global(.dark-theme .search-toggle-btn:hover) {
   background: var(--bg-hover) !important;
   color: var(--accent-primary-hover) !important;
 }
 
-:global(.dark-theme) .search-input {
+:global(.dark-theme .search-input) {
   color: var(--text-primary) !important;
 }
 
-:global(.dark-theme) .search-input::placeholder {
+:global(.dark-theme .search-input::placeholder) {
   color: var(--text-muted) !important;
 }
 
-:global(.dark-theme) .search-input:focus {
+:global(.dark-theme .search-input:focus) {
   background: var(--bg-hover) !important;
 }
 
-:global(.dark-theme) .clear-btn {
+:global(.dark-theme .clear-btn) {
   color: var(--text-muted) !important;
 }
 
-:global(.dark-theme) .clear-btn:hover {
+:global(.dark-theme .clear-btn:hover) {
   background: var(--bg-hover) !important;
   color: var(--text-primary) !important;
 }

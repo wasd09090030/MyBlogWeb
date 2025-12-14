@@ -26,6 +26,7 @@
   "devDependencies": {
     "@bg-dev/nuxt-naiveui": "^2.0.0",
     "@nuxt/devtools": "latest",
+    "nuxt-purgecss": "^2.0.0",
     "sass": "^1.75.0"
   }
 }

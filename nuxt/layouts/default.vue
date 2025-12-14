@@ -3,7 +3,7 @@
     <n-message-provider>
       <div id="app" :class="['min-vh-100', isDarkMode ? 'dark-theme' : 'light-theme']">
         <SakuraFalling />
-        <header class="app-navbar">
+        <header class="app-navbar" :class="{ 'navbar-hidden': isNavbarHidden, 'navbar-scrolled': hasScrolled }">
           <div class="navbar-container">
             <NuxtLink to="/" class="navbar-brand">WyrmKk</NuxtLink>
             <nav class="navbar-center-nav d-none d-lg-flex">
@@ -65,7 +65,7 @@
         <footer v-if="!isGalleryRoute" class="blog-footer">
           <div class="footer-content">
             <div class="footer-copyright">
-              <p class="copyright-text"> 2025 WyrmKk Blog. Built with  using Nuxt.js & Asp.Net Core8.0</p>
+              <p class="copyright-text"> 2025 WyrmKk Blog</p>
               <p class="slogan-text">用心分享，共同成长 | 让知识传播得更远</p>
             </div>
           </div>
@@ -83,6 +83,40 @@ const router = useRouter()
 const { isDarkMode, initTheme, toggleTheme } = useTheme()
 
 const showMobileMenu = ref(false)
+
+// 导航栏滚动隐藏/显示逻辑
+const isNavbarHidden = ref(false)
+const hasScrolled = ref(false)
+const lastScrollY = ref(0)
+const scrollThreshold = 60 // 滚动超过此值才触发隐藏
+
+const handleScroll = () => {
+  const currentScrollY = window.scrollY
+  
+  // 是否已滚动（用于添加阴影效果）
+  hasScrolled.value = currentScrollY > 10
+  
+  // 在页面顶部时始终显示
+  if (currentScrollY < scrollThreshold) {
+    isNavbarHidden.value = false
+    lastScrollY.value = currentScrollY
+    return
+  }
+  
+  // 计算滚动差值
+  const scrollDiff = currentScrollY - lastScrollY.value
+  
+  // 向下滚动超过阈值时隐藏
+  if (scrollDiff > 5) {
+    isNavbarHidden.value = true
+  }
+  // 向上滚动时显示
+  else if (scrollDiff < -5) {
+    isNavbarHidden.value = false
+  }
+  
+  lastScrollY.value = currentScrollY
+}
 
 const themeOverrides = computed(() => ({
   common: {
@@ -157,15 +191,17 @@ const showSidebar = computed(() => !isGalleryRoute.value && !isArticleDetailRout
 
 onMounted(() => {
   initTheme()
+  window.addEventListener('scroll', handleScroll, { passive: true })
+})
+
+onUnmounted(() => {
+  window.removeEventListener('scroll', handleScroll)
 })
 </script>
 <style scoped>
-.light-theme {
-  background-color: var(--bg-tertiary);
-  color: var(--text-primary);
-}
+
 .dark-theme {
-  background-color: var(--bg-tertiary);
+  background-color: rgba(89, 101, 172, 0.05);
   color: var(--text-primary);
 }
 #app {
@@ -179,7 +215,21 @@ onMounted(() => {
   backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--border-color, #e5e5e5);
   padding: 0.2rem 1rem;
-  transition: all 0.3s ease;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+              background-color 0.3s ease, 
+              box-shadow 0.3s ease;
+}
+
+.app-navbar.navbar-hidden {
+  transform: translateY(-100%);
+}
+
+.app-navbar.navbar-scrolled {
+  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+}
+
+.dark-theme .app-navbar.navbar-scrolled {
+  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
 }
 .dark-theme .app-navbar {
   background: var(--navbar-bg-dark, rgba(30, 30, 30, 0.95));
@@ -195,7 +245,7 @@ onMounted(() => {
 .navbar-brand {
   font-size: 1.5rem;
   font-weight: 700;
-  color: var(--primary-color, #646cff);
+  color: var(--primary-color, #0099ff);
   text-decoration: none;
   transition: color 0.2s;
 }
