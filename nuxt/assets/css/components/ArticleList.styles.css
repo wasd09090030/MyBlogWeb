@@ -495,6 +495,61 @@
   margin-top: 3rem;
 }
 
+/* Naive UI 分页组件样式覆盖 */
+.pagination-container :deep(.n-pagination) {
+  gap: 8px;
+  --n-item-size: 42px;
+  --n-item-font-size: 16px;
+}
+
+.pagination-container :deep(.n-pagination-item) {
+  min-width: 42px;
+  height: 42px;
+  font-size: 16px;
+  font-weight: 500;
+  border-radius: 10px;
+  transition: all 0.25s ease;
+}
+
+.pagination-container :deep(.n-pagination-item:not(.n-pagination-item--disabled):hover) {
+  background-color: #e0f2fe;
+  color: #0ea5e9;
+  box-shadow: 0 2px 8px rgba(14, 165, 233, 0.15);
+}
+
+.pagination-container :deep(.n-pagination-item--active) {
+  background: linear-gradient(135deg, #0ea5e9 0%, #3b82f6 100%) !important;
+  color: #fff !important;
+  font-weight: 600;
+  box-shadow: 0 3px 12px rgba(14, 165, 233, 0.35);
+}
+
+.pagination-container :deep(.n-pagination-item--active:hover) {
+  box-shadow: 0 4px 16px rgba(14, 165, 233, 0.4);
+}
+
+.pagination-container :deep(.n-pagination-item--disabled) {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* 深色主题分页样式 */
+.dark-theme .pagination-container :deep(.n-pagination-item) {
+  color: #94a3b8;
+}
+
+.dark-theme .pagination-container :deep(.n-pagination-item:not(.n-pagination-item--disabled):hover) {
+  background-color: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+}
+
+.dark-theme .pagination-container :deep(.n-pagination-item--active) {
+  background: linear-gradient(135deg, #0ea5e9 0%, #6366f1 100%) !important;
+  color: #fff !important;
+  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.35);
+}
+
+/* 旧版 Bootstrap 分页样式保留（兼容） */
 .pagination {
   gap: 8px;
   align-items: center;

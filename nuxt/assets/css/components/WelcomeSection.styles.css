@@ -960,31 +960,31 @@
 
 /* 暗色主题悬浮按钮适配 */
 .dark-theme .fab-main-btn {
-  background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
-  box-shadow: 0 4px 15px rgba(90, 103, 216, 0.4);
+  background: var(--gradient-primary);
+  box-shadow: 0 4px 15px rgba(66, 153, 225, 0.35);
 }
 
 .dark-theme .fab-main-btn:hover {
-  box-shadow: 0 6px 20px rgba(90, 103, 216, 0.5);
+  box-shadow: 0 6px 20px rgba(66, 153, 225, 0.45);
 }
 
 .dark-theme .fab-main-btn-active {
-  background: linear-gradient(135deg, #ed64a6 0%, #e53e3e 100%);
+  background: var(--gradient-cool);
 }
 
 .dark-theme .fab-menu-label {
-  background: rgba(45, 45, 55, 0.95);
-  color: #f0f0f5;
+  background: rgba(36, 52, 71, 0.95);
+  color: var(--text-primary);
 }
 
 .dark-theme .fab-overlay-active {
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0.4);
 }
 
 /* 暗色主题适配 */
 .dark-theme .random-article-btn {
-  background: linear-gradient(135deg, rgb(59, 56, 94) 0%,  rgb(59, 56, 94)  0%);
-  color: rgb(240, 240, 245);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
 }
 
 
@@ -1034,8 +1034,8 @@
 }
 
 .dark-theme .carousel-nav-btn {
-  background: rgba(26, 26, 26, 0.9) !important;
-  color: #ffffff !important;
+  background: rgba(36, 52, 71, 0.9) !important;
+  color: var(--text-primary) !important;
 }
 
 .dark-theme .carousel-nav-btn:hover {

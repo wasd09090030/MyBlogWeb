@@ -178,7 +178,7 @@ onMounted(() => {
   background: var(--navbar-bg, rgba(255, 255, 255, 0.95));
   backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--border-color, #e5e5e5);
-  padding: 0.5rem 1rem;
+  padding: 0.2rem 1rem;
   transition: all 0.3s ease;
 }
 .dark-theme .app-navbar {
@@ -210,104 +210,11 @@ onMounted(() => {
 .nav-link {
   display: flex;
   align-items: center;
-  padding: 0.5rem 1rem;
+  padding: 0.4rem 1rem;
   color: var(--text-primary);
   text-decoration: none;
   border-radius: 0.5rem;
-  transition: all 0.2s;
-  font-weight: 500;
-}
-.nav-link:hover {
-  background: var(--hover-bg, rgba(0, 0, 0, 0.05));
-  color: var(--primary-color, #646cff);
-}
-.dark-theme .nav-link:hover {
-  background: var(--hover-bg-dark, rgba(255, 255, 255, 0.1));
-}
-.nav-link-dropdown {
-  cursor: pointer;
-}
-.navbar-right-buttons {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-.theme-toggle-btn {
-  font-size: 1.1rem;
-}
-.mobile-menu-btn {
-  font-size: 1.5rem;
-}
-.mobile-drawer-footer {
-  padding: 1rem;
-}
-@media (min-width: 992px) {
-  .d-lg-none {
-    display: none !important;
-  }
-}
-@media (max-width: 991.98px) {
-  .d-none.d-lg-flex {
-    display: none !important;
-  }
-}
-</style>
-<style scoped>
-.light-theme {
-  background-color: var(--bg-tertiary);
-  color: var(--text-primary);
-}
-.dark-theme {
-  background-color: var(--bg-tertiary);
-  color: var(--text-primary);
-}
-#app {
-  transition: background-color 0.3s ease, color 0.3s ease;
-}
-.app-navbar {
-  position: sticky;
-  top: 0;
-  z-index: 1000;
-  background: var(--navbar-bg, rgba(255, 255, 255, 0.95));
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid var(--border-color, #e5e5e5);
-  padding: 0.5rem 1rem;
-  transition: all 0.3s ease;
-}
-.dark-theme .app-navbar {
-  background: var(--navbar-bg-dark, rgba(30, 30, 30, 0.95));
-  border-bottom-color: var(--border-color-dark, #333);
-}
-.navbar-container {
-  max-width: 1400px;
-  margin: 0 auto;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-.navbar-brand {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--primary-color, #646cff);
-  text-decoration: none;
-  transition: color 0.2s;
-}
-.navbar-brand:hover {
-  color: var(--primary-color-hover, #747bff);
-}
-.navbar-center-nav {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-.nav-link {
-  display: flex;
-  align-items: center;
-  padding: 0.5rem 1rem;
-  color: var(--text-primary);
-  text-decoration: none;
-  border-radius: 0.5rem;
-  transition: all 0.2s;
+  transition: background 0.2s, color 0.2s;
   font-weight: 500;
 }
 .nav-link:hover {

@@ -363,39 +363,40 @@ const onBlur = (e) => {
 
 /* 暗色主题适配 */
 :global(.dark-theme) .search-bar-wrapper {
-  background: rgba(255, 255, 255, 0.95) !important;
-  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  background: var(--bg-secondary) !important;
+  border: 1px solid var(--border-color) !important;
 }
 
 :global(.dark-theme) .search-toggle-btn {
-  color: rgba(0, 0, 0, 0.7) !important;
-  background: rgba(139, 137, 137, 0.05) !important;
+  color: var(--accent-primary) !important;
+  background: var(--bg-tertiary) !important;
+  border: 1px solid var(--border-color-light) !important;
 }
 
 :global(.dark-theme) .search-toggle-btn:hover {
-  background: rgba(0, 0, 0, 0.1) !important;
-  color: rgba(0, 0, 0, 0.9) !important;
+  background: var(--bg-hover) !important;
+  color: var(--accent-primary-hover) !important;
 }
 
 :global(.dark-theme) .search-input {
-  color: #333 !important;
+  color: var(--text-primary) !important;
 }
 
 :global(.dark-theme) .search-input::placeholder {
-  color: rgba(0, 0, 0, 0.5) !important;
+  color: var(--text-muted) !important;
 }
 
 :global(.dark-theme) .search-input:focus {
-  background: rgba(0, 0, 0, 0.05) !important;
+  background: var(--bg-hover) !important;
 }
 
 :global(.dark-theme) .clear-btn {
-  color: rgba(0, 0, 0, 0.5) !important;
+  color: var(--text-muted) !important;
 }
 
 :global(.dark-theme) .clear-btn:hover {
-  background: rgba(0, 0, 0, 0.1) !important;
-  color: rgba(0, 0, 0, 0.8) !important;
+  background: var(--bg-hover) !important;
+  color: var(--text-primary) !important;
 }
 
 /* 响应式调整 */
