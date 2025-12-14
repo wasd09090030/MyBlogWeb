@@ -111,7 +111,14 @@
             <div v-html="getExcerpt(article.content)" class="article-content-preview"></div>
           </div>
 
-          <NuxtLink :to="getArticleDetailRoute(article.id)" class="learn-more">
+          <!-- 文章标签 -->
+          <div v-if="article.tags && article.tags.length > 0" class="article-tags">
+            <span v-for="tag in article.tags" :key="tag" class="article-tag">
+              {{ tag }}
+            </span>
+          </div>
+
+          <NuxtLink :to="getArticleDetailRoute(article.id)" class="learn-more learn-more-sm">
             <span class="circle" aria-hidden="true">
               <span class="icon arrow"></span>
             </span>
@@ -213,7 +220,7 @@ const pageTitle = computed(() => {
   if (route.query.category === 'game') return '游戏'
   if (route.query.category === 'work') return '个人作品'
   if (route.query.category === 'resource') return '资源分享'
-  return '文章列表'
+  return '首页'
 })
 
 const pageDescription = computed(() => {

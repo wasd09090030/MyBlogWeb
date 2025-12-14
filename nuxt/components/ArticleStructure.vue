@@ -257,7 +257,7 @@ onUnmounted(() => {
 
 /* 结构标题 */
 .structure-header {
-  background: linear-gradient(135deg,  #6176ff 0%, #2460e3 100%);
+  background: linear-gradient(135deg,  #0f6bff 0%, #0f6bff 100%);
   color: white;
   padding: 12px 16px;
   display: flex;
@@ -269,7 +269,7 @@ onUnmounted(() => {
 }
 
 .structure-header:hover {
-  background: linear-gradient(135deg, #5b60f0 0%, #8250f5 100%);
+  background: linear-gradient(135deg, #001aff 0%, #001aff 100%);
 }
 
 .structure-title {
@@ -424,7 +424,7 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   font-size: 0.8rem;
-  color: #6366f1;
+  color: #313a54;
   font-weight: 600;
   margin-bottom: 8px;
 }
@@ -440,7 +440,7 @@ onUnmounted(() => {
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #6366f1, #8b5cf6);
+  background: linear-gradient(90deg, #2323fe, #0000c6);
   border-radius: 2px;
   transition: width 0.3s ease;
   position: relative;

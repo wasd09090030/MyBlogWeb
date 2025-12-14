@@ -42,6 +42,15 @@
                 <i class="bi bi-pencil-square me-1"></i>更新: {{ formatDate(article.updatedAt) }}
               </span>
             </div>
+            
+            <!-- AI 摘要 -->
+            <div v-if="article.aiSummary" class="ai-summary-container">
+              <div class="ai-summary-header">
+                <i class="bi bi-robot"></i>
+                <span>AI 摘要</span>
+              </div>
+              <p class="ai-summary-content" ref="aiSummaryRef">{{ displayedSummary }}</p>
+            </div>
           </div>
 
           <div class="article-actions mb-4">
@@ -102,6 +111,11 @@ const article = ref(null)
 const loading = ref(true)
 const error = ref(null)
 
+// AI 摘要打字机效果相关
+const displayedSummary = ref('')
+const aiSummaryRef = ref(null)
+let typingTimer = null
+
 // API composable
 const { getArticleById } = useArticles()
 
@@ -119,14 +133,14 @@ const getArticleDescription = (content, maxLength = 160) => {
 // 设置页面SEO元数据
 useSeoMeta({
   title: () => article.value?.title || '文章详情',
-  description: () => article.value ? getArticleDescription(article.value.content) : '文章详情',
+  description: () => article.value?.aiSummary || (article.value ? getArticleDescription(article.value.content) : '文章详情'),
   ogTitle: () => article.value?.title || '文章详情',
-  ogDescription: () => article.value ? getArticleDescription(article.value.content) : '文章详情',
+  ogDescription: () => article.value?.aiSummary || (article.value ? getArticleDescription(article.value.content) : '文章详情'),
   ogImage: () => article.value?.coverImage && article.value.coverImage !== 'null' ? article.value.coverImage : '',
   ogType: 'article',
   twitterCard: 'summary_large_image',
   twitterTitle: () => article.value?.title || '文章详情',
-  twitterDescription: () => article.value ? getArticleDescription(article.value.content) : '文章详情',
+  twitterDescription: () => article.value?.aiSummary || (article.value ? getArticleDescription(article.value.content) : '文章详情'),
   twitterImage: () => article.value?.coverImage && article.value.coverImage !== 'null' ? article.value.coverImage : '',
   articlePublishedTime: () => article.value?.createdAt || '',
   articleModifiedTime: () => article.value?.updatedAt || '',
@@ -190,6 +204,10 @@ async function fetchArticle() {
     // 在文章内容渲染后，处理代码高亮和数学公式
     nextTick(() => {
       processArticleContent()
+      // 开始 AI 摘要打字机效果
+      if (article.value?.aiSummary) {
+        startTypingEffect(article.value.aiSummary)
+      }
     })
   } catch (e) {
     error.value = e
@@ -198,6 +216,38 @@ async function fetchArticle() {
     loading.value = false
   }
 }
+
+// AI 摘要打字机效果
+const startTypingEffect = (fullText) => {
+  if (!fullText) return
+  
+  // 清除之前的定时器
+  if (typingTimer) {
+    clearInterval(typingTimer)
+  }
+  
+  displayedSummary.value = ''
+  let currentIndex = 0
+  const typingSpeed = 30 // 每个字符的打字速度（毫秒）
+  
+  typingTimer = setInterval(() => {
+    if (currentIndex < fullText.length) {
+      displayedSummary.value += fullText[currentIndex]
+      currentIndex++
+    } else {
+      clearInterval(typingTimer)
+      typingTimer = null
+    }
+  }, typingSpeed)
+}
+
+// 组件卸载时清理定时器
+onUnmounted(() => {
+  if (typingTimer) {
+    clearInterval(typingTimer)
+    typingTimer = null
+  }
+})
 
 // 返回上一页，使用浏览器历史记录
 const goBackToList = () => {
@@ -451,6 +501,100 @@ onMounted(() => {
 
 <style scoped>
 @import '~/assets/css/components/ArticleDetail.styles.css';
+
+/* AI 摘要容器 */
+.ai-summary-container {
+  margin-top: 1.5rem;
+  padding: 1rem 1.25rem;
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  border-left: 4px solid #0ea5e9;
+  border-radius: 0 0.5rem 0.5rem 0;
+  position: relative;
+  overflow: hidden;
+  animation: slideIn 0.5s ease-out;
+}
+
+[data-bs-theme="dark"] .ai-summary-container {
+  background: linear-gradient(135deg, #0c4a6e20 0%, #075985 15%);
+  border-left-color: #38bdf8;
+}
+
+/* 摘要头部 */
+.ai-summary-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #0369a1;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+[data-bs-theme="dark"] .ai-summary-header {
+  color: #7dd3fc;
+}
+
+.ai-summary-header i {
+  font-size: 1rem;
+  animation: pulse 2s infinite;
+}
+
+/* 摘要内容 - 使用不同字体 */
+.ai-summary-content {
+  margin: 0;
+  font-family: 'Georgia', 'Noto Serif SC', serif;
+  font-size: 0.95rem;
+  line-height: 1.7;
+  color: #334155;
+  font-style: italic;
+  position: relative;
+}
+
+[data-bs-theme="dark"] .ai-summary-content {
+  color: #cbd5e1;
+}
+
+/* 打字机光标效果 */
+.ai-summary-content::after {
+  content: '|';
+  font-weight: 100;
+  animation: blink 0.8s infinite;
+  color: #0ea5e9;
+}
+
+/* 动画定义 */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes blink {
+  0%, 50% {
+    opacity: 1;
+  }
+  51%, 100% {
+    opacity: 0;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.8;
+  }
+}
 </style>
 
 <style>

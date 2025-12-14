@@ -51,41 +51,42 @@ input[type="reset"],
   color: var(--text-primary);
 }
 
-/* 导航栏样式 */
-.navbar {
+/* ==================== 导航栏基础样式 ==================== */
+/* 所有导航栏共享的基础样式 - 覆盖Bootstrap默认样式 */
+nav.navbar,
+nav.navbar-dark,
+nav.navbar-light {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  width: 100% !important;
+  z-index: 1030 !important;
+  padding: 0.3rem 1rem;
+  min-height: 50px;
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  z-index: 1030;
-  transition: all 0.3s ease-in-out;
-  position: fixed; /* 固定定位 */
-  top: 0; /* 顶部对齐 */
-  left: 0; /* 左对齐 */
-  right: 0; /* 右对齐，实现全宽 */
-  width: 100%; /* 确保全宽 */
-  padding: 0.3rem 1rem; /* 减少上下内边距，让导航栏更窄 */
-  min-height: 50px; /* 设置最小高度 */
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
 }
 
-.navbar-visible {
-  /* 导航栏始终可见 */
-  opacity: 1;
-  transform: translateY(0);
+/* 亮色主题导航栏样式 */
+.light-theme nav.navbar,
+.light-theme nav.navbar-light,
+:root:not([data-bs-theme="dark"]) nav.navbar {
+  background: var(--navbar-bg) !important;
+  box-shadow: var(--navbar-shadow) !important;
+}
+
+/* 暗色主题导航栏样式 */
+.dark-theme nav.navbar,
+.dark-theme nav.navbar-dark,
+:root[data-bs-theme="dark"] nav.navbar {
+  background: var(--navbar-bg) !important;
+  box-shadow: var(--navbar-shadow) !important;
 }
 
 .transition-all {
   transition: all 0.3s ease-in-out;
-}
-
-/* 亮色主题导航栏 - 统一样式，不再区分透明/实心 */
-.light-theme .navbar {
-  background: var(--navbar-bg);
-  box-shadow: var(--navbar-shadow);
-}
-
-/* 暗色主题导航栏 - 统一样式 */
-.dark-theme .navbar {
-  background: var(--navbar-bg) !important;
-  box-shadow: var(--navbar-shadow);
 }
 
 .navbar-brand {

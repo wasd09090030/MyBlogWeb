@@ -1,7 +1,7 @@
 <template>
   <div id="app" :class="['min-vh-100', isDarkMode ? 'dark-theme' : 'light-theme']" :data-bs-theme="isDarkMode ? 'dark' : 'light'">
     <SakuraFalling />
-    <nav ref="navbar" :class="['navbar navbar-expand-lg transition-all', isDarkMode ? 'navbar-dark' : 'navbar-light', navbarAnimationClass]">
+    <nav ref="navbar" :class="['navbar navbar-expand-lg', isDarkMode ? 'navbar-dark' : 'navbar-light']">
       <div class="container-fluid d-flex align-items-center">
         <NuxtLink to="/" class="navbar-brand">WyrmKk</NuxtLink>
         <div class="navbar-center-nav d-none d-lg-flex">
@@ -79,47 +79,13 @@ const route = useRoute()
 const router = useRouter()
 const { isDarkMode, initTheme, toggleTheme } = useTheme()
 const navbar = ref(null)
-const isNavbarVisible = ref(true)
-const lastScrollY = ref(0)
-const mouseAtTop = ref(false)
-const hideTimeout = ref(null)
+
 const shouldShowWelcomeSection = computed(() => route.path === '/' && !route.query.search && !route.query.category)
 const isGalleryRoute = computed(() => route.path === '/gallery')
 const isArticleDetailRoute = computed(() => route.path.startsWith('/article/'))
 const isAboutRoute = computed(() => route.path === '/about')
 const showSidebar = computed(() => !isGalleryRoute.value && !isArticleDetailRoute.value && !isAboutRoute.value)
-const navbarAnimationClass = computed(() => (isNavbarVisible.value || mouseAtTop.value) ? 'navbar-visible' : '')
-const handleScroll = () => {
-  const currentScrollY = window.scrollY
-  if (currentScrollY > lastScrollY.value && currentScrollY > 100) {
-    isNavbarVisible.value = false
-  } else {
-    isNavbarVisible.value = true
-  }
-  lastScrollY.value = currentScrollY
-}
-const handleMouseMove = (event) => {
-  const isInTopArea = event.clientY <= 100
-  const navbarElement = navbar.value
-  let isOverNavbar = false
-  if (navbarElement) {
-    const navbarRect = navbarElement.getBoundingClientRect()
-    isOverNavbar = event.clientX >= navbarRect.left && event.clientX <= navbarRect.right && event.clientY >= navbarRect.top && event.clientY <= navbarRect.bottom
-  }
-  if (isInTopArea || isOverNavbar) {
-    mouseAtTop.value = true
-    if (hideTimeout.value) {
-      clearTimeout(hideTimeout.value)
-      hideTimeout.value = null
-    }
-  } else {
-    if (hideTimeout.value) clearTimeout(hideTimeout.value)
-    hideTimeout.value = setTimeout(() => {
-      mouseAtTop.value = false
-      hideTimeout.value = null
-    }, 300)
-  }
-}
+
 const filterByCategory = (category) => {
   if (category && typeof category === 'string') {
     router.push({ path: '/', query: { category } })
@@ -127,16 +93,9 @@ const filterByCategory = (category) => {
     router.push({ path: '/' })
   }
 }
+
 onMounted(() => {
   initTheme()
-  handleScroll()
-  window.addEventListener('scroll', handleScroll)
-  window.addEventListener('mousemove', handleMouseMove)
-})
-onUnmounted(() => {
-  window.removeEventListener('scroll', handleScroll)
-  window.removeEventListener('mousemove', handleMouseMove)
-  if (hideTimeout.value) clearTimeout(hideTimeout.value)
 })
 </script>
 
