@@ -9,7 +9,7 @@
         title="搜索文章"
         ref="toggleBtn"
       >
-        <i class="bi bi-search"></i>
+        <Icon name="search" size="md" />
       </button>
 
       <!-- 输入框和按钮组 -->
@@ -33,7 +33,7 @@
           @click="clearInput"
           title="清空"
         >
-          <i class="bi bi-x"></i>
+          <Icon name="x-lg" size="sm" />
         </button>
 
         <!-- 搜索执行按钮 -->
@@ -44,7 +44,7 @@
           :class="{ 'searching': isSearching }"
           title="执行搜索"
         >
-          <i class="bi" :class="isSearching ? 'bi-arrow-clockwise' : 'bi-search'"></i>
+          <Icon :name="isSearching ? 'arrow-path' : 'search'" size="sm" />
         </button>
       </div>
     </div>

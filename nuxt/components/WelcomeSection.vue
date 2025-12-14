@@ -28,10 +28,10 @@
 
           <!-- 导航按钮 -->
           <div class="swiper-button-next carousel-nav-btn carousel-nav-next">
-            <i class="bi bi-chevron-right"></i>
+            <Icon name="chevron-right" size="lg" />
           </div>
           <div class="swiper-button-prev carousel-nav-btn carousel-nav-prev">
-            <i class="bi bi-chevron-left"></i>
+            <Icon name="chevron-left" size="lg" />
           </div>
 
           <!-- 分页器 -->
@@ -82,14 +82,14 @@
           <div class="card-overlay"></div>
           <div class="card-content-wrapper">
             <div class="card-icon">
-              <i class="bi bi-file-text"></i>
+              <Icon name="file-text" size="xl" />
             </div>
             <div class="card-content">
               <h5 class="card-title">文章</h5>
               <p class="card-stats">{{ articleCount }} 篇</p>
             </div>
             <div class="card-arrow">
-              <i class="bi bi-arrow-right"></i>
+              <Icon name="arrow-right" size="md" />
             </div>
           </div>
         </div>
@@ -100,14 +100,14 @@
           <div class="card-overlay"></div>
           <div class="card-content-wrapper">
             <div class="card-icon">
-              <i class="bi bi-images"></i>
+              <Icon name="images" size="xl" />
             </div>
             <div class="card-content">
               <h5 class="card-title">画廊</h5>
               <p class="card-stats">精美图片</p>
             </div>
             <div class="card-arrow">
-              <i class="bi bi-arrow-right"></i>
+              <Icon name="arrow-right" size="md" />
             </div>
           </div>
         </div>
@@ -118,14 +118,14 @@
           <div class="card-overlay"></div>
           <div class="card-content-wrapper">
             <div class="card-icon">
-              <i class="bi bi-person-circle"></i>
+              <Icon name="person-circle" size="xl" />
             </div>
             <div class="card-content">
               <h5 class="card-title">关于站长</h5>
               <p class="card-stats">了解更多</p>
             </div>
             <div class="card-arrow">
-              <i class="bi bi-arrow-right"></i>
+              <Icon name="arrow-right" size="md" />
             </div>
           </div>
         </div>
@@ -146,19 +146,19 @@
         <div class="fab-menu-item" @click="handleFabArticles">
           <span class="fab-menu-label">文章</span>
           <div class="fab-menu-icon articles-icon">
-            <i class="bi bi-file-text"></i>
+            <Icon name="file-text" size="md" />
           </div>
         </div>
         <div class="fab-menu-item" @click="handleFabGallery">
           <span class="fab-menu-label">画廊</span>
           <div class="fab-menu-icon gallery-icon">
-            <i class="bi bi-images"></i>
+            <Icon name="images" size="md" />
           </div>
         </div>
         <div class="fab-menu-item" @click="handleFabAbout">
           <span class="fab-menu-label">关于</span>
           <div class="fab-menu-icon about-icon">
-            <i class="bi bi-person-circle"></i>
+            <Icon name="person-circle" size="md" />
           </div>
         </div>
       </div>
@@ -169,8 +169,8 @@
         :class="{ 'fab-main-btn-active': isFabExpanded }"
         @click="toggleFab"
       >
-        <i class="bi bi-grid-3x3-gap-fill fab-icon-default"></i>
-        <i class="bi bi-x-lg fab-icon-close"></i>
+        <Icon name="grid-3x3-gap-fill" size="lg" class="fab-icon-default" />
+        <Icon name="x-lg" size="lg" class="fab-icon-close" />
       </button>
     </div>
   </div>

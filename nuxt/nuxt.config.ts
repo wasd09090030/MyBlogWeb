@@ -5,8 +5,6 @@ export default defineNuxtConfig({
   // CSS配置
   css: [
     '~/assets/css/theme-variables.css', // 主题变量系统 - 必须首先加载
-    'bootstrap/dist/css/bootstrap.min.css',
-    'bootstrap-icons/font/bootstrap-icons.css',
     'github-markdown-css/github-markdown.css',
     'highlight.js/styles/github.css',
     'katex/dist/katex.min.css',
@@ -15,6 +13,7 @@ export default defineNuxtConfig({
     'swiper/css/pagination',
     'swiper/css/effect-coverflow',
     'swiper/css/effect-cube',
+    '~/assets/css/layout.css', // 自定义布局工具类
     '~/assets/css/style.css',
     '~/assets/css/app.css'
   ],
@@ -22,12 +21,20 @@ export default defineNuxtConfig({
   // 模块配置
   modules: [
     '@pinia/nuxt',
-    'motion-v/nuxt'
+    'motion-v/nuxt',
+    '@bg-dev/nuxt-naiveui' // Naive UI 模块
   ],
+
+  // Naive UI 配置
+  naiveui: {
+    colorModePreference: 'system',
+    iconSize: 18,
+    themeConfig: {}
+  },
 
   // 依赖配置
   build: {
-    transpile: ['@popperjs/core', 'bootstrap', 'swiper']
+    transpile: ['swiper']
   },
 
   // Vite配置
@@ -35,9 +42,6 @@ export default defineNuxtConfig({
     optimizeDeps: {
       include: [
         'vue',
-        'bootstrap',
-        'bootstrap/dist/js/bootstrap.bundle.min.js',
-        '@popperjs/core',
         'highlight.js',
         'markdown-it',
         'swiper',
@@ -45,7 +49,6 @@ export default defineNuxtConfig({
       ]
     },
     define: {
-      // 确保Bootstrap在客户端可用
       global: 'globalThis'
     },
     build: {

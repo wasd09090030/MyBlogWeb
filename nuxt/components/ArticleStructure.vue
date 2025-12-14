@@ -4,11 +4,11 @@
       <!-- 结构标题 -->
       <div class="structure-header" @click="toggleCollapse">
         <h6 class="structure-title">
-          <i class="bi bi-list-ul me-2"></i>
+          <Icon name="list-ul" size="sm" class="me-2" />
           文章目录
         </h6>
         <button class="collapse-btn" :class="{ 'collapsed': isCollapsed }">
-          <i class="bi bi-chevron-up"></i>
+          <Icon name="chevron-up" size="sm" />
         </button>
       </div>
       
@@ -40,7 +40,7 @@
         <!-- 阅读进度 -->
         <div class="reading-progress-section">
           <div class="progress-label">
-            <i class="bi bi-book me-1"></i>
+            <Icon name="book" size="sm" class="me-1" />
             <span>阅读进度</span>
           </div>
           <div class="progress-bar">

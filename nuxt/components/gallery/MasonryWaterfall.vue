@@ -1,7 +1,7 @@
 <template>
   <section class="waterfall-section">
     <h2 class="section-title">
-      <i class="bi bi-grid-3x3-gap"></i>
+      <Icon name="grid-3x3-gap-fill" size="lg" />
       <span>瀑布流画廊</span>
     </h2>
     
@@ -30,7 +30,7 @@
             />
             <div class="item-overlay">
               <div class="overlay-content">
-                <i class="bi bi-arrows-fullscreen"></i>
+                <Icon name="arrows-angle-contract" size="lg" />
               </div>
             </div>
           </div>

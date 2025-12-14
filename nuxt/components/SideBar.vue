@@ -13,7 +13,7 @@
           >
             <div class="category-main">
               <span class="category-icon">
-                <i :class="category.icon"></i>
+                <Icon :name="category.icon" size="md" />
               </span>
               <p class="category-label">{{ category.label }}</p>
             </div>
@@ -54,7 +54,7 @@
             >
               <div class="category-main">
                 <span class="category-icon">
-                  <i :class="category.icon"></i>
+                  <Icon :name="category.icon" size="md" />
                 </span>
                 <p class="category-label">{{ category.label }}</p>
               </div>
@@ -81,7 +81,7 @@
     </div>
 
     <div class="toggle-button" @click="toggleCollapse">
-      <i class="bi" :class="isCollapsed ? 'bi-layout-text-sidebar-reverse' : 'bi-x-circle'"></i>
+      <Icon :name="isCollapsed ? 'layout-sidebar' : 'x-lg'" size="md" />
     </div>
   </div>
 </template>
@@ -96,10 +96,10 @@ const router = useRouter();
 const isCollapsed = ref(true);
 
 const categories = ref([
-  { key: 'study', label: '学习', icon: 'bi bi-journal-bookmark', count: 0 },
-  { key: 'game', label: '游戏', icon: 'bi bi-controller', count: 0 },
-  { key: 'work', label: '个人作品', icon: 'bi bi-tools', count: 0 },
-  { key: 'resource', label: '资源分享', icon: 'bi bi-briefcase', count: 0 }
+  { key: 'study', label: '学习', icon: 'journal-text', count: 0 },
+  { key: 'game', label: '游戏', icon: 'controller', count: 0 },
+  { key: 'work', label: '个人作品', icon: 'code-square', count: 0 },
+  { key: 'resource', label: '资源分享', icon: 'folder2-open', count: 0 }
 ]);
 
 const generateRecentMonths = (length = 6) => {

@@ -19,7 +19,7 @@
           @click="setViewMode('list')"
           :aria-pressed="isListView"
         >
-          <i class="bi bi-view-stacked me-1"></i>列表视图
+          <Icon name="view-stacked" size="sm" class="me-1" />列表视图
         </button>
         <button
           type="button"
@@ -28,7 +28,7 @@
           @click="setViewMode('grid')"
           :aria-pressed="isGridView"
         >
-          <i class="bi bi-grid-3x3-gap-fill me-1"></i>网格视图
+          <Icon name="grid-3x3-gap-fill" size="sm" class="me-1" />网格视图
         </button>
       </div>
     </div>
@@ -87,7 +87,7 @@
             loading="lazy"
           />
           <div v-else class="article-image-placeholder">
-            <i class="bi bi-image fs-1 text-muted"></i>
+            <Icon name="image" size="3xl" class="text-muted" />
           </div>
         </div>
 
@@ -127,7 +127,7 @@
 
     <n-empty v-else :description="listContext.emptyText" class="my-5">
       <template #icon>
-        <i class="bi bi-journal-text fs-1"></i>
+        <Icon name="journal-text" size="3xl" />
       </template>
     </n-empty>
 

@@ -25,7 +25,7 @@
 
     <!-- 空状态 -->
     <div v-if="!isInitialLoading && !loading && !error && galleries.length === 0" class="empty-state">
-      <i class="bi bi-images display-1 text-muted mb-3"></i>
+      <Icon name="images" size="3xl" class="text-muted mb-3" />
       <h3 class="text-muted">暂无图片</h3>
       <p class="text-muted">画廊中还没有任何图片</p>
     </div>
@@ -77,16 +77,16 @@
           <!-- 控制按钮组 -->
           <div class="fullscreen-controls">
             <button class="control-btn" @click.stop="zoomIn" title="放大">
-              <i class="bi bi-zoom-in"></i>
+              <Icon name="zoom-in" size="lg" />
             </button>
             <button class="control-btn" @click.stop="zoomOut" title="缩小">
-              <i class="bi bi-zoom-out"></i>
+              <Icon name="zoom-out" size="lg" />
             </button>
             <button class="control-btn" @click.stop="resetZoom" title="重置">
-              <i class="bi bi-arrows-angle-contract"></i>
+              <Icon name="arrows-angle-contract" size="lg" />
             </button>
             <button class="control-btn close-btn" @click="closeFullscreen" title="关闭">
-              <i class="bi bi-x-lg"></i>
+              <Icon name="x-lg" size="lg" />
             </button>
           </div>
           

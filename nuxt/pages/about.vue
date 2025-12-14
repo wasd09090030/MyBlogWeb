@@ -15,7 +15,7 @@
             :animate="{ opacity: 1, y: 0 }"
             :transition="{ delay: 0.1 }"
           >
-            <i class="bi bi-code-slash"></i> {{ ownerProfile.role }}
+            <Icon name="code-slash" size="sm" /> {{ ownerProfile.role }}
           </Motion>
           
           <h1 class="hero-title">
@@ -89,7 +89,7 @@
             :hover="{ scale: 1.05 }"
             :tap="{ scale: 0.95 }"
           >
-            <i class="bi bi-lightning-charge-fill me-2"></i>最新作品
+            <Icon name="lightning-charge-fill" size="sm" :solid="true" class="me-2" />最新作品
           </Motion>
           <Motion
             tag="a"
@@ -103,7 +103,7 @@
             :hover="{ scale: 1.05 }"
             :tap="{ scale: 0.95 }"
           >
-            <i class="bi bi-github me-2"></i>GitHub
+            <Icon name="github" size="sm" class="me-2" />GitHub
           </Motion>
         </div>
       </div>
@@ -127,7 +127,7 @@
             :transition="{ delay: 0.6, type: 'spring' }"
             :hover="{ scale: 1.1, rotate: -5 }"
           >
-            <i class="bi bi-code-square"></i> Fullstack
+            <Icon name="code-square" size="sm" /> Fullstack
           </Motion>
           
           <Motion
@@ -137,7 +137,7 @@
             :transition="{ delay: 0.7, type: 'spring' }"
             :hover="{ scale: 1.1, rotate: 5 }"
           >
-            <i class="bi bi-controller"></i> Gamer
+            <Icon name="controller" size="sm" /> Gamer
           </Motion>
         </div>
         
@@ -160,7 +160,7 @@
         :hover="{ y: -5, boxShadow: '0 20px 40px -10px rgba(0,0,0,0.1)' }"
       >
         <div class="card-icon" :style="{ background: card.accent }">
-          <i :class="card.icon"></i>
+          <Icon :name="card.icon" size="lg" />
         </div>
         <h3>{{ card.title }}</h3>
         <p>{{ card.description }}</p>
@@ -197,13 +197,13 @@
 
             <div class="project-footer">
               <div class="project-meta">
-                <span><i class="bi bi-activity"></i> {{ project.update }}</span>
+                <span><Icon name="activity" size="sm" /> {{ project.update }}</span>
               </div>
               <NuxtLink v-if="project.link" :to="project.link" class="project-link">
-                {{ project.cta }} <i class="bi bi-arrow-right"></i>
+                {{ project.cta }} <Icon name="arrow-right" size="sm" />
               </NuxtLink>
               <a v-else :href="project.external" target="_blank" class="project-link">
-                {{ project.cta }} <i class="bi bi-box-arrow-up-right"></i>
+                {{ project.cta }} <Icon name="box-arrow-up-right" size="sm" />
               </a>
             </div>
           </div>
@@ -230,7 +230,7 @@
           :hover="{ scale: 1.02 }"
         >
           <div class="tech-header">
-            <i :class="stack.icon"></i>
+            <Icon :name="stack.icon" size="lg" />
             <h3>{{ stack.title }}</h3>
           </div>
           <div class="tech-list">
@@ -276,19 +276,19 @@ const highlightCards = [
   {
     title: '前端开发',
     description: '基于Nuxt，注重交互体验与性能优化。',
-    icon: 'bi bi-window-stack',
+    icon: 'window-stack',
     accent: 'linear-gradient(135deg, #6366f1, #8b5cf6)'
   },
   {
     title: '后端架构',
     description: '基于 .NET 8 构建稳健、高性能的 API 服务。',
-    icon: 'bi bi-hdd-network',
+    icon: 'hdd-network',
     accent: 'linear-gradient(135deg, #3b82f6, #0ea5e9)'
   },
   {
     title: 'Deployment & DevOps',
     description: 'BT panel+Cloudflare 自动化部署与服务器运维。',
-    icon: 'bi bi-clouds',
+    icon: 'clouds',
     accent: 'linear-gradient(135deg, #f59e0b, #ef4444)'
   }
 ]
@@ -389,27 +389,27 @@ const projects = [
 const techStacks = [
   {
     title: 'Frontend',
-    icon: 'bi bi-code-square',
+    icon: 'code-square',
     items: ['Vue 3', 'Nuxt 3', 'TypeScript', 'Tailwind', 'Bootstrap 5', 'Vite']
   },
   {
     title: 'Backend',
-    icon: 'bi bi-server',
+    icon: 'server',
     items: ['C#', '.NET 8', 'ASP.NET Core', 'Entity Framework', 'Python', 'Node.js']
   },
   {
     title: 'Database & Tools',
-    icon: 'bi bi-database',
+    icon: 'database',
     items: ['SQLite','MySql', 'Redis', 'PostgreSQL', 'Docker', 'Git', 'Nginx']
   },
   {
     title: 'AI assistants',
-    icon: 'bi bi-robot',
+    icon: 'robot',
     items: ['Deepseek API', 'Copilot', 'Codex', 'Claude Code', 'Qwen']
   },
     {
     title: 'Desktop/Mobile development',
-    icon: 'bi bi-phone',
+    icon: 'phone',
     items: ['Dart','Flutter','C++', 'QT', 'Electron', 'Webview2', 'ArkTS']
   }
 

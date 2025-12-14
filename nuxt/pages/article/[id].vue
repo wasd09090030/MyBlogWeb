@@ -1,17 +1,16 @@
 <template>
   <div class="article-detail-page">
     <div v-if="loading" class="text-center my-5">
-      <div class="spinner-border text-primary" role="status">
-        <span class="visually-hidden">加载中...</span>
-      </div>
+      <n-spin size="large" />
+      <p class="mt-3 text-muted">加载中...</p>
     </div>
 
-    <div v-else-if="error" class="alert alert-danger" role="alert">
+    <n-alert v-else-if="error" type="error" title="加载失败" class="my-4">
       加载文章失败: {{ error.message }}
-    </div>
+    </n-alert>
 
-    <div v-else-if="article" class="article-container card shadow-sm">
-      <div class="card-body article-layout-wrapper">
+    <n-card v-else-if="article" class="article-container">
+      <div class="article-layout-wrapper">
         <!-- 文章结构组件 - 在大屏幕上固定在右侧，在小屏幕上显示在顶部 -->
         <div class="article-structure-wrapper">
           <ArticleStructure :article-content="article.content" />
@@ -32,21 +31,27 @@
           <div class="article-header header-fade-in">
             <h1 class="article-title">{{ article.title }}</h1>
             <div class="article-meta">
-              <span class="badge rounded-pill px-3 py-2" :class="getCategoryBadgeClass(article.category)">
-                <i class="bi bi-folder2-open me-1"></i>{{ getCategoryName(article.category) }}
-              </span>
-              <span class="badge rounded-pill bg-secondary px-3 py-2">
-                <i class="bi bi-calendar3 me-1"></i>{{ formatDate(article.createdAt) }}
-              </span>
+              <n-tag :type="getCategoryTagType(article.category)" round>
+                <template #icon>
+                  <Icon name="folder2-open" size="sm" />
+                </template>
+                {{ getCategoryName(article.category) }}
+              </n-tag>
+              <n-tag type="default" round>
+                <template #icon>
+                  <Icon name="calendar3" size="sm" />
+                </template>
+                {{ formatDate(article.createdAt) }}
+              </n-tag>
               <span v-if="article.updatedAt && article.updatedAt !== article.createdAt" class="text-muted d-inline-flex align-items-center small">
-                <i class="bi bi-pencil-square me-1"></i>更新: {{ formatDate(article.updatedAt) }}
+                <Icon name="pencil-square" size="sm" class="me-1" />更新: {{ formatDate(article.updatedAt) }}
               </span>
             </div>
             
             <!-- AI 摘要 -->
             <div v-if="article.aiSummary" class="ai-summary-container">
               <div class="ai-summary-header">
-                <i class="bi bi-robot"></i>
+                <Icon name="robot" size="md" />
                 <span>AI 摘要</span>
               </div>
               <p class="ai-summary-content" ref="aiSummaryRef">{{ displayedSummary }}</p>
@@ -54,10 +59,12 @@
           </div>
 
           <div class="article-actions mb-4">
-            <button @click="goBackToList" class="btn btn-outline-secondary">
-              <i class="bi bi-arrow-left me-2"></i>
+            <n-button @click="goBackToList" secondary>
+              <template #icon>
+                <Icon name="arrow-left" size="md" />
+              </template>
               返回上页
-            </button>
+            </n-button>
           </div>
 
           <div class="article-content">
@@ -70,18 +77,25 @@
 
           <!-- 底部返回按钮 -->
           <div class="article-bottom-actions mt-5 pt-4 border-top text-center">
-            <button @click="goBackToList" class="btn btn-primary btn-lg">
-              <i class="bi bi-arrow-left me-2"></i>
+            <n-button @click="goBackToList" type="primary" size="large">
+              <template #icon>
+                <Icon name="arrow-left" size="md" />
+              </template>
               返回上页
-            </button>
+            </n-button>
           </div>
         </div>
       </div>
-    </div>
+    </n-card>
 
-    <div v-else class="alert alert-warning" role="alert">
-      找不到文章
-    </div>
+    <n-empty v-else description="找不到文章" class="my-5">
+      <template #icon>
+        <Icon name="file-earmark-x" size="3xl" />
+      </template>
+      <template #extra>
+        <n-button @click="goBackToList">返回首页</n-button>
+      </template>
+    </n-empty>
   </div>
 </template>
 
@@ -185,6 +199,19 @@ function getCategoryBadgeClass(category) {
     'resource': 'bg-info text-dark'
   }
   return classMap[lowerCategory] || 'bg-secondary'
+}
+
+// 获取分类标签类型 (Naive UI)
+function getCategoryTagType(category) {
+  if (!category) return 'default'
+  const lowerCategory = category.toLowerCase()
+  const typeMap = {
+    'study': 'info',
+    'game': 'warning',
+    'work': 'success',
+    'resource': 'primary'
+  }
+  return typeMap[lowerCategory] || 'default'
 }
 
 async function fetchArticle() {
@@ -449,7 +476,7 @@ const addCodeBlockToggle = (codeBlock, index) => {
   // 创建折叠按钮
   const toggleBtn = document.createElement('button')
   toggleBtn.className = 'code-toggle-btn'
-  toggleBtn.innerHTML = '<i class="bi bi-chevron-up"></i> 收起'
+  toggleBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:1rem;height:1rem;vertical-align:middle"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 15.75 7.5-7.5 7.5 7.5" /></svg> 收起'
   toggleBtn.setAttribute('aria-label', '折叠代码块')
   toggleBtn.setAttribute('data-expanded', 'true')
 
@@ -465,7 +492,7 @@ const addCodeBlockToggle = (codeBlock, index) => {
       preElement.style.border = 'none'
       preElement.style.overflow = 'hidden'
       preElement.style.margin = '0'
-      toggleBtn.innerHTML = '<i class="bi bi-chevron-down"></i> 展开'
+      toggleBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:1rem;height:1rem;vertical-align:middle"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" /></svg> 展开'
       toggleBtn.setAttribute('data-expanded', 'false')
       wrapper.classList.add('collapsed')
     } else {
@@ -475,7 +502,7 @@ const addCodeBlockToggle = (codeBlock, index) => {
       preElement.style.border = ''
       preElement.style.overflow = 'auto'
       preElement.style.margin = ''
-      toggleBtn.innerHTML = '<i class="bi bi-chevron-up"></i> 收起'
+      toggleBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:1rem;height:1rem;vertical-align:middle"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 15.75 7.5-7.5 7.5 7.5" /></svg> 收起'
       toggleBtn.setAttribute('data-expanded', 'true')
       wrapper.classList.remove('collapsed')
     }
@@ -514,7 +541,7 @@ onMounted(() => {
   animation: slideIn 0.5s ease-out;
 }
 
-[data-bs-theme="dark"] .ai-summary-container {
+.dark-theme .ai-summary-container {
   background: linear-gradient(135deg, #0c4a6e20 0%, #075985 15%);
   border-left-color: #38bdf8;
 }
@@ -532,7 +559,7 @@ onMounted(() => {
   letter-spacing: 0.05em;
 }
 
-[data-bs-theme="dark"] .ai-summary-header {
+.dark-theme .ai-summary-header {
   color: #7dd3fc;
 }
 
@@ -552,7 +579,7 @@ onMounted(() => {
   position: relative;
 }
 
-[data-bs-theme="dark"] .ai-summary-content {
+.dark-theme .ai-summary-content {
   color: #cbd5e1;
 }
 
@@ -607,7 +634,7 @@ onMounted(() => {
   transition: all 0.3s ease;
 }
 
-[data-bs-theme="dark"] .code-block-wrapper {
+.dark-theme .code-block-wrapper {
   border-color: #30363d;
 }
 
@@ -615,7 +642,7 @@ onMounted(() => {
   border-color: #d1d5da;
 }
 
-[data-bs-theme="dark"] .code-block-wrapper.collapsed {
+.dark-theme .code-block-wrapper.collapsed {
   border-color: #21262d;
 }
 
@@ -632,7 +659,7 @@ onMounted(() => {
   border-bottom: 1px solid #e1e4e8;
 }
 
-[data-bs-theme="dark"] .code-block-header {
+.dark-theme .code-block-header {
   background-color: #161b22;
   border-bottom-color: #30363d;
 }
@@ -644,7 +671,7 @@ onMounted(() => {
   letter-spacing: 0.5px;
 }
 
-[data-bs-theme="dark"] .code-language-label {
+.dark-theme .code-language-label {
   color: #58a6ff;
 }
 
@@ -667,12 +694,12 @@ onMounted(() => {
   color: white;
 }
 
-[data-bs-theme="dark"] .code-toggle-btn {
+.dark-theme .code-toggle-btn {
   color: #58a6ff;
   border-color: #58a6ff;
 }
 
-[data-bs-theme="dark"] .code-toggle-btn:hover {
+.dark-theme .code-toggle-btn:hover {
   background-color: #58a6ff;
   color: #0d1117;
 }
@@ -689,138 +716,138 @@ onMounted(() => {
 }
 
 /* 暗色主题下的代码块样式 - 全局样式以覆盖 highlight.js */
-[data-bs-theme="dark"] .article-detail-page .markdown-body pre,
-[data-bs-theme="dark"] .article-container pre,
-[data-bs-theme="dark"] pre.hljs {
+.dark-theme .article-detail-page .markdown-body pre,
+.dark-theme .article-container pre,
+.dark-theme pre.hljs {
   background-color: #161b22 !important;
   color: #e6edf3 !important;
 }
 
-[data-bs-theme="dark"] .article-detail-page .markdown-body pre code,
-[data-bs-theme="dark"] .article-container pre code,
-[data-bs-theme="dark"] pre code.hljs {
+.dark-theme .article-detail-page .markdown-body pre code,
+.dark-theme .article-container pre code,
+.dark-theme pre code.hljs {
   background-color: transparent !important;
   color: inherit !important;
 }
 
-[data-bs-theme="dark"] .markdown-body code {
+.dark-theme .markdown-body code {
   background-color: rgba(110,118,129,0.4) !important;
   color: #e6edf3 !important;
 }
 
 /* 确保 highlight.js 的语法高亮在暗色主题下可见 - 增强对比度 */
 /* 关键字、选择器 - 鲜红色 */
-[data-bs-theme="dark"] .hljs-keyword,
-[data-bs-theme="dark"] .hljs-selector-tag,
-[data-bs-theme="dark"] .hljs-literal,
-[data-bs-theme="dark"] .hljs-section,
-[data-bs-theme="dark"] .hljs-link,
-[data-bs-theme="dark"] .hljs-selector-class,
-[data-bs-theme="dark"] .hljs-selector-id {
+.dark-theme .hljs-keyword,
+.dark-theme .hljs-selector-tag,
+.dark-theme .hljs-literal,
+.dark-theme .hljs-section,
+.dark-theme .hljs-link,
+.dark-theme .hljs-selector-class,
+.dark-theme .hljs-selector-id {
   color: #ff7b72 !important;
   font-weight: 500;
 }
 
 /* 字符串、标题 - 亮蓝色 */
-[data-bs-theme="dark"] .hljs-string,
-[data-bs-theme="dark"] .hljs-title,
-[data-bs-theme="dark"] .hljs-name,
-[data-bs-theme="dark"] .hljs-type,
-[data-bs-theme="dark"] .hljs-attribute,
-[data-bs-theme="dark"] .hljs-symbol,
-[data-bs-theme="dark"] .hljs-bullet,
-[data-bs-theme="dark"] .hljs-addition,
-[data-bs-theme="dark"] .hljs-built_in {
+.dark-theme .hljs-string,
+.dark-theme .hljs-title,
+.dark-theme .hljs-name,
+.dark-theme .hljs-type,
+.dark-theme .hljs-attribute,
+.dark-theme .hljs-symbol,
+.dark-theme .hljs-bullet,
+.dark-theme .hljs-addition,
+.dark-theme .hljs-built_in {
   color: #a5d6ff !important;
 }
 
 /* 注释 - 中灰色 */
-[data-bs-theme="dark"] .hljs-comment,
-[data-bs-theme="dark"] .hljs-quote,
-[data-bs-theme="dark"] .hljs-deletion,
-[data-bs-theme="dark"] .hljs-meta {
+.dark-theme .hljs-comment,
+.dark-theme .hljs-quote,
+.dark-theme .hljs-deletion,
+.dark-theme .hljs-meta {
   color: #8b949e !important;
   font-style: italic;
 }
 
 /* 数字、正则 - 天蓝色 */
-[data-bs-theme="dark"] .hljs-number,
-[data-bs-theme="dark"] .hljs-regexp,
-[data-bs-theme="dark"] .hljs-tag,
-[data-bs-theme="dark"] .hljs-template-tag {
+.dark-theme .hljs-number,
+.dark-theme .hljs-regexp,
+.dark-theme .hljs-tag,
+.dark-theme .hljs-template-tag {
   color: #79c0ff !important;
 }
 
 /* 变量、属性 - 橙色 */
-[data-bs-theme="dark"] .hljs-variable,
-[data-bs-theme="dark"] .hljs-template-variable,
-[data-bs-theme="dark"] .hljs-attr,
-[data-bs-theme="dark"] .hljs-params {
+.dark-theme .hljs-variable,
+.dark-theme .hljs-template-variable,
+.dark-theme .hljs-attr,
+.dark-theme .hljs-params {
   color: #ffa657 !important;
 }
 
 /* 函数名 - 紫色 */
-[data-bs-theme="dark"] .hljs-function,
-[data-bs-theme="dark"] .hljs-title.function_,
-[data-bs-theme="dark"] .hljs-title.class_,
-[data-bs-theme="dark"] .hljs-class .hljs-title {
+.dark-theme .hljs-function,
+.dark-theme .hljs-title.function_,
+.dark-theme .hljs-title.class_,
+.dark-theme .hljs-class .hljs-title {
   color: #d2a8ff !important;
   font-weight: 500;
 }
 
 /* 运算符、标点 - 浅灰色 */
-[data-bs-theme="dark"] .hljs-operator,
-[data-bs-theme="dark"] .hljs-punctuation {
+.dark-theme .hljs-operator,
+.dark-theme .hljs-punctuation {
   color: #c9d1d9 !important;
 }
 
 /* 特殊关键字（如 import, export） - 绿色 */
-[data-bs-theme="dark"] .hljs-keyword.hljs-import,
-[data-bs-theme="dark"] .hljs-keyword.hljs-export,
-[data-bs-theme="dark"] .hljs-keyword.hljs-from {
+.dark-theme .hljs-keyword.hljs-import,
+.dark-theme .hljs-keyword.hljs-export,
+.dark-theme .hljs-keyword.hljs-from {
   color: #7ee787 !important;
 }
 
 /* 装饰器 - 黄色 */
-[data-bs-theme="dark"] .hljs-meta .hljs-keyword,
-[data-bs-theme="dark"] .hljs-decorator,
-[data-bs-theme="dark"] .hljs-annotation {
+.dark-theme .hljs-meta .hljs-keyword,
+.dark-theme .hljs-decorator,
+.dark-theme .hljs-annotation {
   color: #f0b72f !important;
 }
 
 /* 暗色主题下的表格样式 - 使用更高优先级 */
-[data-bs-theme="dark"] .article-detail-page table,
-[data-bs-theme="dark"] .article-content-html table,
-[data-bs-theme="dark"] .markdown-body table {
+.dark-theme .article-detail-page table,
+.dark-theme .article-content-html table,
+.dark-theme .markdown-body table {
   border-collapse: collapse !important;
 }
 
-[data-bs-theme="dark"] .article-detail-page table th,
-[data-bs-theme="dark"] .article-detail-page table td,
-[data-bs-theme="dark"] .article-content-html table th,
-[data-bs-theme="dark"] .article-content-html table td,
-[data-bs-theme="dark"] .markdown-body table th,
-[data-bs-theme="dark"] .markdown-body table td {
+.dark-theme .article-detail-page table th,
+.dark-theme .article-detail-page table td,
+.dark-theme .article-content-html table th,
+.dark-theme .article-content-html table td,
+.dark-theme .markdown-body table th,
+.dark-theme .markdown-body table td {
   border: 1px solid #30363d !important;
   color: #c9d1d9 !important;
 }
 
-[data-bs-theme="dark"] .article-detail-page table th,
-[data-bs-theme="dark"] .article-content-html table th,
-[data-bs-theme="dark"] .markdown-body table th {
+.dark-theme .article-detail-page table th,
+.dark-theme .article-content-html table th,
+.dark-theme .markdown-body table th {
   background-color: #161b22 !important;
   color: #f0f6fc !important;
 }
 
-[data-bs-theme="dark"] .article-detail-page table td,
-[data-bs-theme="dark"] .article-content-html table td,
-[data-bs-theme="dark"] .markdown-body table td {
+.dark-theme .article-detail-page table td,
+.dark-theme .article-content-html table td,
+.dark-theme .markdown-body table td {
   background-color: #0d1117 !important;
 }
 
-[data-bs-theme="dark"] .article-detail-page table tr:nth-child(2n) td,
-[data-bs-theme="dark"] .article-content-html table tr:nth-child(2n) td,
-[data-bs-theme="dark"] .markdown-body table tr:nth-child(2n) td {
+.dark-theme .article-detail-page table tr:nth-child(2n) td,
+.dark-theme .article-content-html table tr:nth-child(2n) td,
+.dark-theme .markdown-body table tr:nth-child(2n) td {
   background-color: #161b22 !important;
 }
 </style>

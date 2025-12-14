@@ -10,9 +10,8 @@
     "postinstall": "nuxt prepare"
   },
   "dependencies": {
+    "@heroicons/vue": "^2.2.0",
     "@pinia/nuxt": "^0.5.1",
-    "@vicons/ionicons5": "^0.13.0",
-    "bootstrap-icons": "^1.13.1",
     "github-markdown-css": "^5.8.1",
     "highlight.js": "^11.11.1",
     "katex": "^0.16.25",

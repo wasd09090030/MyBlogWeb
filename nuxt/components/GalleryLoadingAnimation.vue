@@ -4,7 +4,7 @@
       <div class="loading-animation">
         <div class="loading-circle">
           <div class="circle-inner">
-            <i class="bi bi-images"></i>
+            <Icon name="images" size="2xl" />
           </div>
         </div>
         <div class="loading-progress">

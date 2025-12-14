@@ -7,7 +7,7 @@
         :class="['btn', 'like-btn', { 'liked': isLiked }]"
         :disabled="likingInProgress"
       >
-        <i class="bi" :class="isLiked ? 'bi-heart-fill' : 'bi-heart'"></i>
+        <Icon :name="isLiked ? 'heart-fill' : 'heart'" size="md" :solid="isLiked" />
         <span class="like-count ms-2">{{ likeCount }}</span>
         <span class="like-text ms-1">{{ isLiked ? '已点赞' : '点赞' }}</span>
       </button>
@@ -17,11 +17,11 @@
     <div class="comment-form card mb-4">
       <div class="card-body">
         <h5 class="card-title">
-          <i class="bi bi-chat-dots me-2"></i>
+          <Icon name="chat-dots" size="md" class="me-2" />
           发表评论
         </h5>
         <div v-if="submitSuccess" class="alert alert-success">
-          <i class="bi bi-check-circle me-2"></i>
+          <Icon name="check-circle" size="md" class="me-2" />
           评论提交成功！正在等待审核...
         </div>
         <form @submit.prevent="submitComment">
@@ -63,7 +63,7 @@
             :disabled="submitting"
           >
             <span v-if="submitting" class="spinner-border spinner-border-sm me-2"></span>
-            <i class="bi bi-send me-2"></i>
+            <Icon name="send" size="sm" class="me-2" />
             发表评论
           </button>
         </form>
@@ -73,7 +73,7 @@
     <!-- 评论列表 -->
     <div class="comments-list">
       <h5 class="mb-4">
-        <i class="bi bi-chat-left-text me-2"></i>
+        <Icon name="chat-left-text" size="md" class="me-2" />
         评论 ({{ comments.length }})
       </h5>
       <div v-if="loadingComments" class="text-center py-4">
@@ -82,7 +82,7 @@
         </div>
       </div>
       <div v-else-if="comments.length === 0" class="text-muted text-center py-4">
-        <i class="bi bi-chat-square-dots fs-1 mb-3 d-block"></i>
+        <Icon name="chat-square-dots" size="3xl" class="mb-3 d-block" />
         暂无评论，来发表第一条评论吧！
       </div>
       <div v-else>
@@ -95,13 +95,13 @@
             <div class="d-flex justify-content-between align-items-start mb-2">
               <div class="comment-author">
                 <strong class="author-name">
-                  <i class="bi bi-person-circle me-1"></i>
+                  <Icon name="person-circle" size="sm" class="me-1" />
                   {{ comment.author }}
                 </strong>
                 <small class="text-muted ms-2">{{ formatDate(comment.createdAt) }}</small>
                 <span v-if="comment.website && comment.website.trim()" class="ms-2">
                   <a :href="comment.website" target="_blank" rel="noopener noreferrer" class="text-decoration-none">
-                    <i class="bi bi-link-45deg"></i>
+                    <Icon name="link-45deg" size="sm" />
                   </a>
                 </span>
               </div>
@@ -110,7 +110,7 @@
                 class="btn btn-sm btn-outline-danger comment-like-btn"
                 :class="{ 'active': comment.isLiked }"
               >
-                <i class="bi bi-heart"></i>
+                <Icon name="heart" size="sm" />
                 <span v-if="comment.likes > 0" class="ms-1">{{ comment.likes }}</span>
               </button>
             </div>
