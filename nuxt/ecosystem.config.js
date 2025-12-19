@@ -11,7 +11,10 @@ module.exports = {
     // 自动重启
     autorestart: true,
     watch: false,
-    max_memory_restart: '1G',
+    max_memory_restart: '512M',  // 降低到 512M，为系统和 .NET 留出空间
+    
+    // Node.js 内存限制（1G 服务器建议限制堆内存）
+    node_args: '--max-old-space-size=384',
     
     // 环境变量
     env: {
@@ -35,3 +38,4 @@ module.exports = {
     kill_timeout: 5000
   }]
 }
+

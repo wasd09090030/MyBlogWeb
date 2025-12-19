@@ -117,8 +117,8 @@ export default defineNuxtConfig({
 
   // 路由配置优化
   routeRules: {
-    // 首页使用ISR策略
-    '/': { swr: 3600 }, // 1小时重新验证
+    // 首页使用SSR（不预渲染）
+    '/': { ssr: true },
     // 静态资源使用强缓存
     '/icon/**': { headers: { 'cache-control': 'public, max-age=31536000, immutable' } },
     '/Picture/**': { headers: { 'cache-control': 'public, max-age=31536000, immutable' } },
@@ -141,10 +141,10 @@ export default defineNuxtConfig({
     },
     // 优化服务器输出
     minify: true,
-    // 预渲染路由（可选）
+    // 禁用预渲染（避免 Nuxt 3.20+ 的 styles.mjs 模块解析问题）
     prerender: {
       crawlLinks: false,
-      routes: ['/']
+      routes: []
     }
   },
 
