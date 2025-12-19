@@ -28,7 +28,6 @@
           :initial="{ opacity: 0, scale: 0.8 }"
           :in-view="{ opacity: 1, scale: 1 }"
           :transition="{ delay: itemIndex * 0.05, duration: 0.4, type: 'spring' }"
-          :hover="{ scale: 1.03, y: -5 }"
           :tap="{ scale: 0.98 }"
           @click="$emit('image-click', item)"
         >
@@ -39,11 +38,6 @@
               class="waterfall-image"
               loading="lazy"
             />
-            <div class="item-overlay">
-              <div class="overlay-content">
-                <Icon name="arrows-angle-contract" size="lg" />
-              </div>
-            </div>
           </div>
         </Motion>
       </Motion>
@@ -325,11 +319,6 @@ onUnmounted(() => {
   transition: box-shadow 0.4s ease;
 }
 
-.waterfall-item:hover {
-  box-shadow: 0 20px 40px rgba(102, 126, 234, 0.25);
-  z-index: 10;
-}
-
 /* 不同尺寸类别 */
 .waterfall-item.size-small {
   aspect-ratio: 1 / 1;
@@ -363,41 +352,6 @@ onUnmounted(() => {
   object-fit: cover;
   transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1),
               filter 0.4s ease;
-}
-
-.waterfall-item:hover .waterfall-image {
-  transform: scale(1.1);
-  filter: brightness(0.85);
-}
-
-.item-overlay {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    135deg,
-    rgba(102, 126, 234, 0.7) 0%,
-    rgba(118, 75, 162, 0.7) 100%
-  );
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.waterfall-item:hover .item-overlay {
-  opacity: 1;
-}
-
-.overlay-content {
-  text-align: center;
-  color: white;
-  transform: translateY(20px);
-  transition: transform 0.3s ease;
-}
-
-.waterfall-item:hover .overlay-content {
-  transform: translateY(0);
 }
 
 /* 无限滚动触发器样式 */

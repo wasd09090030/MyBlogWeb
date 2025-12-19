@@ -2,13 +2,7 @@
   <div class="article-list-page" ref="articleListContainer">
     <div class="page-header">
       <div class="page-header__title">
-        <div class="page-header__icon">
-          <img src="/icon/IcBaselineLibraryBooks.svg" alt="文章列表图标" />
-        </div>
-        <div class="page-header__title-text">
-          <h1 class="page-header__heading">{{ pageTitle }}</h1>
-          <p class="page-header__subtitle">{{ pageDescription }}</p>
-        </div>
+        <h2 class="page-header__heading">{{ pageTitle }}</h2>
       </div>
 
       <div class="page-header__actions" role="group" aria-label="视图切换">
@@ -18,8 +12,9 @@
           :class="{ active: isListView }"
           @click="setViewMode('list')"
           :aria-pressed="isListView"
+          title="列表视图"
         >
-          <Icon name="view-stacked" size="sm" class="me-1" />列表视图
+          <Icon name="view-stacked" size="md" />
         </button>
         <button
           type="button"
@@ -27,8 +22,9 @@
           :class="{ active: isGridView }"
           @click="setViewMode('grid')"
           :aria-pressed="isGridView"
+          title="网格视图"
         >
-          <Icon name="grid-3x3-gap-fill" size="sm" class="me-1" />网格视图
+          <Icon name="grid-3x3-gap-fill" size="md" />
         </button>
       </div>
     </div>
@@ -579,4 +575,9 @@ defineExpose({
 
 <style scoped>
 @import '~/assets/css/components/ArticleList.styles.css';
+
+.view-toggle-btn {
+  padding: 0.6rem;
+  line-height: 0;
+}
 </style>

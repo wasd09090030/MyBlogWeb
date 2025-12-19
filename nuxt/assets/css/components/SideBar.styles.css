@@ -133,6 +133,14 @@
   border-color: var(--bs-border-color-translucent);
 }
 
+.dark-theme .archive-month {
+  color: #e2e8f0;
+}
+
+.dark-theme .archive-count {
+  color: #60a5fa;
+}
+
 .archive-meta {
   display: flex;
   flex-direction: column;
@@ -142,7 +150,7 @@
 .archive-month {
   margin: 0;
   font-weight: 600;
-  color: var(--bs-body-color);
+  color: #495057;
 }
 
 .archive-subtitle {
@@ -153,7 +161,7 @@
 
 .archive-count {
   font-weight: 600;
-  color: var(--bs-primary);
+  color: #0056b3;
 }
 
 /* 移动端浮动按钮和侧边栏 */
