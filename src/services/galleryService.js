@@ -90,6 +90,21 @@ class GalleryService {
     }
     return response.json();
   }
+
+  async batchImport(data) {
+    const response = await fetch(getApiUrl(API_CONFIG.ENDPOINTS.GALLERY_BATCH_IMPORT), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      throw new Error('批量导入失败');
+    }
+    return response.json();
+  }
 }
 
 export default new GalleryService();

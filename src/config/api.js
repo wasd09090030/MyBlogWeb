@@ -41,6 +41,7 @@ export const API_CONFIG = {
     GALLERY_BY_ID: (id) => `/gallery/${id}`,
     GALLERY_TOGGLE_ACTIVE: (id) => `/gallery/${id}/toggle-active`,
     GALLERY_SORT_ORDER: '/gallery/batch/sort-order',
+    GALLERY_BATCH_IMPORT: '/gallery/batch/import',
   }
 };
 

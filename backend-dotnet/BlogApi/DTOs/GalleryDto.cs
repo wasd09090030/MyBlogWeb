@@ -2,8 +2,6 @@ namespace BlogApi.DTOs
 {
     public class CreateGalleryDto
     {
-        public string Title { get; set; } = string.Empty;
-        public string? Description { get; set; }
         public string ImageUrl { get; set; } = string.Empty;
         public int SortOrder { get; set; } = 0;
         public bool IsActive { get; set; } = true;
@@ -11,8 +9,6 @@ namespace BlogApi.DTOs
 
     public class UpdateGalleryDto
     {
-        public string? Title { get; set; }
-        public string? Description { get; set; }
         public string? ImageUrl { get; set; }
         public int? SortOrder { get; set; }
         public bool? IsActive { get; set; }
@@ -21,8 +17,6 @@ namespace BlogApi.DTOs
     public class GalleryDto
     {
         public int Id { get; set; }
-        public string Title { get; set; } = string.Empty;
-        public string? Description { get; set; }
         public string ImageUrl { get; set; } = string.Empty;
         public int SortOrder { get; set; }
         public bool IsActive { get; set; }
@@ -34,5 +28,11 @@ namespace BlogApi.DTOs
     {
         public int Id { get; set; }
         public int SortOrder { get; set; }
+    }
+
+    public class BatchImportGalleryDto
+    {
+        public List<string> ImageUrls { get; set; } = new List<string>();
+        public bool IsActive { get; set; } = true;
     }
 }

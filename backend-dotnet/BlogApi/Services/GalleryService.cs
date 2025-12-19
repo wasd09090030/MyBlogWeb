@@ -36,12 +36,15 @@ namespace BlogApi.Services
 
         public async Task<Gallery> CreateAsync(CreateGalleryDto dto)
         {
+            // 如果未指定排序，自动分配到最后
+            var maxSortOrder = await _context.Galleries.AnyAsync() 
+                ? await _context.Galleries.MaxAsync(g => g.SortOrder) 
+                : -1;
+            
             var gallery = new Gallery
             {
-                Title = dto.Title,
-                Description = dto.Description,
                 ImageUrl = dto.ImageUrl,
-                SortOrder = dto.SortOrder,
+                SortOrder = dto.SortOrder > 0 ? dto.SortOrder : maxSortOrder + 1,
                 IsActive = dto.IsActive,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
@@ -57,8 +60,6 @@ namespace BlogApi.Services
             var gallery = await _context.Galleries.FindAsync(id);
             if (gallery == null) return null;
 
-            if (dto.Title != null) gallery.Title = dto.Title;
-            if (dto.Description != null) gallery.Description = dto.Description;
             if (dto.ImageUrl != null) gallery.ImageUrl = dto.ImageUrl;
             if (dto.SortOrder.HasValue) gallery.SortOrder = dto.SortOrder.Value;
             if (dto.IsActive.HasValue) gallery.IsActive = dto.IsActive.Value;
@@ -105,6 +106,40 @@ namespace BlogApi.Services
 
             await _context.SaveChangesAsync();
             return gallery;
+        }
+
+        public async Task<List<Gallery>> BatchImportAsync(BatchImportGalleryDto dto)
+        {
+            var maxSortOrder = await _context.Galleries.AnyAsync() 
+                ? await _context.Galleries.MaxAsync(g => g.SortOrder) 
+                : -1;
+
+            var galleries = new List<Gallery>();
+            var sortOrder = maxSortOrder + 1;
+
+            foreach (var imageUrl in dto.ImageUrls)
+            {
+                if (string.IsNullOrWhiteSpace(imageUrl)) continue;
+
+                var gallery = new Gallery
+                {
+                    ImageUrl = imageUrl.Trim(),
+                    SortOrder = sortOrder++,
+                    IsActive = dto.IsActive,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
+
+                galleries.Add(gallery);
+            }
+
+            if (galleries.Any())
+            {
+                _context.Galleries.AddRange(galleries);
+                await _context.SaveChangesAsync();
+            }
+
+            return galleries;
         }
     }
 }

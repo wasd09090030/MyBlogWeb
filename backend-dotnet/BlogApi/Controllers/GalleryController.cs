@@ -91,5 +91,19 @@ namespace BlogApi.Controllers
 
             return Ok(gallery);
         }
+
+        // 管理员接口：批量导入图片
+        [HttpPost("batch/import")]
+        public async Task<ActionResult<List<Gallery>>> BatchImport([FromBody] BatchImportGalleryDto dto)
+        {
+            if (dto.ImageUrls == null || !dto.ImageUrls.Any())
+                return BadRequest(new { message = "请提供至少一个图片URL" });
+
+            var galleries = await _galleryService.BatchImportAsync(dto);
+            return Ok(new { 
+                message = $"成功导入 {galleries.Count} 张图片",
+                data = galleries 
+            });
+        }
     }
 }

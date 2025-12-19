@@ -2,9 +2,14 @@
   <div class="gallery-manager">
     <div class="d-flex justify-content-between align-items-center mb-4">
       <h2>画廊管理</h2>
-      <button class="btn btn-primary" @click="showCreateModal">
-        <i class="bi bi-plus-circle me-2"></i>添加图片
-      </button>
+      <div class="d-flex gap-2">
+        <button class="btn btn-success" @click="showBatchImportModal">
+          <i class="bi bi-upload me-2"></i>批量导入
+        </button>
+        <button class="btn btn-primary" @click="showCreateModal">
+          <i class="bi bi-plus-circle me-2"></i>添加图片
+        </button>
+      </div>
     </div>
 
     <!-- 加载状态 -->
@@ -22,66 +27,77 @@
         <p class="text-muted">点击上方按钮添加第一张图片</p>
       </div>
 
-      <div v-else class="row">
-        <div 
-          v-for="gallery in galleries" 
-          :key="gallery.id" 
-          class="col-md-6 col-lg-4 mb-4"
-        >
-          <div class="card gallery-card h-100">
-            <div class="image-container">
-              <img 
-                :src="gallery.imageUrl" 
-                :alt="gallery.title"
-                class="card-img-top gallery-image"
-                @error="handleImageError"
-              />
-              <div class="image-overlay">
-                <div class="overlay-actions">
-                  <button 
-                    class="btn btn-sm btn-outline-light me-2"
-                    @click="editGallery(gallery)"
-                    title="编辑"
+      <div v-else>
+        <div class="alert alert-info mb-3">
+          <i class="bi bi-info-circle me-2"></i>
+          提示：拖动图片卡片可以调整排序，松开后自动保存
+        </div>
+        
+        <div class="row" ref="galleryContainer">
+          <div 
+            v-for="gallery in galleries" 
+            :key="gallery.id" 
+            class="col-md-6 col-lg-4 col-xl-3 mb-4"
+            draggable="true"
+            @dragstart="handleDragStart($event, gallery)"
+            @dragover.prevent="handleDragOver($event)"
+            @drop="handleDrop($event, gallery)"
+            @dragend="handleDragEnd"
+          >
+            <div class="card gallery-card h-100" :class="{ 'dragging': draggedGallery?.id === gallery.id }">
+              <div class="drag-handle">
+                <i class="bi bi-grip-vertical"></i>
+              </div>
+              <div class="image-container">
+                <img 
+                  :src="gallery.imageUrl" 
+                  :alt="`图片 ${gallery.id}`"
+                  class="card-img-top gallery-image"
+                  @error="handleImageError"
+                />
+                <div class="image-overlay">
+                  <div class="overlay-actions">
+                    <button 
+                      class="btn btn-sm btn-outline-light me-2"
+                      @click="editGallery(gallery)"
+                      title="编辑"
+                    >
+                      <i class="bi bi-pencil"></i>
+                    </button>
+                    <button 
+                      class="btn btn-sm btn-outline-light me-2"
+                      @click="toggleActive(gallery)"
+                      :title="gallery.isActive ? '隐藏' : '显示'"
+                    >
+                      <i :class="gallery.isActive ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
+                    </button>
+                    <button 
+                      class="btn btn-sm btn-outline-danger"
+                      @click="confirmDelete(gallery)"
+                      title="删除"
+                    >
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </div>
+                </div>
+                <div class="status-badge">
+                  <span 
+                    class="badge"
+                    :class="gallery.isActive ? 'bg-success' : 'bg-secondary'"
                   >
-                    <i class="bi bi-pencil"></i>
-                  </button>
-                  <button 
-                    class="btn btn-sm btn-outline-light me-2"
-                    @click="toggleActive(gallery)"
-                    :title="gallery.isActive ? '隐藏' : '显示'"
-                  >
-                    <i :class="gallery.isActive ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
-                  </button>
-                  <button 
-                    class="btn btn-sm btn-outline-danger"
-                    @click="confirmDelete(gallery)"
-                    title="删除"
-                  >
-                    <i class="bi bi-trash"></i>
-                  </button>
+                    {{ gallery.isActive ? '显示' : '隐藏' }}
+                  </span>
                 </div>
               </div>
-              <div class="status-badge">
-                <span 
-                  class="badge"
-                  :class="gallery.isActive ? 'bg-success' : 'bg-secondary'"
-                >
-                  {{ gallery.isActive ? '显示' : '隐藏' }}
-                </span>
-              </div>
-            </div>
-            <div class="card-body">
-              <h5 class="card-title">{{ gallery.title }}</h5>
-              <p v-if="gallery.description" class="card-text text-muted small">
-                {{ gallery.description }}
-              </p>
-              <div class="d-flex justify-content-between align-items-center">
-                <small class="text-muted">
-                  排序: {{ gallery.sortOrder }}
-                </small>
-                <small class="text-muted">
-                  {{ formatDate(gallery.createdAt) }}
-                </small>
+              <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                  <small class="text-muted">
+                    #{{ gallery.sortOrder }}
+                  </small>
+                  <small class="text-muted">
+                    {{ formatDate(gallery.createdAt) }}
+                  </small>
+                </div>
               </div>
             </div>
           </div>
@@ -106,17 +122,6 @@
         
         <form @submit.prevent="saveGallery">
           <div class="custom-modal-body">
-            <div class="mb-3">
-              <label for="title" class="form-label">标题 *</label>
-              <input 
-                type="text" 
-                class="form-control" 
-                id="title"
-                v-model="galleryForm.title" 
-                required
-              >
-            </div>
-
             <div class="mb-3">
               <label for="imageUrl" class="form-label">图片URL *</label>
               <input 
@@ -147,30 +152,6 @@
                   </small>
                 </div>
               </div>
-            </div>
-
-            <div class="mb-3">
-              <label for="description" class="form-label">描述</label>
-              <textarea 
-                class="form-control" 
-                id="description"
-                v-model="galleryForm.description" 
-                rows="3"
-                placeholder="图片描述（可选）"
-              ></textarea>
-            </div>
-
-            <div class="mb-3">
-              <label for="sortOrder" class="form-label">排序序号</label>
-              <input 
-                type="number" 
-                class="form-control" 
-                id="sortOrder"
-                v-model.number="galleryForm.sortOrder" 
-                min="0"
-                placeholder="0"
-              >
-              <div class="form-text">数字越小排序越靠前</div>
             </div>
 
             <div class="mb-3 form-check">
@@ -220,7 +201,7 @@
           ></button>
         </div>
         <div class="custom-modal-body">
-          <p>确定要删除图片 "<strong>{{ galleryToDelete?.title }}</strong>" 吗？</p>
+          <p>确定要删除这张图片吗？</p>
           <p class="text-muted">此操作无法撤销。</p>
         </div>
         <div class="custom-modal-footer">
@@ -243,31 +224,114 @@
         </div>
       </div>
     </div>
+
+    <!-- 批量导入模态框 -->
+    <div v-if="showBatchModal" class="custom-modal-overlay" @click.self="closeBatchModal">
+      <div class="custom-modal custom-modal-lg">
+        <div class="custom-modal-header">
+          <h5 class="custom-modal-title">批量导入图片</h5>
+          <button 
+            type="button" 
+            class="btn-close" 
+            @click="closeBatchModal"
+            aria-label="关闭"
+          ></button>
+        </div>
+        
+        <form @submit.prevent="batchImport">
+          <div class="custom-modal-body">
+            <div class="mb-3">
+              <label for="batchUrls" class="form-label">图片URL列表</label>
+              <textarea 
+                class="form-control" 
+                id="batchUrls"
+                v-model="batchImportUrls" 
+                rows="10"
+                placeholder="每行一个图片URL，例如：&#10;https://example.com/image1.jpg&#10;https://example.com/image2.jpg&#10;https://example.com/image3.jpg"
+                required
+              ></textarea>
+              <div class="form-text">
+                <i class="bi bi-info-circle me-1"></i>
+                每行输入一个图片URL，自动过滤空行
+              </div>
+            </div>
+
+            <div class="mb-3 form-check">
+              <input 
+                type="checkbox" 
+                class="form-check-input" 
+                id="batchIsActive"
+                v-model="batchImportActive"
+              >
+              <label class="form-check-label" for="batchIsActive">
+                导入后立即在前端显示
+              </label>
+            </div>
+
+            <div v-if="batchPreviewUrls.length > 0" class="alert alert-info">
+              <strong>将导入 {{ batchPreviewUrls.length }} 张图片</strong>
+            </div>
+          </div>
+          
+          <div class="custom-modal-footer">
+            <button 
+              type="button" 
+              class="btn btn-secondary" 
+              @click="closeBatchModal"
+            >
+              取消
+            </button>
+            <button 
+              type="submit" 
+              class="btn btn-success"
+              :disabled="isBatchImporting || batchPreviewUrls.length === 0"
+            >
+              <span v-if="isBatchImporting" class="spinner-border spinner-border-sm me-2" role="status"></span>
+              导入 {{ batchPreviewUrls.length }} 张图片
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted, watch, computed } from 'vue';
 import galleryService from '../../services/galleryService.js';
 
 const galleries = ref([]);
 const loading = ref(true);
 const isSaving = ref(false);
 const isDeleting = ref(false);
+const isBatchImporting = ref(false);
 const isEdit = ref(false);
 const galleryToDelete = ref(null);
 const isValidPreview = ref(true);
+const draggedGallery = ref(null);
+const dragOverGallery = ref(null);
 
 // 模态框显示状态
 const showGalleryModal = ref(false);
 const showDeleteModal = ref(false);
+const showBatchModal = ref(false);
+
+// 批量导入相关
+const batchImportUrls = ref('');
+const batchImportActive = ref(true);
 
 const galleryForm = ref({
-  title: '',
   imageUrl: '',
-  description: '',
-  sortOrder: 0,
   isActive: true,
+});
+
+// 计算批量导入的URL数组
+const batchPreviewUrls = computed(() => {
+  if (!batchImportUrls.value) return [];
+  return batchImportUrls.value
+    .split('\n')
+    .map(url => url.trim())
+    .filter(url => url.length > 0);
 });
 
 // 获取画廊列表
@@ -287,10 +351,7 @@ const fetchGalleries = async () => {
 const showCreateModal = () => {
   isEdit.value = false;
   galleryForm.value = {
-    title: '',
     imageUrl: '',
-    description: '',
-    sortOrder: 0,
     isActive: true,
   };
   isValidPreview.value = true;
@@ -302,10 +363,7 @@ const editGallery = (gallery) => {
   isEdit.value = true;
   galleryForm.value = {
     id: gallery.id,
-    title: gallery.title,
     imageUrl: gallery.imageUrl,
-    description: gallery.description || '',
-    sortOrder: gallery.sortOrder,
     isActive: gallery.isActive,
   };
   isValidPreview.value = true;
@@ -317,10 +375,7 @@ const closeGalleryModal = () => {
   showGalleryModal.value = false;
   // 重置表单
   galleryForm.value = {
-    title: '',
     imageUrl: '',
-    description: '',
-    sortOrder: 0,
     isActive: true,
   };
 };
@@ -331,10 +386,7 @@ const saveGallery = async () => {
     isSaving.value = true;
     
     const payload = {
-      title: galleryForm.value.title,
       imageUrl: galleryForm.value.imageUrl,
-      description: galleryForm.value.description || null,
-      sortOrder: galleryForm.value.sortOrder,
       isActive: galleryForm.value.isActive,
     };
 
@@ -425,6 +477,102 @@ const formatDate = (dateString) => {
   return date.toLocaleDateString('zh-CN');
 };
 
+// 拖拽相关
+const handleDragStart = (event, gallery) => {
+  draggedGallery.value = gallery;
+  event.dataTransfer.effectAllowed = 'move';
+  event.target.style.opacity = '0.5';
+};
+
+const handleDragOver = (event) => {
+  event.preventDefault();
+  event.dataTransfer.dropEffect = 'move';
+};
+
+const handleDrop = async (event, targetGallery) => {
+  event.preventDefault();
+  
+  if (!draggedGallery.value || draggedGallery.value.id === targetGallery.id) {
+    return;
+  }
+
+  // 重新排序
+  const draggedIndex = galleries.value.findIndex(g => g.id === draggedGallery.value.id);
+  const targetIndex = galleries.value.findIndex(g => g.id === targetGallery.id);
+
+  // 临时更新UI
+  const items = [...galleries.value];
+  const [draggedItem] = items.splice(draggedIndex, 1);
+  items.splice(targetIndex, 0, draggedItem);
+  galleries.value = items;
+
+  // 更新后端排序
+  try {
+    const updates = items.map((gallery, index) => ({
+      id: gallery.id,
+      sortOrder: index
+    }));
+    
+    await galleryService.updateSortOrder(updates);
+    
+    // 更新本地sortOrder
+    galleries.value.forEach((gallery, index) => {
+      gallery.sortOrder = index;
+    });
+  } catch (error) {
+    console.error('更新排序失败:', error);
+    alert('更新排序失败: ' + error.message);
+    // 失败时重新获取
+    await fetchGalleries();
+  }
+};
+
+const handleDragEnd = (event) => {
+  event.target.style.opacity = '1';
+  draggedGallery.value = null;
+};
+
+// 批量导入相关
+const showBatchImportModal = () => {
+  batchImportUrls.value = '';
+  batchImportActive.value = true;
+  showBatchModal.value = true;
+};
+
+const closeBatchModal = () => {
+  showBatchModal.value = false;
+  batchImportUrls.value = '';
+};
+
+const batchImport = async () => {
+  try {
+    isBatchImporting.value = true;
+    
+    const urls = batchPreviewUrls.value;
+    if (urls.length === 0) {
+      alert('请至少输入一个图片URL');
+      return;
+    }
+
+    const payload = {
+      imageUrls: urls,
+      isActive: batchImportActive.value
+    };
+
+    const response = await galleryService.batchImport(payload);
+    
+    closeBatchModal();
+    alert(response.message || `成功导入 ${urls.length} 张图片`);
+    
+    await fetchGalleries();
+  } catch (error) {
+    console.error('批量导入失败:', error);
+    alert('批量导入失败: ' + error.message);
+  } finally {
+    isBatchImporting.value = false;
+  }
+};
+
 // 监听图片URL变化
 watch(() => galleryForm.value.imageUrl, (newUrl) => {
   if (newUrl) {
@@ -447,11 +595,37 @@ onMounted(() => {
   border: none;
   border-radius: 15px;
   overflow: hidden;
+  cursor: move;
+  position: relative;
+}
+
+.gallery-card.dragging {
+  opacity: 0.5;
+  transform: scale(0.95);
 }
 
 .gallery-card:hover {
   transform: translateY(-5px);
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+.drag-handle {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 10;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 5px 10px;
+  border-radius: 5px;
+  cursor: move;
+  font-size: 1.2rem;
+  color: #666;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.drag-handle:hover {
+  background: rgba(255, 255, 255, 1);
+  color: #333;
 }
 
 .image-container {
@@ -568,6 +742,10 @@ onMounted(() => {
 
 .custom-modal-sm {
   max-width: 400px;
+}
+
+.custom-modal-lg {
+  max-width: 700px;
 }
 
 .custom-modal-header {
