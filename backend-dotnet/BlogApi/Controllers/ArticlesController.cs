@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using BlogApi.Services;
 using BlogApi.DTOs;
 using BlogApi.Models;
@@ -16,6 +17,7 @@ namespace BlogApi.Controllers
             _articleService = articleService;
         }
 
+        [Authorize]  // 需要登录才能创建文章
         [HttpPost]
         public async Task<ActionResult<Article>> Create([FromBody] CreateArticleDto dto)
         {
@@ -87,6 +89,7 @@ namespace BlogApi.Controllers
             return Ok(article);
         }
 
+        [Authorize]  // 需要登录才能更新文章
         [HttpPut("{id}")]
         public async Task<ActionResult<Article>> Update(int id, [FromBody] UpdateArticleDto dto)
         {
@@ -97,6 +100,7 @@ namespace BlogApi.Controllers
             return Ok(article);
         }
 
+        [Authorize]  // 需要登录才能删除文章
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {

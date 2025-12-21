@@ -1,4 +1,7 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 using BlogApi.Data;
 using BlogApi.Services;
 using System.Text.Json.Serialization;
@@ -28,7 +31,43 @@ builder.Services.AddScoped<ArticleService>();
 builder.Services.AddScoped<CommentService>();
 builder.Services.AddScoped<GalleryService>();
 builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<DeepSeekService>();
+
+// JWT 认证配置
+var jwtSecretKey = builder.Configuration["Jwt:SecretKey"] 
+    ?? throw new InvalidOperationException("JWT SecretKey 未在配置中设置");
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecretKey)),
+            ClockSkew = TimeSpan.Zero // 不允许时间偏差
+        };
+
+        // 自定义认证失败响应
+        options.Events = new JwtBearerEvents
+        {
+            OnAuthenticationFailed = context =>
+            {
+                if (context.Exception.GetType() == typeof(SecurityTokenExpiredException))
+                {
+                    context.Response.Headers.Append("Token-Expired", "true");
+                }
+                return Task.CompletedTask;
+            }
+        };
+    });
+
+builder.Services.AddAuthorization();
 
 // Add CORS
 builder.Services.AddCors(options =>
@@ -37,7 +76,8 @@ builder.Services.AddCors(options =>
     {
         policy.AllowAnyOrigin()
               .AllowAnyMethod()
-              .AllowAnyHeader();
+              .AllowAnyHeader()
+              .WithExposedHeaders("Token-Expired"); // 暴露自定义头
     });
 });
 
@@ -61,6 +101,7 @@ app.UseCors();
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();  // 认证中间件必须在授权之前
 app.UseAuthorization();
 
 app.MapControllers();

@@ -180,8 +180,8 @@ class ArticleService {
 
   // 获取授权头
   getAuthHeader() {
-    // 使用本地存储的认证信息
-    return localStorage.getItem('isAuthenticated') === 'true' ? 'AdminToken' : '';
+    const token = localStorage.getItem('auth_token');
+    return token ? `Bearer ${token}` : '';
   }
 }
 
@@ -271,7 +271,8 @@ class GalleryService {
 
   // 获取授权头
   getAuthHeader() {
-    return localStorage.getItem('isAuthenticated') === 'true' ? 'AdminToken' : '';
+    const token = localStorage.getItem('auth_token');
+    return token ? `Bearer ${token}` : '';
   }
 }
 

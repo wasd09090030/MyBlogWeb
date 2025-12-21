@@ -188,6 +188,18 @@ const currentTab = ref('pending')
 const commentToDelete = ref(null)
 const showDeleteModal = ref(false)
 
+// 获取认证头
+const getAuthHeaders = () => {
+  const token = localStorage.getItem('auth_token')
+  const headers = {
+    'Content-Type': 'application/json',
+  }
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`
+  }
+  return headers
+}
+
 const pendingCount = computed(() => {
   return comments.value.filter(comment => comment.status === 'pending').length
 })
@@ -200,7 +212,9 @@ const fetchComments = async () => {
       ? getApiUrl(API_CONFIG.ENDPOINTS.COMMENTS_ADMIN_PENDING)
       : getApiUrl(API_CONFIG.ENDPOINTS.COMMENTS_ADMIN_ALL)
     
-    const response = await fetch(endpoint)
+    const response = await fetch(endpoint, {
+      headers: getAuthHeaders()
+    })
     if (response.ok) {
       comments.value = await response.json()
     }
@@ -217,9 +231,7 @@ const updateCommentStatus = async (commentId, status) => {
   try {
     const response = await fetch(getApiUrl(API_CONFIG.ENDPOINTS.COMMENT_ADMIN_STATUS(commentId)), {
       method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: getAuthHeaders(),
       body: JSON.stringify({ status }),
     })
     
@@ -247,6 +259,7 @@ const deleteComment = async () => {
   try {
     const response = await fetch(getApiUrl(API_CONFIG.ENDPOINTS.COMMENT_DELETE(commentToDelete.value.id)), {
       method: 'DELETE',
+      headers: getAuthHeaders()
     })
       if (response.ok) {
       showDeleteModal.value = false

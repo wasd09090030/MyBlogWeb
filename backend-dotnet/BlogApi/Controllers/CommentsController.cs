@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using BlogApi.Services;
 using BlogApi.DTOs;
 using BlogApi.Models;
@@ -31,6 +32,7 @@ namespace BlogApi.Controllers
             return Ok(comments);
         }
 
+        [Authorize]
         [HttpGet("admin/all")]
         public async Task<ActionResult<List<Comment>>> GetAll()
         {
@@ -38,6 +40,7 @@ namespace BlogApi.Controllers
             return Ok(comments);
         }
 
+        [Authorize]
         [HttpGet("admin/pending")]
         public async Task<ActionResult<List<Comment>>> GetPending()
         {
@@ -45,6 +48,7 @@ namespace BlogApi.Controllers
             return Ok(comments);
         }
 
+        [Authorize]
         [HttpPatch("admin/{id}/status")]
         public async Task<ActionResult<Comment>> UpdateStatus(int id, [FromBody] UpdateCommentStatusDto dto)
         {
@@ -65,6 +69,7 @@ namespace BlogApi.Controllers
             return Ok(comment);
         }
 
+        [Authorize]
         [HttpDelete("admin/{id}")]
         public async Task<IActionResult> Delete(int id)
         {

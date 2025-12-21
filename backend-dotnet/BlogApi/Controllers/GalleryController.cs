@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using BlogApi.Services;
 using BlogApi.DTOs;
 using BlogApi.Models;
@@ -25,6 +26,7 @@ namespace BlogApi.Controllers
         }
 
         // 管理员接口：获取所有画廊图片
+        [Authorize]
         [HttpGet("admin")]
         public async Task<ActionResult<List<Gallery>>> GetAll()
         {
@@ -33,6 +35,7 @@ namespace BlogApi.Controllers
         }
 
         // 管理员接口：获取单个画廊图片
+        [Authorize]
         [HttpGet("{id}")]
         public async Task<ActionResult<Gallery>> GetById(int id)
         {
@@ -44,6 +47,7 @@ namespace BlogApi.Controllers
         }
 
         // 管理员接口：创建画廊图片
+        [Authorize]
         [HttpPost]
         public async Task<ActionResult<Gallery>> Create([FromBody] CreateGalleryDto dto)
         {
@@ -52,6 +56,7 @@ namespace BlogApi.Controllers
         }
 
         // 管理员接口：更新画廊图片
+        [Authorize]
         [HttpPatch("{id}")]
         public async Task<ActionResult<Gallery>> Update(int id, [FromBody] UpdateGalleryDto dto)
         {
@@ -63,6 +68,7 @@ namespace BlogApi.Controllers
         }
 
         // 管理员接口：删除画廊图片
+        [Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
@@ -74,6 +80,7 @@ namespace BlogApi.Controllers
         }
 
         // 管理员接口：批量更新排序
+        [Authorize]
         [HttpPatch("batch/sort-order")]
         public async Task<IActionResult> UpdateSortOrder([FromBody] List<UpdateSortOrderDto> updates)
         {
@@ -82,6 +89,7 @@ namespace BlogApi.Controllers
         }
 
         // 管理员接口：切换激活状态
+        [Authorize]
         [HttpPatch("{id}/toggle-active")]
         public async Task<ActionResult<Gallery>> ToggleActive(int id)
         {
@@ -93,6 +101,7 @@ namespace BlogApi.Controllers
         }
 
         // 管理员接口：批量导入图片
+        [Authorize]
         [HttpPost("batch/import")]
         public async Task<ActionResult<List<Gallery>>> BatchImport([FromBody] BatchImportGalleryDto dto)
         {

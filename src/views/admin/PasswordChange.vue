@@ -97,7 +97,8 @@ const changePassword = async () => {
   isChanging.value = true
   
   try {
-    const result = await authAPI.changePassword(currentPassword.value, newPassword.value)
+    const token = localStorage.getItem('auth_token')
+    const result = await authAPI.changePassword(currentPassword.value, newPassword.value, token)
     
     if (result.success) {
       success.value = result.data.message || '密码修改成功'

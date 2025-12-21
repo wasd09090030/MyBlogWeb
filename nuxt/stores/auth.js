@@ -6,18 +6,38 @@ export const UserRoles = {
   ADMIN: 'admin'
 }
 
+// Token 存储键名
+const TOKEN_KEY = 'auth_token'
+const REFRESH_TOKEN_KEY = 'auth_refresh_token'
+const TOKEN_EXPIRES_KEY = 'auth_token_expires'
+
 export const useAuthStore = defineStore('auth', {
   state: () => ({
     userRole: UserRoles.GUEST,
     isAuthenticated: false,
     loginAttempts: 0,
-    lockoutUntil: 0
+    lockoutUntil: 0,
+    token: null,
+    refreshToken: null,
+    tokenExpiresAt: null
   }),
 
   getters: {
     isAdmin: (state) => state.userRole === UserRoles.ADMIN && state.isAuthenticated,
     isGuest: (state) => state.userRole === UserRoles.GUEST,
-    isLocked: (state) => state.lockoutUntil > Date.now()
+    isLocked: (state) => state.lockoutUntil > Date.now(),
+    // 获取认证头
+    authHeaders: (state) => {
+      if (state.token) {
+        return { Authorization: `Bearer ${state.token}` }
+      }
+      return {}
+    },
+    // 检查 Token 是否即将过期（5分钟内）
+    isTokenExpiringSoon: (state) => {
+      if (!state.tokenExpiresAt) return false
+      return new Date(state.tokenExpiresAt).getTime() - Date.now() < 5 * 60 * 1000
+    }
   },
 
   actions: {
@@ -46,6 +66,18 @@ export const useAuthStore = defineStore('auth', {
         if (result.success) {
           // 重置错误尝试次数
           this.loginAttempts = 0
+          
+          // 存储 Token
+          this.token = result.token
+          this.refreshToken = result.refreshToken
+          this.tokenExpiresAt = result.expiresAt
+          
+          if (process.client) {
+            localStorage.setItem(TOKEN_KEY, result.token)
+            localStorage.setItem(REFRESH_TOKEN_KEY, result.refreshToken)
+            localStorage.setItem(TOKEN_EXPIRES_KEY, result.expiresAt)
+          }
+          
           return {
             success: true
           }
@@ -74,6 +106,74 @@ export const useAuthStore = defineStore('auth', {
           success: false,
           message: '登录验证失败，请重试'
         }
+      }
+    },
+
+    // 刷新 Token
+    async refreshAccessToken() {
+      if (!this.refreshToken) return false
+      
+      const config = useRuntimeConfig()
+      const baseURL = config.public.apiBase
+      
+      try {
+        const result = await $fetch(`${baseURL}/auth/refresh`, {
+          method: 'POST',
+          body: { refreshToken: this.refreshToken }
+        })
+        
+        if (result.success) {
+          this.token = result.token
+          this.refreshToken = result.refreshToken
+          this.tokenExpiresAt = result.expiresAt
+          
+          if (process.client) {
+            localStorage.setItem(TOKEN_KEY, result.token)
+            localStorage.setItem(REFRESH_TOKEN_KEY, result.refreshToken)
+            localStorage.setItem(TOKEN_EXPIRES_KEY, result.expiresAt)
+          }
+          return true
+        }
+        return false
+      } catch (error) {
+        console.error('Token 刷新失败:', error)
+        return false
+      }
+    },
+
+    // 带认证的 fetch 请求
+    async authFetch(url, options = {}) {
+      const config = useRuntimeConfig()
+      const baseURL = config.public.apiBase
+      
+      // 如果 Token 即将过期，先刷新
+      if (this.isTokenExpiringSoon && this.refreshToken) {
+        await this.refreshAccessToken()
+      }
+      
+      const fetchOptions = {
+        ...options,
+        headers: {
+          ...options.headers,
+          ...this.authHeaders
+        }
+      }
+      
+      try {
+        return await $fetch(`${baseURL}${url}`, fetchOptions)
+      } catch (error) {
+        // 如果是 401 错误，尝试刷新 Token 并重试
+        if (error.response?.status === 401 && this.refreshToken) {
+          const refreshed = await this.refreshAccessToken()
+          if (refreshed) {
+            fetchOptions.headers = {
+              ...options.headers,
+              ...this.authHeaders
+            }
+            return await $fetch(`${baseURL}${url}`, fetchOptions)
+          }
+        }
+        throw error
       }
     },
 
@@ -139,16 +239,37 @@ export const useAuthStore = defineStore('auth', {
     },
 
     // 退出登录
-    logout() {
+    async logout() {
+      const config = useRuntimeConfig()
+      const baseURL = config.public.apiBase
+      
+      // 调用后端登出接口（使 RefreshToken 失效）
+      if (this.token) {
+        try {
+          await $fetch(`${baseURL}/auth/logout`, {
+            method: 'POST',
+            headers: this.authHeaders
+          })
+        } catch (error) {
+          console.error('登出请求失败:', error)
+        }
+      }
+      
       this.userRole = UserRoles.GUEST
       this.isAuthenticated = false
       this.loginAttempts = 0
       this.lockoutUntil = 0
+      this.token = null
+      this.refreshToken = null
+      this.tokenExpiresAt = null
 
       if (process.client) {
         localStorage.setItem('userRole', UserRoles.GUEST)
         localStorage.removeItem('isAuthenticated')
         localStorage.removeItem('loginTime')
+        localStorage.removeItem(TOKEN_KEY)
+        localStorage.removeItem(REFRESH_TOKEN_KEY)
+        localStorage.removeItem(TOKEN_EXPIRES_KEY)
       }
 
       return {
@@ -163,6 +284,16 @@ export const useAuthStore = defineStore('auth', {
       const savedRole = localStorage.getItem('userRole')
       const savedAuth = localStorage.getItem('isAuthenticated')
       const savedLoginTime = localStorage.getItem('loginTime')
+      const savedToken = localStorage.getItem(TOKEN_KEY)
+      const savedRefreshToken = localStorage.getItem(REFRESH_TOKEN_KEY)
+      const savedTokenExpires = localStorage.getItem(TOKEN_EXPIRES_KEY)
+
+      // 恢复 Token
+      if (savedToken) {
+        this.token = savedToken
+        this.refreshToken = savedRefreshToken
+        this.tokenExpiresAt = savedTokenExpires
+      }
 
       // 检查会话是否过期（8小时后自动退出）
       const SESSION_TIMEOUT = 8 * 60 * 60 * 1000 // 8小时，单位：毫秒
@@ -170,9 +301,21 @@ export const useAuthStore = defineStore('auth', {
       const loginTime = savedLoginTime ? parseInt(savedLoginTime) : 0
       const isSessionExpired = now - loginTime > SESSION_TIMEOUT
 
-      if (isSessionExpired && savedAuth === 'true') {
-        // 会话已过期，重置为游客状态
-        this.logout()
+      // 检查 Token 是否过期
+      const isTokenExpired = savedTokenExpires && new Date(savedTokenExpires).getTime() < now
+
+      if ((isSessionExpired || isTokenExpired) && savedAuth === 'true') {
+        // 尝试使用 RefreshToken 刷新
+        if (savedRefreshToken && !isSessionExpired) {
+          this.refreshAccessToken().then(success => {
+            if (!success) {
+              this.logout()
+            }
+          })
+        } else {
+          // 会话已过期，重置为游客状态
+          this.logout()
+        }
         return
       }
 

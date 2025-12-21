@@ -277,12 +277,16 @@ const fetchDashboardData = async () => {
 };
 
 const fetchCommentStats = async () => {
+  const token = localStorage.getItem('auth_token');
+  const authHeader = token ? `Bearer ${token}` : '';
+  
   try {
     // 获取所有评论
     const allCommentsResponse = await fetch(getApiUrl(API_CONFIG.ENDPOINTS.COMMENTS_ADMIN_ALL), {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': authHeader
       },
     });
     
@@ -298,6 +302,7 @@ const fetchCommentStats = async () => {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': authHeader
       },
     });
     
