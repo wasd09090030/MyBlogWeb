@@ -213,8 +213,12 @@ const preloadImage = (src) => {
 const preloadAllImages = async () => {
   if (galleries.value.length === 0) return
 
-  // 设置总数
-  totalImagesToLoad.value = galleries.value.length
+  // 只预加载前15张图片（用于 FadeSlideshow, AccordionGallery, CoverflowGallery）
+  // 瀑布流的图片使用浏览器原生懒加载
+  const imagesToPreload = galleries.value.slice(0, 15)
+  
+  // 设置总数（只计算需要预加载的图片）
+  totalImagesToLoad.value = imagesToPreload.length
   loadedImagesCount.value = 0
   loadingProgress.value = 0
 
@@ -222,12 +226,12 @@ const preloadAllImages = async () => {
   previewImages.value = galleries.value.slice(0, 3)
 
   try {
-    // 并发加载所有图片，但限制并发数量
+    // 并发加载图片，但限制并发数量
     const concurrencyLimit = 5
     const chunks = []
 
-    for (let i = 0; i < galleries.value.length; i += concurrencyLimit) {
-      chunks.push(galleries.value.slice(i, i + concurrencyLimit))
+    for (let i = 0; i < imagesToPreload.length; i += concurrencyLimit) {
+      chunks.push(imagesToPreload.slice(i, i + concurrencyLimit))
     }
 
     for (const chunk of chunks) {

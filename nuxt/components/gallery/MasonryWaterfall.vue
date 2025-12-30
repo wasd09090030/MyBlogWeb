@@ -12,22 +12,20 @@
     
     <div class="waterfall-container" ref="containerRef">
       <!-- 多列瀑布流 -->
-      <Motion
-        v-for="(column, colIndex) in columns" 
+      <div
+        v-for="(column, colIndex) in virtualColumns" 
         :key="colIndex" 
         class="waterfall-column"
-        :initial="{ opacity: 0, y: 40 }"
-        :in-view="{ opacity: 1, y: 0 }"
-        :transition="{ delay: colIndex * 0.1, duration: 0.5, type: 'spring' }"
+        :style="{ paddingTop: `${column.paddingTop}px`, paddingBottom: `${column.paddingBottom}px` }"
       >
         <Motion
-          v-for="(item, itemIndex) in column"
+          v-for="(item, itemIndex) in column.items"
           :key="`${colIndex}-${item.id}-${itemIndex}`"
           class="waterfall-item"
           :class="[`size-${item.sizeClass}`]"
-          :initial="{ opacity: 0, scale: 0.8 }"
+          :initial="{ opacity: 0, scale: 0.9 }"
           :in-view="{ opacity: 1, scale: 1 }"
-          :transition="{ delay: itemIndex * 0.05, duration: 0.4, type: 'spring' }"
+          :transition="{ duration: 0.3 }"
           :tap="{ scale: 0.98 }"
           @click="$emit('image-click', item)"
         >
@@ -40,7 +38,7 @@
             />
           </div>
         </Motion>
-      </Motion>
+      </div>
     </div>
 
     <!-- 无限滚动触发器 -->
@@ -71,6 +69,7 @@
 
 <script setup>
 import { Motion } from 'motion-v'
+import { useWindowScroll, useWindowSize } from '@vueuse/core'
 
 const props = defineProps({
   images: {
@@ -84,11 +83,11 @@ const props = defineProps({
   // 无限滚动相关配置
   initialLoadCount: {
     type: Number,
-    default: 16  // 初始加载数量
+    default: 20  // 初始加载数量
   },
   loadMoreCount: {
     type: Number,
-    default: 8   // 每次加载更多的数量
+    default: 10   // 每次加载更多的数量
   }
 })
 
@@ -101,6 +100,14 @@ const infiniteScrollTrigger = ref(null)
 
 // 响应式列数
 const actualColumnCount = ref(props.columnCount)
+const columnWidth = ref(300) // 默认列宽，会动态计算
+
+// 窗口滚动和大小
+const { y: scrollY } = useWindowScroll()
+const { height: windowHeight } = useWindowSize()
+
+// 是否已挂载（用于 SSR 兼容）
+const isMounted = ref(false)
 
 // 无限滚动状态
 const displayedCount = ref(props.initialLoadCount)
@@ -115,6 +122,17 @@ const displayedImages = computed(() => {
 // 尺寸类别，用于创建不规则效果
 const sizeClasses = ['small', 'medium', 'large', 'tall', 'wide']
 
+// 尺寸类别对应的宽高比 (width / height)
+// 注意：CSS aspect-ratio 是 width / height
+// 计算高度时：height = width / aspectRatio
+const aspectRatios = {
+  small: 1,      // 1:1
+  medium: 4/3,   // 4:3
+  large: 3/4,    // 3:4
+  tall: 2/3,     // 2:3
+  wide: 16/9     // 16:9
+}
+
 // 为图片分配随机尺寸类别
 const getRandomSizeClass = (index) => {
   // 使用索引来确保每次渲染结果一致
@@ -122,42 +140,110 @@ const getRandomSizeClass = (index) => {
   return sizeClasses[seed % sizeClasses.length]
 }
 
-// 将图片分配到各列（瀑布流算法）
-const columns = computed(() => {
+// 计算所有图片的布局信息（分列 + 高度 + Y坐标）
+const columnsLayout = computed(() => {
   const cols = Array.from({ length: actualColumnCount.value }, () => [])
+  const colHeights = new Array(actualColumnCount.value).fill(0)
+  const gap = 16 // 1rem = 16px
   
   if (displayedImages.value.length === 0) return cols
-  
-  // 跟踪每列的"高度"（用于平衡分配）
-  const columnHeights = new Array(actualColumnCount.value).fill(0)
-  
-  // 尺寸类别对应的权重
-  const sizeWeights = {
-    small: 1,
-    medium: 1.5,
-    large: 2,
-    tall: 2.5,
-    wide: 1.3
-  }
-  
+
   displayedImages.value.forEach((image, index) => {
     // 找到最短的列
-    const shortestColIndex = columnHeights.indexOf(Math.min(...columnHeights))
+    const shortestColIndex = colHeights.indexOf(Math.min(...colHeights))
     
     // 分配尺寸类别
     const sizeClass = getRandomSizeClass(index)
+    const ratio = aspectRatios[sizeClass] || 1
+    
+    // 计算图片高度
+    const imgHeight = columnWidth.value / ratio
+    
+    // 当前Y坐标（相对于容器顶部）
+    const y = colHeights[shortestColIndex]
     
     // 添加到该列
     cols[shortestColIndex].push({
       ...image,
-      sizeClass
+      sizeClass,
+      y, // 顶部位置
+      height: imgHeight, // 图片高度
+      totalHeight: imgHeight + gap // 占用总高度（含间距）
     })
     
     // 更新列高度
-    columnHeights[shortestColIndex] += sizeWeights[sizeClass]
+    colHeights[shortestColIndex] += (imgHeight + gap)
   })
   
   return cols
+})
+
+// 虚拟滚动：计算可视区域内的图片
+const virtualColumns = computed(() => {
+  // SSR 或未挂载时，显示所有图片（不做虚拟化）
+  if (!isMounted.value || !containerRef.value) {
+    return columnsLayout.value.map(colItems => ({
+      items: colItems,
+      paddingTop: 0,
+      paddingBottom: 0
+    }))
+  }
+
+  // 容器距离页面顶部的距离
+  const containerTop = containerRef.value?.getBoundingClientRect().top + scrollY.value || 0
+  // 缓冲区大小（像素）
+  const buffer = 1000 
+  
+  // 可视区域范围（相对于容器）
+  const viewTop = Math.max(0, scrollY.value - containerTop - buffer)
+  const viewBottom = scrollY.value - containerTop + windowHeight.value + buffer
+
+  return columnsLayout.value.map(colItems => {
+    // 如果列为空，直接返回
+    if (colItems.length === 0) {
+      return { items: [], paddingTop: 0, paddingBottom: 0 }
+    }
+
+    // 找到可视范围内的第一个和最后一个索引
+    let startIndex = 0
+    let endIndex = colItems.length
+    
+    // 简单的线性查找（因为是有序的，可以用二分优化，但这里数量级不大，线性够用）
+    for (let i = 0; i < colItems.length; i++) {
+      const item = colItems[i]
+      const itemBottom = item.y + item.totalHeight
+      
+      if (itemBottom < viewTop) {
+        startIndex = i + 1
+      }
+      
+      if (item.y > viewBottom) {
+        endIndex = i
+        break
+      }
+    }
+    
+    // 修正边界
+    startIndex = Math.max(0, startIndex)
+    endIndex = Math.min(colItems.length, endIndex)
+    
+    // 计算 padding
+    let paddingTop = 0
+    for (let i = 0; i < startIndex; i++) {
+      paddingTop += colItems[i].totalHeight
+    }
+    
+    let paddingBottom = 0
+    for (let i = endIndex; i < colItems.length; i++) {
+      paddingBottom += colItems[i].totalHeight
+    }
+    
+    return {
+      items: colItems.slice(startIndex, endIndex),
+      paddingTop,
+      paddingBottom
+    }
+  })
 })
 
 // 加载更多图片
@@ -167,7 +253,7 @@ const loadMore = async () => {
   isLoadingMore.value = true
   
   // 模拟加载延迟，让用户看到加载动画
-  await new Promise(resolve => setTimeout(resolve, 500))
+  await new Promise(resolve => setTimeout(resolve, 300))
   
   // 增加显示数量
   displayedCount.value = Math.min(
@@ -195,7 +281,7 @@ const setupInfiniteScroll = () => {
     },
     {
       root: null,
-      rootMargin: '200px', // 提前200px触发加载
+      rootMargin: '400px', // 提前触发加载
       threshold: 0
     }
   )
@@ -203,18 +289,36 @@ const setupInfiniteScroll = () => {
   observer.observe(infiniteScrollTrigger.value)
 }
 
+// 更新列宽
+const updateColumnWidth = () => {
+  if (containerRef.value) {
+    // 获取第一列的宽度（如果有）或者估算
+    const firstCol = containerRef.value.querySelector('.waterfall-column')
+    if (firstCol) {
+      columnWidth.value = firstCol.clientWidth
+    } else {
+      // 估算：(容器宽度 - 间隙总宽) / 列数
+      const containerWidth = containerRef.value.clientWidth
+      const gap = 16
+      columnWidth.value = (containerWidth - (actualColumnCount.value - 1) * gap) / actualColumnCount.value
+    }
+  }
+}
+
 // 响应式调整列数
 const updateColumnCount = () => {
   const width = window.innerWidth
   if (width < 576) {
     actualColumnCount.value = 2
-  } else if (width < 768) {
+  } else if (width < 992) {
     actualColumnCount.value = 3
-  } else if (width < 1200) {
-    actualColumnCount.value = 4
   } else {
-    actualColumnCount.value = props.columnCount
+    // 大屏幕下保持3-4列，让图片更大
+    actualColumnCount.value = width > 1600 ? 4 : 3
   }
+  
+  // 更新列宽
+  nextTick(updateColumnWidth)
 }
 
 // 初始化
@@ -245,27 +349,32 @@ defineExpose({
 
 // 监听窗口大小变化
 onMounted(() => {
+  isMounted.value = true
   updateColumnCount()
   window.addEventListener('resize', updateColumnCount)
+  window.addEventListener('resize', updateColumnWidth)
   
   // 延迟设置无限滚动，确保DOM已渲染
   nextTick(() => {
     setupInfiniteScroll()
+    updateColumnWidth()
   })
 })
 
 onUnmounted(() => {
   window.removeEventListener('resize', updateColumnCount)
+  window.removeEventListener('resize', updateColumnWidth)
   destroySwiper()
 })
 </script>
 
 <style scoped>
 .waterfall-section {
-  padding: 2rem;
+  padding: 2rem 1rem;
   background: linear-gradient(180deg, transparent 0%, rgba(255, 255, 255, 0.5) 100%);
   border-radius: 30px 30px 0 0;
   margin-top: -20px;
+  width: 100%;
 }
 
 .section-header {
@@ -297,10 +406,13 @@ onUnmounted(() => {
 .waterfall-container {
   display: flex;
   gap: 1rem;
-  max-width: 1400px;
+  width: 100%;
+  max-width: 100%; /* 移除最大宽度限制，让图片占据更多空间 */
   margin: 0 auto;
   padding: 0 1rem;
+  box-sizing: border-box;
 }
+
 
 .waterfall-column {
   flex: 1;

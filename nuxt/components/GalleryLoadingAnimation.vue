@@ -30,7 +30,7 @@
       </div>
 
       <div class="loading-tip">
-        <p>正在为您准备精美的图片画廊...</p>
+        <p>图片未压缩，请注意流量...</p>
       </div>
     </div>
   </div>
