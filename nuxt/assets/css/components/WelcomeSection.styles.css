@@ -35,7 +35,7 @@
   position: relative;
   border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  /* box-shadow removed */
 }
 
 .swiper-container {
@@ -79,7 +79,7 @@
 }
 
 .swiper-slide:hover .slide-card {
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+  /* box-shadow removed */
 }
 
 /* 背景图片 */
@@ -95,26 +95,12 @@
   transition: transform 0.3s ease;
 }
 
-/* 渐变遮罩 - 让图片从顶部到底部逐渐变暗 */
+/* 渐变遮罩 - 已删除 */
 .slide-gradient {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 75%; /* 与图片同高 */
-  background: linear-gradient(
-    to bottom,
-    rgba(0, 0, 0, 0.05) 0%,            /* 顶部几乎透明 */
-    rgba(0, 0, 0, 0.1) 25%,
-    rgba(0, 0, 0, 0.2) 50%,
-    rgba(0, 0, 0, 0.4) 75%,
-    rgba(0, 0, 0, 0.65) 90%,           /* 接近底部时明显变暗 */
-    rgba(20, 20, 20, 0.85) 100%        /* 图片底部变成深色，接近黑色 */
-  );
-  z-index: 1;
+  display: none;
 }
 
-/* 底部渐变区域 - 从深色平滑过渡到灰色 */
+/* 底部渐变区域 - 已删除 */
 .slide-card::after {
   content: '';
   position: absolute;
@@ -136,7 +122,6 @@
   z-index: 1;
   pointer-events: none;
 }
-
 /* 幻灯片内容 */
 .slide-category-badge {
   position: absolute;

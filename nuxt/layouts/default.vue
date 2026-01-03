@@ -15,6 +15,9 @@
                   分类 <Icon name="chevron-down" size="sm" class="ms-1" />
                 </button>
               </n-dropdown>
+              <NuxtLink to="/tutorials" class="nav-link">
+                <Icon name="book" size="sm" class="me-1" />教程
+              </NuxtLink>
               <NuxtLink to="/gallery" class="nav-link">画廊</NuxtLink>
             </nav>
             <n-button 
@@ -193,6 +196,11 @@ const mobileMenuOptions = computed(() => [
     ]
   },
   {
+    label: '教程',
+    key: 'tutorials',
+    icon: () => h(resolveComponent('Icon'), { name: 'book', size: 'sm' })
+  },
+  {
     label: '画廊',
     key: 'gallery',
     icon: () => h(resolveComponent('Icon'), { name: 'images', size: 'sm' })
@@ -213,6 +221,8 @@ const handleMobileMenuSelect = (key) => {
     router.push('/')
   } else if (key === 'gallery') {
     router.push('/gallery')
+  } else if (key === 'tutorials') {
+    router.push('/tutorials')
   } else if (key.startsWith('category-')) {
     const category = key.replace('category-', '')
     if (category === 'all') {
@@ -227,7 +237,8 @@ const shouldShowWelcomeSection = computed(() => route.path === '/' && !route.que
 const isGalleryRoute = computed(() => route.path === '/gallery')
 const isArticleDetailRoute = computed(() => route.path.startsWith('/article/'))
 const isAboutRoute = computed(() => route.path === '/about')
-const showSidebar = computed(() => !isGalleryRoute.value && !isArticleDetailRoute.value && !isAboutRoute.value)
+const isTutorialsRoute = computed(() => route.path === '/tutorials')
+const showSidebar = computed(() => !isGalleryRoute.value && !isArticleDetailRoute.value && !isAboutRoute.value && !isTutorialsRoute.value)
 
 onMounted(() => {
   initTheme()
@@ -265,11 +276,11 @@ onUnmounted(() => {
 }
 
 .app-navbar.navbar-scrolled {
-  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+  /* box-shadow removed */
 }
 
 .dark-theme .app-navbar.navbar-scrolled {
-  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
+  /* box-shadow removed */
 }
 .dark-theme .app-navbar {
   background: var(--navbar-bg-dark, rgba(30, 30, 30, 0.95));

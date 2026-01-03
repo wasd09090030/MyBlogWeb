@@ -177,16 +177,15 @@ input[type="reset"],
 .main-content {
   position: relative;
   z-index: 10;
-  background-color: var(--bg-secondary);
+  background-color: transparent;
   min-height: 100vh;
   padding: 0;
-  margin-top: 20px;
-  box-shadow: var(--shadow-lg);
-  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  margin-top: 10px;
+  border-radius: var(--radius-lg);
   max-width: 85%;
   margin-left: auto;
   margin-right: auto;
-  border: 1px solid var(--border-color-light);
+  border: none;
 }
 
 /* Admin页面全宽度样式 */
@@ -202,7 +201,7 @@ input[type="reset"],
 }
 
 main {
-  padding: 0 0 60px;
+  padding: 0 0 20px;
   max-width: 100%;
   margin: 0;
 }
@@ -220,8 +219,8 @@ main {
 .blog-footer {
   background: var(--footer-bg);
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  padding: 2rem 0;
-  margin-top: 1rem;
+  padding: 1rem 0;
+  margin-top: 0.3rem;
   border-top: 1px solid var(--border-color);
   transition: var(--theme-transition);
 }
@@ -486,9 +485,9 @@ main {
 
 /* 暗色主题下的特殊样式 */
 :global(.dark-theme) .main-content {
-  background-color: var(--bg-secondary);
-  box-shadow: var(--shadow-xl);
-  border-color: var(--border-color);
+  background-color: transparent;
+  box-shadow: none;
+  border: none;
 }
 
 :global(.dark-theme) .dropdown-menu {
