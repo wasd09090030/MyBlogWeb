@@ -1,10 +1,5 @@
 <template>
   <div class="tutorials-page" ref="articleListContainer">
-    <div class="page-header">
-      <h1 class="page-title">教程专栏</h1>
-      <p class="page-description">系统化的学习资源，带你深入理解各类技术知识</p>
-    </div>
-
     <n-alert v-if="error" type="error" title="加载失败" class="mb-4">
       加载教程文章失败：{{ error.message }}
     </n-alert>
@@ -19,6 +14,10 @@
       v-else-if="paginatedArticles.length"
       class="tutorials-list"
     >
+      <div class="page-header">
+        <h3 class="page-title">教程专栏</h3>
+        <p class="page-description">技多不压身</p>
+      </div>
       <div
         v-for="(article, index) in paginatedArticles"
         :key="article.id"
@@ -254,24 +253,24 @@ defineExpose({
 
 <style scoped>
 .tutorials-page {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 2rem 1rem;
+  width: 100%;
+  margin: 0;
+  padding: 0;
 }
 
 .page-header {
   text-align: center;
-  margin-bottom: 3rem;
+  margin-bottom: 2rem;
   padding-bottom: 2rem;
   border-bottom: 2px solid var(--border-color, #e5e5e5);
 }
 
 .page-title {
-  font-size: 2.5rem;
-  font-weight: 700;
+  font-size: 2rem;
+  font-weight: 600;
   color: var(--text-primary, #2c3e50);
   margin-bottom: 0.5rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background-color: #3b3838;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -287,10 +286,14 @@ defineExpose({
   display: flex;
   flex-direction: column;
   gap: 2rem;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 15px;
+  padding: 2rem;
 }
 
 .tutorial-item {
   display: flex;
+  flex-direction: row-reverse;
   gap: 1.5rem;
   align-items: stretch;
 }
@@ -314,9 +317,8 @@ defineExpose({
   flex: 1;
   display: flex;
   gap: 1.5rem;
-  background: var(--card-bg, #fff);
   border-radius: 12px;
-  overflow: hidden;
+  overflow: visible;
   text-decoration: none;
   color: inherit;
 }
@@ -330,6 +332,7 @@ defineExpose({
   display: flex;
   align-items: center;
   justify-content: center;
+  border-radius: 12px;
 }
 
 .tutorial-image img {
@@ -423,8 +426,12 @@ defineExpose({
   color: var(--text-muted-dark, #adb5bd);
 }
 
+.dark-theme .tutorials-list {
+  background: rgba(26, 26, 26, 0.8);
+}
+
 .dark-theme .tutorial-card {
-  background: var(--card-bg-dark, #1a1a1a);
+  background: transparent;
 }
 
 .dark-theme .tutorial-image {
@@ -482,11 +489,11 @@ defineExpose({
 
 @media (max-width: 768px) {
   .tutorials-page {
-    padding: 1.5rem 1rem;
+    padding: 0;
   }
   
-  .page-header {
-    margin-bottom: 2rem;
+  .tutorials-list {
+    padding: 1.5rem;
   }
   
   .page-title {
@@ -494,7 +501,7 @@ defineExpose({
   }
   
   .tutorial-item {
-    flex-direction: column;
+    flex-direction: column-reverse;
     gap: 1rem;
   }
   
@@ -554,6 +561,7 @@ defineExpose({
   
   .tutorials-list {
     gap: 1.5rem;
+    padding: 1rem;
   }
 }
 </style>

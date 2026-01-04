@@ -2,20 +2,19 @@
 .desktop-sidebar {
   height: 100%;
   position: sticky;
-  top: 20px;
+  top: 10px;
 }
 
 .desktop-sidebar .sidebar-content {
   background: linear-gradient(135deg, rgba(255,255,255,0.8), rgba(248,249,250,0.9));
-  border: 1px solid var(--bs-border-color);
   border-radius: 15px;
-  padding: 2rem;
+  padding: 1.5rem;
   /* box-shadow removed */
   transition: all 0.3s ease;
 }
 
 .dark-theme .desktop-sidebar .sidebar-content {
-  background-color: var(--bs-dark);
+  background: linear-gradient(135deg, rgba(45, 55, 72, 0.8), rgba(26, 32, 44, 0.9));
   border-color: var(--bs-border-color-translucent);
   /* box-shadow removed */
 }

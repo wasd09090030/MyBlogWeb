@@ -1,30 +1,63 @@
 <template>
   <div class="article-list-page" ref="articleListContainer">
-    <div class="page-header">
-      <div class="page-header__title">
-        <h2 class="page-header__heading">{{ pageTitle }}</h2>
+    <div class="category-bar">
+      <div class="category-bar-wrapper">
+        <div class="category-list" id="category-list">
+          <NuxtLink 
+            to="/" 
+            class="category-list-item"
+            :class="{ active: !route.query.category }"
+          >
+            首页
+          </NuxtLink>
+          <NuxtLink 
+            to="/?category=study" 
+            class="category-list-item"
+            :class="{ active: route.query.category === 'study' }"
+          >
+            学习
+          </NuxtLink>
+          <NuxtLink 
+            to="/?category=game" 
+            class="category-list-item"
+            :class="{ active: route.query.category === 'game' }"
+          >
+            游戏
+          </NuxtLink>
+          <NuxtLink 
+            to="/?category=work" 
+            class="category-list-item"
+            :class="{ active: route.query.category === 'work' }"
+          >
+            个人作品
+          </NuxtLink>
+          <NuxtLink 
+            to="/?category=resource" 
+            class="category-list-item"
+            :class="{ active: route.query.category === 'resource' }"
+          >
+            资源分享
+          </NuxtLink>
+        </div>
       </div>
-
-      <div class="page-header__actions" role="group" aria-label="视图切换">
-        <button
-          type="button"
+      <div class="category-bar-actions">
+        <button 
+          type="button" 
           class="view-toggle-btn"
           :class="{ active: isListView }"
           @click="setViewMode('list')"
-          :aria-pressed="isListView"
           title="列表视图"
         >
-          <Icon name="view-stacked" size="md" />
+          <Icon name="view-stacked" size="sm" />
         </button>
-        <button
-          type="button"
+        <button 
+          type="button" 
           class="view-toggle-btn"
           :class="{ active: isGridView }"
           @click="setViewMode('grid')"
-          :aria-pressed="isGridView"
           title="网格视图"
         >
-          <Icon name="grid-3x3-gap-fill" size="md" />
+          <Icon name="grid-3x3-gap-fill" size="sm" />
         </button>
       </div>
     </div>

@@ -179,13 +179,27 @@ input[type="reset"],
   z-index: 10;
   background-color: transparent;
   min-height: 100vh;
-  padding: 0;
+  padding: 1.5rem 0 0 0;
   margin-top: 10px;
   border-radius: var(--radius-lg);
-  max-width: 85%;
+  max-width: 80%;
   margin-left: auto;
   margin-right: auto;
   border: none;
+}
+
+/* 移除主内容区域内的列的左右padding */
+.main-content .col-12,
+.main-content .col-lg-8,
+.main-content .col-lg-9,
+.main-content .col-xl-9 {
+  padding-left: 0 !important;
+}
+
+.main-content .col-lg-4,
+.main-content .col-lg-3,
+.main-content .col-xl-3 {
+  padding-right: 0 !important;
 }
 
 /* Admin页面全宽度样式 */
@@ -209,7 +223,7 @@ main {
 
 /* 侧边栏样式 */
 .sidebar-content {
-  padding: 2rem 1rem;
+  padding: 0;
   position: sticky;
   top: 80px; /* 调整为导航栏高度+间距 */
   height: fit-content;
@@ -347,8 +361,7 @@ main {
   .main-content {
     padding: 1rem 0;
     margin-top: 0;
-    /* 移动端恢复全宽 */
-    max-width: 100%;
+    max-width: 80%;
     margin-left: 0;
     margin-right: 0;
     padding-bottom: 20px;

@@ -5,8 +5,8 @@
 }
 
 .welcome-section {
-  width: 85%;
-  height: 48vh;
+  width: 80%;
+  height: 40vh;
   margin: 0 auto; /* 居中显示 */
   display: flex;
   border-radius: 15px;
@@ -78,9 +78,7 @@
   transition: all 0.3s ease;
 }
 
-.swiper-slide:hover .slide-card {
-  /* box-shadow removed */
-}
+
 
 /* 背景图片 */
 .slide-background {
@@ -100,25 +98,14 @@
   display: none;
 }
 
-/* 底部渐变区域 - 已删除 */
 .slide-card::after {
   content: '';
   position: absolute;
-  top: 75%; /* 从图片底部开始 */
+  top: 75%; /* 从更高位置开始，留出更多渐变空间 */
   left: 0;
   width: 100%;
-  height: 25%; /* 底部25%区域 */
-  background: linear-gradient(
-    to bottom,
-    rgba(20, 20, 20, 0.85) 0%,         /* 起点与图片底部颜色一致 */
-    rgba(28, 28, 28, 0.88) 8%,
-    rgba(35, 35, 35, 0.91) 16%,
-    rgba(42, 42, 42, 0.94) 25%,
-    rgba(48, 48, 48, 0.97) 35%,
-    rgba(52, 52, 52, 1) 50%,           /* 从50%开始完全不透明 */
-    rgba(54, 54, 54, 1) 65%,
-    rgba(55, 55, 55, 1) 100%           /* 底部15%为纯灰色 */
-  );
+  height: 40%; /* 底部40%区域 */
+  background:#1c232c;  /* 渐变颜色调整 */
   z-index: 1;
   pointer-events: none;
 }
@@ -240,79 +227,6 @@
   background: #fff !important;
   transform: scale(1.3);
   box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
-}
-
-/* 随机文章按钮 */
-.random-article-btn {
-  /* 布局属性 */
-  width: 80%;
-  margin: 1rem auto 0;
-  height: auto;
-  min-height: 40px;
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  
-  /* 外观属性 */
-  font-family: inherit;
-  font-size: 20px;
-  background: rgb(255, 255, 255);
-  color: rgb(24, 21, 28);
-  padding: 0.7em 1em;
-  padding-left: 0.9em;
-  border: none;
-  border-radius: 16px;
-  overflow: hidden;
-  cursor: pointer;
-  
-  /* 动画 */
-  transition: all 0.2s;
-}
-
-/* 确保旧的伪元素不干扰 */
-.random-article-btn::before,
-.random-article-btn::after {
-  display: none;
-  content: none;
-}
-
-.random-article-btn span {
-  display: block;
-  margin-left: 0.35em;
-  transition: all 0.3s ease-in-out;
-}
-
-.random-article-btn svg {
-  display: block;
-  transform-origin: center center;
-  transition: transform 0.3s ease-in-out;
-}
-
-.random-article-btn:hover .svg-wrapper {
-  animation: fly-1 0.6s ease-in-out infinite alternate;
-}
-
-.random-article-btn:hover svg {
-  transform: translateX(1.8em) rotate(45deg) scale(1.1);
-}
-
-.random-article-btn:hover span {
-  transform: translateX(5em);
-}
-
-.random-article-btn:active {
-  transform: scale(0.95);
-}
-
-@keyframes fly-1 {
-  from {
-    transform: translateY(0.1em);
-  }
-
-  to {
-    transform: translateY(-0.1em);
-  }
 }
 
 /* 右侧信息区域 */
@@ -566,11 +480,6 @@
     flex: none;
   }
 
-  /* 平板端隐藏随机文章按钮 */
-  .random-article-btn {
-    display: none;
-  }
-
   .info-section {
     max-width: 100%;
     flex: none;
@@ -640,11 +549,6 @@
   .carousel-wrapper {
     height: 38vh;
     min-height: 240px;
-  }
-
-  /* 移动端隐藏随机文章按钮 */
-  .random-article-btn {
-    display: none;
   }
 
   /* 移动端隐藏右侧信息区域 */
@@ -717,11 +621,6 @@
   .carousel-wrapper {
     height: 35vh;
     min-height: 220px;
-  }
-
-  /* 小屏移动端隐藏随机文章按钮 */
-  .random-article-btn {
-    display: none;
   }
 
   .slide-category-badge {
@@ -965,13 +864,6 @@
 .dark-theme .fab-overlay-active {
   background: rgba(0, 0, 0, 0.4);
 }
-
-/* 暗色主题适配 */
-.dark-theme .random-article-btn {
-  background: var(--bg-secondary);
-  color: var(--text-primary);
-}
-
 
 .dark-theme .info-card {
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);

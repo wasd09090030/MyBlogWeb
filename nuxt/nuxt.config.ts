@@ -45,7 +45,13 @@ export default defineNuxtConfig({
         'highlight.js',
         'markdown-it',
         'swiper',
-        'swiper/bundle'
+        'swiper/bundle',
+        'naive-ui',
+        '@heroicons/vue/24/outline',
+        '@heroicons/vue/24/solid',
+        'katex',
+        'motion-v',
+        '@vueuse/core'
       ]
     },
     define: {
