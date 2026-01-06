@@ -57,56 +57,50 @@
       <div class="bottom-cards">
         <!-- 文章卡片 -->
         <div class="info-card articles-card" @click="goToArticles">
-          <div class="card-background articles-bg"></div>
-          <div class="card-overlay"></div>
           <div class="card-content-wrapper">
             <div class="card-icon">
               <Icon name="file-text" size="xl" />
             </div>
             <div class="card-content">
               <h5 class="card-title">文章</h5>
-              <p class="card-stats">{{ articleCount }} 篇</p>
             </div>
             <div class="card-arrow">
               <Icon name="arrow-right" size="md" />
             </div>
           </div>
+          <div class="card-image articles-image"></div>
         </div>
 
         <!-- 画廊卡片 -->
         <div class="info-card gallery-card" @click="goToGallery">
-          <div class="card-background gallery-bg"></div>
-          <div class="card-overlay"></div>
           <div class="card-content-wrapper">
             <div class="card-icon">
               <Icon name="images" size="xl" />
             </div>
             <div class="card-content">
               <h5 class="card-title">画廊</h5>
-              <p class="card-stats">精美图片</p>
             </div>
             <div class="card-arrow">
               <Icon name="arrow-right" size="md" />
             </div>
           </div>
+          <div class="card-image gallery-image"></div>
         </div>
 
         <!-- 关于站长卡片 -->
         <div class="info-card host-card" @click="goToAbout">
-          <div class="card-background host-bg"></div>
-          <div class="card-overlay"></div>
           <div class="card-content-wrapper">
             <div class="card-icon">
-              <Icon name="person-circle" size="xl" />
+              <Icon name="book" size="xl" />
             </div>
             <div class="card-content">
-              <h5 class="card-title">关于站长</h5>
-              <p class="card-stats">了解更多</p>
+              <h5 class="card-title">教程</h5>
             </div>
             <div class="card-arrow">
               <Icon name="arrow-right" size="md" />
             </div>
           </div>
+          <div class="card-image host-image"></div>
         </div>
       </div>
     </div>
