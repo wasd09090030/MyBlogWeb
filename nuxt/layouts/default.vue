@@ -2,7 +2,11 @@
   <n-config-provider :theme="isDarkMode ? darkTheme : null" :theme-overrides="themeOverrides">
     <n-message-provider>
       <div id="app" :class="['min-vh-100', isDarkMode ? 'dark-theme' : 'light-theme']">
-        <SakuraFalling />
+        <!-- 根据主题切换动画效果 -->
+        <Teleport to="body">
+                  <SakuraFalling v-if="!isDarkMode" />
+        <StarryNight v-else />
+        </Teleport>
         <header class="app-navbar" :class="{ 'navbar-hidden': isNavbarHidden, 'navbar-scrolled': hasScrolled }">
           <div class="navbar-container">
             <NuxtLink to="/" class="navbar-brand">WyrmKk</NuxtLink>
@@ -112,6 +116,7 @@
 
 <script setup>
 import { darkTheme } from 'naive-ui'
+import SakuraFalling from '../components/SakuraFalling.vue'
 
 const route = useRoute()
 const router = useRouter()
