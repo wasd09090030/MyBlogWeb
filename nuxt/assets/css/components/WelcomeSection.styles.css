@@ -344,13 +344,23 @@
   right: 0;
   bottom: 0;
   background: radial-gradient(
-    ellipse 120% 150% at bottom right,
+    ellipse 100% 150% at bottom right,
     rgba(87, 2, 184, 0.354) 15%,
     rgb(128, 0, 255) 60%,
     transparent 90%
   );
   z-index: 1;
   pointer-events: none;
+  animation: breathe 4s ease-in-out infinite;
+}
+
+@keyframes breathe {
+  0%, 100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 
 /* 卡片背景图片 */
@@ -381,10 +391,10 @@
 /* 文章卡片右侧图片 */
 .articles-card .card-image {
   position: absolute;
-  top: 10%;
+  top: 0px;
   right: 30px;
-  width: 40%;
-  height: 90%;
+  width: 50%;
+  height: 100%;
   object-fit: contain; 
   background-size: contain;
   background-position: center;
@@ -455,13 +465,14 @@
   right: 0;
   bottom: 0;
   background: radial-gradient(
-    ellipse 120% 150% at bottom right,
+    ellipse 100% 150% at bottom right,
     rgba(0, 76, 209, 0.35) 15%,
     rgb(0, 98, 255) 60%,
     transparent 90%
   );
   z-index: 1;
   pointer-events: none;
+  animation: breathe 4s ease-in-out infinite 0.5s;
 }
 
 .gallery-card .card-content-wrapper {
@@ -481,9 +492,9 @@
 
 .gallery-card .card-image {
   position: absolute;
-  top: 10%;
-  right: 5px;
-  width: 75%;
+  top: 0px;
+  right: -10%;
+  width: 80%;
   height: 120%;
   object-fit: contain;
   background-size: contain;
@@ -509,13 +520,14 @@
   right: 0;
   bottom: 0;
   background: radial-gradient(
-    ellipse 120% 150% at bottom right,
+    ellipse 100% 150% at bottom right,
     rgba(0, 177, 50, 0.35) 15%,
     rgb(0, 193, 10) 60%,
     transparent 90%
   );
   z-index: 1;
   pointer-events: none;
+  animation: breathe 4s ease-in-out infinite 1s;
 }
 
 .host-card .card-content-wrapper {
@@ -535,10 +547,10 @@
 
 .host-card .card-image {
   position: absolute;
-  top: 5%;
-  right: 15px;
-  width: 60%;
-  height: 120%;
+  top: -10px;
+  right: 5px;
+  width: 75%;
+  height: 140%;
   object-fit: contain;
   background-size: contain;
   background-position: center;

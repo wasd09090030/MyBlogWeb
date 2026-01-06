@@ -148,7 +148,7 @@
   background: var(--bg-primary);
   border-radius: 12px;
   overflow: hidden;
-  margin-bottom: 2rem;
+  margin-bottom: 0.25rem;
   transition: all 0.3s ease;
   min-height: 300px;
   border: 1px solid var(--border-color);

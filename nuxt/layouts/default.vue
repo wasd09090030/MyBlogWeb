@@ -10,15 +10,12 @@
               <NuxtLink to="/" class="nav-link">
                 <Icon name="house" size="sm" class="me-1" />首页
               </NuxtLink>
-              <n-dropdown :options="categoryOptions" @select="handleCategorySelect">
-                <button type="button" class="nav-link nav-link-dropdown" aria-label="选择文章分类">
-                  分类 <Icon name="chevron-down" size="sm" class="ms-1" />
-                </button>
-              </n-dropdown>
               <NuxtLink to="/tutorials" class="nav-link">
                 <Icon name="book" size="sm" class="me-1" />教程
               </NuxtLink>
-              <NuxtLink to="/gallery" class="nav-link">画廊</NuxtLink>
+              <NuxtLink to="/about" class="nav-link">
+                <Icon name="person-circle" size="sm" class="me-1" />关于站长
+              </NuxtLink>
             </nav>
             <n-button 
               quaternary 
@@ -184,26 +181,14 @@ const mobileMenuOptions = computed(() => [
     icon: () => h(resolveComponent('Icon'), { name: 'house', size: 'sm' })
   },
   {
-    label: '分类',
-    key: 'category',
-    icon: () => h(resolveComponent('Icon'), { name: 'folder', size: 'sm' }),
-    children: [
-      { label: '全部', key: 'category-all' },
-      { label: '学习', key: 'category-study' },
-      { label: '游戏', key: 'category-game' },
-      { label: '个人作品', key: 'category-work' },
-      { label: '资源分享', key: 'category-resource' }
-    ]
-  },
-  {
     label: '教程',
     key: 'tutorials',
     icon: () => h(resolveComponent('Icon'), { name: 'book', size: 'sm' })
   },
   {
-    label: '画廊',
-    key: 'gallery',
-    icon: () => h(resolveComponent('Icon'), { name: 'images', size: 'sm' })
+    label: '关于站长',
+    key: 'about',
+    icon: () => h(resolveComponent('Icon'), { name: 'person-circle', size: 'sm' })
   }
 ])
 
@@ -219,17 +204,10 @@ const handleMobileMenuSelect = (key) => {
   showMobileMenu.value = false
   if (key === 'home') {
     router.push('/')
-  } else if (key === 'gallery') {
-    router.push('/gallery')
   } else if (key === 'tutorials') {
     router.push('/tutorials')
-  } else if (key.startsWith('category-')) {
-    const category = key.replace('category-', '')
-    if (category === 'all') {
-      router.push({ path: '/' })
-    } else {
-      router.push({ path: '/', query: { category } })
-    }
+  } else if (key === 'about') {
+    router.push('/about')
   }
 }
 

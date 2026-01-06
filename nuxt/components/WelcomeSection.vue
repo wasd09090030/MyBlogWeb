@@ -64,9 +64,6 @@
             <div class="card-content">
               <h5 class="card-title">文章</h5>
             </div>
-            <div class="card-arrow">
-              <Icon name="arrow-right" size="md" />
-            </div>
           </div>
           <div class="card-image articles-image"></div>
         </div>
@@ -80,9 +77,6 @@
             <div class="card-content">
               <h5 class="card-title">画廊</h5>
             </div>
-            <div class="card-arrow">
-              <Icon name="arrow-right" size="md" />
-            </div>
           </div>
           <div class="card-image gallery-image"></div>
         </div>
@@ -95,9 +89,6 @@
             </div>
             <div class="card-content">
               <h5 class="card-title">教程</h5>
-            </div>
-            <div class="card-arrow">
-              <Icon name="arrow-right" size="md" />
             </div>
           </div>
           <div class="card-image host-image"></div>

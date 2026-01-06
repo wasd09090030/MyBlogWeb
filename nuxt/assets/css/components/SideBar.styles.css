@@ -84,18 +84,26 @@
 }
 
 .category-label {
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   font-weight: 500;
   margin: 0;
-  color: var(--bs-body-color);
+  color: #6c757d;
   white-space: nowrap;
 }
 
 .category-count {
   align-self: flex-start;
-  font-weight: 600;
-  font-size: 0.9rem;
-  color: var(--bs-body-color);
+  font-weight: 700;
+  font-size: 1rem;
+  color: #000;
+}
+
+.dark-theme .category-label {
+  color: #9ca3af;
+}
+
+.dark-theme .category-count {
+  color: #fff;
 }
 
 /* 月度归档 */
@@ -142,8 +150,9 @@
 
 .archive-month {
   margin: 0;
-  font-weight: 600;
-  color: #495057;
+  font-weight: 500;
+  font-size: 0.85rem;
+  color: #6c757d;
 }
 
 .archive-subtitle {
@@ -153,8 +162,17 @@
 }
 
 .archive-count {
-  font-weight: 600;
-  color: #0056b3;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: #000;
+}
+
+.dark-theme .archive-month {
+  color: #9ca3af;
+}
+
+.dark-theme .archive-count {
+  color: #fff;
 }
 
 /* 移动端浮动按钮和侧边栏 */
