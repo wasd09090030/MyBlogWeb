@@ -195,8 +195,6 @@ export default defineNuxtConfig({
 
   // 路由配置优化
   routeRules: {
-    // 首页使用SSR（不预渲染）
-    '/': { ssr: true },
     // 静态资源使用强缓存
     '/icon/**': { headers: { 'cache-control': 'public, max-age=31536000, immutable' } },
     '/Picture/**': { headers: { 'cache-control': 'public, max-age=31536000, immutable' } },

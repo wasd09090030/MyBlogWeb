@@ -19,7 +19,9 @@ export const useTheme = () => {
   // 应用主题
   const applyTheme = () => {
     if (process.client) {
-      // 使用自定义类名替代 Bootstrap 的 data-bs-theme
+      // Tailwind 暗色模式需要 'dark' 类
+      document.documentElement.classList.toggle('dark', isDarkMode.value)
+      // 兼容旧的自定义类名
       document.documentElement.classList.toggle('dark-theme', isDarkMode.value)
       document.documentElement.classList.toggle('light-theme', !isDarkMode.value)
     }

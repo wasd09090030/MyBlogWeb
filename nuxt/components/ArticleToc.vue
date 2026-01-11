@@ -2,17 +2,17 @@
   <div v-if="headings.length > 0" class="h-full flex flex-col">
     <!-- 头部 -->
     <div 
-      class="flex items-center justify-between px-3 py-3 border-b border-gray-200 dark:border-gray-700 cursor-pointer"
+      class="flex items-center justify-between px-3 py-3 border-b border-gray-200 dark:border-gray-600 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
       @click="toggleCollapse"
     >
-      <h6 class="flex items-center gap-2 text-sm font-semibold m-0 text-gray-700 dark:text-gray-300">
-        <Icon name="list-ul" size="sm" class="text-pink-500" />
+      <h6 class="flex items-center gap-2 text-sm font-semibold m-0 text-gray-800 dark:text-gray-100">
+        <Icon name="list-ul" size="sm" class="text-pink-500 dark:text-pink-400" />
         文章目录
       </h6>
       <Icon 
         :name="isCollapsed ? 'chevron-down' : 'chevron-up'" 
         size="sm"
-        class="text-gray-400 transition-transform duration-200"
+        class="text-gray-500 dark:text-gray-400 transition-transform duration-200"
       />
     </div>
 
@@ -34,14 +34,14 @@
               class="flex items-center gap-2 px-3 py-2 text-sm rounded-lg transition-all duration-200"
               :class="[
                 activeHeading === heading.id 
-                  ? 'bg-pink-50 dark:bg-pink-900/20 text-pink-600 dark:text-pink-400 font-medium' 
-                  : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700/50 hover:text-pink-500'
+                  ? 'bg-pink-100 dark:bg-pink-500/20 text-pink-600 dark:text-pink-300 font-medium shadow-sm dark:shadow-pink-500/10' 
+                  : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-pink-600 dark:hover:text-pink-400'
               ]"
               @click.prevent="scrollToHeading(heading.id)"
             >
               <span 
                 class="w-1.5 h-1.5 rounded-full flex-shrink-0 transition-all duration-200"
-                :class="activeHeading === heading.id ? 'bg-pink-500 scale-125' : 'bg-gray-300 dark:bg-gray-600'"
+                :class="activeHeading === heading.id ? 'bg-pink-500 dark:bg-pink-400 scale-125' : 'bg-gray-400 dark:bg-gray-500'"
               />
               <span class="truncate">{{ heading.text }}</span>
             </a>
@@ -50,17 +50,17 @@
       </nav>
 
       <!-- 阅读进度 -->
-      <div class="px-3 py-3 border-t border-gray-200 dark:border-gray-700">
-        <div class="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mb-2">
+      <div class="px-3 py-3 border-t border-gray-200 dark:border-gray-600 bg-gray-50/50 dark:bg-gray-900/30">
+        <div class="flex items-center justify-between text-xs text-gray-600 dark:text-gray-300 mb-2">
           <span class="flex items-center gap-1">
-            <Icon name="book" size="sm" />
+            <Icon name="book" size="sm" class="text-gray-500 dark:text-gray-400" />
             阅读进度
           </span>
-          <span class="font-medium text-pink-500">{{ Math.round(progress) }}%</span>
+          <span class="font-semibold text-pink-600 dark:text-pink-400">{{ Math.round(progress) }}%</span>
         </div>
-        <div class="h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+        <div class="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden shadow-inner">
           <div 
-            class="h-full bg-gradient-to-r from-pink-500 to-rose-500 rounded-full transition-all duration-300"
+            class="h-full bg-gradient-to-r from-pink-500 to-rose-500 dark:from-pink-400 dark:to-rose-400 rounded-full transition-all duration-300"
             :style="{ width: `${progress}%` }"
           />
         </div>
@@ -186,20 +186,21 @@ onUnmounted(() => {
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: #d1d5db;
   border-radius: 2px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: #9ca3af;
 }
 
-.dark .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #475569;
+/* 暗色模式滚动条 - 使用 :global 确保匹配根元素的 dark 类 */
+:global(.dark) .custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #4b5563;
 }
 
-.dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #64748b;
+:global(.dark) .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #6b7280;
 }
 </style>
 
