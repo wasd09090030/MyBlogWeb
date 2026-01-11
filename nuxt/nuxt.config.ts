@@ -2,28 +2,100 @@ export default defineNuxtConfig({
   compatibilityDate: '2025-11-09',
   devtools: { enabled: true },
 
-  // CSS配置
+  // CSS配置 - 使用 Tailwind Typography
   css: [
-    '~/assets/css/theme-variables.css', // 主题变量系统 - 必须首先加载
-    'github-markdown-css/github-markdown.css',
-    'highlight.js/styles/github.css',
-    'katex/dist/katex.min.css',
+      '~/assets/css/theme-variables.css', 
+    '~/assets/css/tailwind.css', // Tailwind CSS 入口文件
+    'katex/dist/katex.min.css', // KaTeX 数学公式样式
     'swiper/css',
     'swiper/css/navigation',
     'swiper/css/pagination',
     'swiper/css/effect-coverflow',
     'swiper/css/effect-cube',
+    '~/assets/css/components/prose-custom.css', // 自定义 prose 样式
     '~/assets/css/layout.css', // 自定义布局工具类
     '~/assets/css/style.css',
-    '~/assets/css/app.css'
+    '~/assets/css/app.css',
   ],
 
   // 模块配置
   modules: [
     '@pinia/nuxt',
     'motion-v/nuxt',
-    '@bg-dev/nuxt-naiveui' // Naive UI 模块
+    '@bg-dev/nuxt-naiveui', // Naive UI 模块
+    '@nuxtjs/mdc' // MDC Markdown 渲染模块
   ],
+
+  // MDC 模块配置
+  mdc: {
+    highlight: {
+      theme: {
+        default: 'github-light',
+        dark: 'github-dark'
+      },
+      langs: [
+        'javascript',
+        'typescript',
+        'vue',
+        'vue-html',
+        'html',
+        'css',
+        'scss',
+        'json',
+        'yaml',
+        'markdown',
+        'bash',
+        'shell',
+        'python',
+        'java',
+        'csharp',
+        'cpp',
+        'c',
+        'sql',
+        'dockerfile',
+        'nginx',
+        'xml',
+        'diff',
+        'dart',
+        'rust',
+        'go'
+      ]
+    },
+    // 数学公式支持
+    remarkPlugins: {
+      'remark-math': {
+        src: 'remark-math',
+        options: {
+          singleDollarTextMath: true
+        }
+      }
+    },
+    rehypePlugins: {
+      'rehype-katex': {
+        src: 'rehype-katex',
+        options: {}
+      }
+    },
+    // 标题锚点链接
+    headings: {
+      anchorLinks: {
+        h1: false,
+        h2: true,
+        h3: true,
+        h4: true,
+        h5: false,
+        h6: false
+      }
+    }
+  },
+
+  // PostCSS 配置
+  postcss: {
+    plugins: {
+      tailwindcss: {},
+      autoprefixer: {}
+    }
+  },
 
   // Naive UI 配置
   naiveui: {

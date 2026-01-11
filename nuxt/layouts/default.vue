@@ -258,13 +258,6 @@ onUnmounted(() => {
   transform: translateY(-100%);
 }
 
-.app-navbar.navbar-scrolled {
-  /* box-shadow removed */
-}
-
-.dark-theme .app-navbar.navbar-scrolled {
-  /* box-shadow removed */
-}
 .dark-theme .app-navbar {
   background: var(--navbar-bg-dark, rgba(30, 30, 30, 0.95));
   border-bottom-color: var(--border-color-dark, #333);
