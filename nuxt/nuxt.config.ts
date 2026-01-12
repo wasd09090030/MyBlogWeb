@@ -30,8 +30,8 @@ export default defineNuxtConfig({
   mdc: {
     highlight: {
       theme: {
-        default: 'github-light',
-        dark: 'github-dark'
+        default: 'vitesse-light',
+        dark: 'vitesse-dark'
       },
       langs: [
         'javascript',
@@ -58,7 +58,8 @@ export default defineNuxtConfig({
         'diff',
         'dart',
         'rust',
-        'go'
+        'go',
+        'mermaid'
       ]
     },
     // 数学公式支持

@@ -1,9 +1,4 @@
-/**
- * 布局工具�?- 替代 Bootstrap 布局系统
- * 保持与原有类名兼容，便于渐进式迁�?
- */
 
-/* ==================== 容器 ==================== */
 .container {
   width: 100%;
   max-width: 1200px;
@@ -274,23 +269,20 @@
 .gap-3 { gap: 1rem !important; }
 .gap-4 { gap: 1.5rem !important; }
 
-/* ==================== 溢出 ==================== */
+
 .overflow-hidden { overflow: hidden !important; }
 .overflow-auto { overflow: auto !important; }
 .overflow-visible { overflow: visible !important; }
 
-/* ==================== 可见�?==================== */
 .visible { visibility: visible !important; }
 .invisible { visibility: hidden !important; }
 
-/* ==================== 背景 ==================== */
 .bg-transparent { background-color: transparent !important; }
 .bg-white { background-color: #fff; }
 .bg-light { background-color: var(--bg-light, #f8f9fa) !important; }
 .bg-dark { background-color: var(--bg-dark, #212529) !important; }
 .bg-primary { background-color: var(--primary-color, #0d6efd) !important; }
 
-/* ==================== 卡片基础样式 ==================== */
 .card {
   position: relative;
   display: flex;
