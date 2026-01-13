@@ -30,9 +30,10 @@ export default defineNuxtConfig({
   mdc: {
     highlight: {
       theme: {
-        default: 'vitesse-light',
-        dark: 'vitesse-dark'
+        default: 'material-theme-lighter',
+        dark: 'material-theme-darker'
       },
+      lines: true,
       langs: [
         'javascript',
         'typescript',
@@ -124,7 +125,10 @@ export default defineNuxtConfig({
         '@heroicons/vue/24/solid',
         'katex',
         'motion-v',
-        '@vueuse/core'
+        '@vueuse/core',
+        'mermaid',
+        'remark-math',
+        'rehype-katex'
       ]
     },
     define: {

@@ -3,7 +3,7 @@
     <!-- 左侧：文章主体 -->
     <div class="flex-1 bg-gray-50 dark:bg-gray-900">
       <!-- 加载状态 -->
-      <div v-if="loading" class="flex flex-col items-center justify-center py-20">
+      <div v-if="loading" class="flex flex-col items-center justify-center min-h-[60vh]">
         <n-spin size="large" />
         <p class="mt-4 text-gray-500 dark:text-gray-400">加载中...</p>
       </div>
@@ -15,8 +15,11 @@
 
       <!-- 文章内容 -->
       <article v-else-if="article" class="relative">
-        <!-- 封面图片 -->
-        <div v-if="article.coverImage && article.coverImage !== 'null'" class="w-full h-64 md:h-96 overflow-hidden">
+        <!-- 封面图片 - 全宽无间距 -->
+        <div 
+          v-if="article.coverImage && article.coverImage !== 'null'" 
+          class="w-full h-64 md:h-80 lg:h-96 overflow-hidden"
+        >
           <img
             :src="article.coverImage"
             :alt="article.title"
@@ -24,7 +27,8 @@
           />
         </div>
 
-        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- 文章主体内容 -->
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-10">
           <!-- 文章头部 -->
           <header class="mb-8">
             <h1 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
@@ -58,7 +62,7 @@
             </div>
 
             <!-- 返回按钮 -->
-            <n-button @click="goBack" quaternary>
+            <n-button @click="goBack" quaternary strong secondary type="success">
               <template #icon>
                 <Icon name="arrow-left" size="sm" />
               </template>
@@ -72,17 +76,18 @@
               :markdown="article.contentMarkdown"
               :html="article.content"
               size="lg"
+              @toc-ready="onTocReady"
             />
           </div>
 
-          <!-- 评论区 -->
-          <div class="mt-12 pt-8 border-t border-gray-200 dark:border-gray-700">
+          <!-- 评论区 - 无缝衔接 -->
+          <section class="mt-12 pt-8 border-t border-gray-200 dark:border-gray-700">
             <CommentSection :article-id="article.id" />
-          </div>
+          </section>
 
           <!-- 底部返回按钮 -->
-          <div class="mt-8 text-center">
-            <n-button @click="goBack" type="primary" size="large">
+          <div class="mt-10 mb-4 text-center">
+            <n-button @click="goBack" type="primary" size="large" round>
               <template #icon>
                 <Icon name="arrow-left" size="md" />
               </template>
@@ -105,11 +110,28 @@
 
     <!-- 右侧：文章目录侧边栏 -->
     <aside 
-      v-if="article && headings.length > 0" 
+      v-if="article" 
       class="hidden lg:block w-72 flex-shrink-0 bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700"
     >
       <div class="sticky top-16 p-4 h-[calc(100vh-4rem)] overflow-y-auto">
-        <ArticleToc :headings="headings" />
+        <!-- 目录加载中骨架屏 -->
+        <div v-if="headings.length === 0 && loading" class="animate-pulse space-y-3">
+          <div class="h-10 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
+          <div class="space-y-2 px-2">
+            <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-4/5"></div>
+            <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/5 ml-4"></div>
+            <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-4/5"></div>
+            <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-2/3 ml-4"></div>
+            <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
+          </div>
+        </div>
+        <!-- 实际目录 -->
+        <ArticleToc v-else-if="headings.length > 0" :headings="headings" />
+        <!-- 无目录提示 -->
+        <div v-else class="text-center text-gray-400 dark:text-gray-500 text-sm py-8">
+          <Icon name="list-ul" size="lg" class="mb-2 opacity-50" />
+          <p>暂无目录</p>
+        </div>
       </div>
     </aside>
   </div>
@@ -194,32 +216,55 @@ function startTyping(text) {
   }, 30)
 }
 
-// 从渲染后的内容中提取标题
-function extractHeadings() {
+// 从渲染后的内容中提取标题 - 仅用于 HTML 回退模式
+function extractHeadingsFromDOM() {
   nextTick(() => {
-    setTimeout(() => {
-      const container = document.querySelector('.article-content')
-      if (!container) return
+    // 如果已经从 AST 获取了目录，跳过 DOM 提取
+    if (headings.value.length > 0) return
+    
+    const container = document.querySelector('.article-content')
+    if (!container) return
+    
+    const elements = container.querySelectorAll('h1, h2, h3, h4, h5, h6')
+    const extracted = []
+    
+    elements.forEach((el, index) => {
+      const level = parseInt(el.tagName[1])
+      const text = el.textContent?.trim() || ''
+      const id = el.id || `heading-${index}`
       
-      const elements = container.querySelectorAll('h1, h2, h3, h4, h5, h6')
-      const extracted = []
+      // 确保每个标题都有 ID
+      if (!el.id) {
+        el.id = id
+      }
       
-      elements.forEach((el, index) => {
-        const level = parseInt(el.tagName[1])
-        const text = el.textContent?.trim() || ''
-        const id = el.id || `heading-${index}`
-        
-        // 确保每个标题都有 ID
-        if (!el.id) {
-          el.id = id
-        }
-        
-        extracted.push({ id, text, level })
-      })
-      
-      headings.value = extracted
-    }, 500) // 等待 MDC 渲染完成
+      extracted.push({ id, text, level })
+    })
+    
+    headings.value = extracted
   })
+}
+
+// 从 MarkdownRenderer 接收 TOC 数据（来自 AST，更快）
+function onTocReady(toc) {
+  if (toc?.links?.length > 0) {
+    // 将 MDC 的 toc 格式转换为我们的格式
+    const convertLinks = (links, level = 2) => {
+      const result = []
+      for (const link of links) {
+        result.push({
+          id: link.id,
+          text: link.text,
+          level
+        })
+        if (link.children?.length > 0) {
+          result.push(...convertLinks(link.children, level + 1))
+        }
+      }
+      return result
+    }
+    headings.value = convertLinks(toc.links)
+  }
 }
 
 // 获取文章
@@ -242,8 +287,11 @@ async function fetchArticle() {
       if (article.value?.aiSummary) {
         startTyping(article.value.aiSummary)
       }
-      // 提取标题用于目录
-      extractHeadings()
+      // 仅当使用 HTML 回退时从 DOM 提取标题
+      // Markdown 渲染会通过 @toc-ready 事件提供目录
+      if (!article.value?.contentMarkdown) {
+        extractHeadingsFromDOM()
+      }
     })
   } catch (e) {
     error.value = e

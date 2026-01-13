@@ -29,22 +29,28 @@
             :key="heading.id"
             :class="getTocItemClass(heading.level)"
           >
-            <a 
-              :href="`#${heading.id}`"
-              class="flex items-center gap-2 px-3 py-2 text-sm rounded-lg transition-all duration-200"
-              :class="[
-                activeHeading === heading.id 
-                  ? 'bg-pink-100 dark:bg-pink-500/20 text-pink-600 dark:text-pink-300 font-medium shadow-sm dark:shadow-pink-500/10' 
-                  : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-pink-600 dark:hover:text-pink-400'
-              ]"
-              @click.prevent="scrollToHeading(heading.id)"
-            >
-              <span 
-                class="w-1.5 h-1.5 rounded-full flex-shrink-0 transition-all duration-200"
-                :class="activeHeading === heading.id ? 'bg-pink-500 dark:bg-pink-400 scale-125' : 'bg-gray-400 dark:bg-gray-500'"
-              />
-              <span class="truncate">{{ heading.text }}</span>
-            </a>
+            <n-tooltip placement="left" :delay="300" :disabled="!isTextTruncated(heading.id)">
+              <template #trigger>
+                <a 
+                  :ref="el => setItemRef(heading.id, el)"
+                  :href="`#${heading.id}`"
+                  class="flex items-center gap-2 px-3 py-2 text-sm rounded-lg transition-all duration-200"
+                  :class="[
+                    activeHeading === heading.id 
+                      ? 'bg-pink-100 dark:bg-pink-500/20 text-pink-600 dark:text-pink-300 font-medium shadow-sm dark:shadow-pink-500/10' 
+                      : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-pink-600 dark:hover:text-pink-400'
+                  ]"
+                  @click.prevent="scrollToHeading(heading.id)"
+                >
+                  <span 
+                    class="w-1.5 h-1.5 rounded-full flex-shrink-0 transition-all duration-200"
+                    :class="activeHeading === heading.id ? 'bg-pink-500 dark:bg-pink-400 scale-125' : 'bg-gray-400 dark:bg-gray-500'"
+                  />
+                  <span class="truncate">{{ heading.text }}</span>
+                </a>
+              </template>
+              {{ heading.text }}
+            </n-tooltip>
           </li>
         </ul>
       </nav>
@@ -80,6 +86,23 @@ const props = defineProps({
 const isCollapsed = ref(false)
 const activeHeading = ref('')
 const progress = ref(0)
+const itemRefs = ref({})
+
+// 设置目录项引用
+function setItemRef(id, el) {
+  if (el) {
+    itemRefs.value[id] = el
+  }
+}
+
+// 检测文本是否被截断
+function isTextTruncated(id) {
+  const el = itemRefs.value[id]
+  if (!el) return false
+  const textSpan = el.querySelector('.truncate')
+  if (!textSpan) return false
+  return textSpan.scrollWidth > textSpan.clientWidth
+}
 
 // 切换折叠
 function toggleCollapse() {

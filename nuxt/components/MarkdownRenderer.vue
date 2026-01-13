@@ -1,9 +1,30 @@
 <template>
   <div class="markdown-renderer" ref="containerRef">
-    <!-- 加载状态 -->
-    <div v-if="loading" class="flex items-center justify-center gap-3 py-8 text-gray-500">
-      <n-spin size="medium" />
-      <span>渲染内容中...</span>
+    <!-- 骨架屏加载状态 -->
+    <div v-if="loading" class="animate-pulse space-y-4">
+      <!-- 模拟标题 -->
+      <div class="h-8 bg-gray-200 dark:bg-gray-700 rounded-lg w-3/4"></div>
+      <!-- 模拟段落 -->
+      <div class="space-y-2">
+        <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full"></div>
+        <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-5/6"></div>
+        <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-4/6"></div>
+      </div>
+      <!-- 模拟代码块 -->
+      <div class="h-32 bg-gray-200 dark:bg-gray-700 rounded-xl"></div>
+      <!-- 模拟段落 -->
+      <div class="space-y-2">
+        <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full"></div>
+        <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
+      </div>
+      <!-- 模拟小标题 -->
+      <div class="h-6 bg-gray-200 dark:bg-gray-700 rounded-lg w-1/2 mt-6"></div>
+      <!-- 模拟列表 -->
+      <div class="space-y-2 pl-4">
+        <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-2/3"></div>
+        <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+        <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/5"></div>
+      </div>
     </div>
 
     <!-- 渲染错误 -->
@@ -65,6 +86,10 @@ const loading = ref(false)
 const error = ref(null)
 const containerRef = ref(null)
 
+// Mermaid 实例缓存
+let mermaidInstance = null
+let mermaidLoading = false
+
 const htmlContent = computed(() => {
   if (!props.markdown && props.html) {
     return props.html
@@ -83,17 +108,54 @@ const proseClasses = computed(() => {
   ].filter(Boolean).join(' ')
 })
 
+// 预加载 Mermaid 库（检测到 mermaid 代码块时提前加载）
+async function preloadMermaid() {
+  if (mermaidInstance || mermaidLoading || !process.client) return
+  
+  // 检查 markdown 中是否包含 mermaid
+  if (props.markdown?.includes('```mermaid')) {
+    mermaidLoading = true
+    try {
+      mermaidInstance = (await import('mermaid')).default
+    } catch (e) {
+      console.error('Mermaid 预加载失败:', e)
+    }
+    mermaidLoading = false
+  }
+}
+
 // 渲染 Mermaid 图表
 async function renderMermaidDiagrams() {
   if (!process.client || !containerRef.value) return
   
-  // 找到所有 mermaid 代码块
-  const mermaidBlocks = containerRef.value.querySelectorAll('pre code.language-mermaid, pre.language-mermaid code')
+  // 获取所有 pre 元素，检查其内容是否是 mermaid 图表
+  const allPreElements = containerRef.value.querySelectorAll('pre')
+  const mermaidBlocks = []
+  
+  // Mermaid 图表类型的正则（必须在开头）
+  const mermaidPattern = /^(graph|flowchart|sequenceDiagram|classDiagram|stateDiagram|stateDiagram-v2|erDiagram|journey|gantt|pie|gitGraph|mindmap|timeline|quadrantChart|requirementDiagram|C4Context|C4Container|C4Component|C4Dynamic|C4Deployment|sankey-beta|xychart-beta|block-beta)\b/i
+  
+  allPreElements.forEach(pre => {
+    // 跳过已渲染的
+    if (pre.dataset.mermaidRendered === 'true') return
+    
+    // 获取代码内容
+    const codeEl = pre.querySelector('code')
+    const textContent = (codeEl?.textContent || pre.textContent || '').trim()
+    
+    // 检查是否是 mermaid 语法
+    if (mermaidPattern.test(textContent)) {
+      mermaidBlocks.push({ pre, code: textContent })
+    }
+  })
+  
+  console.log('[Mermaid] 找到的图表数量:', mermaidBlocks.length)
   if (mermaidBlocks.length === 0) return
   
   try {
-    // 动态导入 mermaid
-    const mermaid = (await import('mermaid')).default
+    // 使用缓存的实例或动态导入
+    const mermaid = mermaidInstance || (await import('mermaid')).default
+    mermaidInstance = mermaid
     
     // 检测暗色模式
     const isDark = document.documentElement.classList.contains('dark')
@@ -190,12 +252,10 @@ async function renderMermaidDiagrams() {
     
     // 渲染每个 mermaid 代码块
     for (let i = 0; i < mermaidBlocks.length; i++) {
-      const codeBlock = mermaidBlocks[i]
-      const preElement = codeBlock.closest('pre')
-      if (!preElement) continue
+      const { pre: preElement, code } = mermaidBlocks[i]
+      if (!preElement || !code) continue
       
-      const code = codeBlock.textContent?.trim()
-      if (!code) continue
+      console.log('[Mermaid] 渲染图表 #' + i + ':', code.substring(0, 50) + '...')
       
       try {
         const diagramId = `mermaid-diagram-${Date.now()}-${i}`
@@ -209,6 +269,8 @@ async function renderMermaidDiagrams() {
         preElement.replaceWith(container)
       } catch (err) {
         console.error('Mermaid 渲染失败:', err)
+        // 标记为已处理（避免重复尝试）
+        preElement.dataset.mermaidRendered = 'true'
         // 显示错误信息
         const errorContainer = document.createElement('div')
         errorContainer.className = 'mermaid-error my-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl'
@@ -235,12 +297,15 @@ const parseContent = async () => {
 
   loading.value = true
   error.value = null
+  
+  // 并行：预加载 Mermaid（如果需要）
+  preloadMermaid()
 
   try {
     const result = await parseMarkdown(props.markdown)
     ast.value = result
     
-    // 向父组件发送 TOC 数据
+    // 立即向父组件发送 TOC 数据（不等待 DOM）
     if (result.toc) {
       emit('toc-ready', result.toc)
     }
