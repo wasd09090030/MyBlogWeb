@@ -124,9 +124,9 @@ async function preloadMermaid() {
   }
 }
 
-// 渲染 Mermaid 图表
+// 渲染 Mermaid 图表，返回找到的图表数量
 async function renderMermaidDiagrams() {
-  if (!process.client || !containerRef.value) return
+  if (!process.client || !containerRef.value) return 0
   
   // 获取所有 pre 元素，检查其内容是否是 mermaid 图表
   const allPreElements = containerRef.value.querySelectorAll('pre')
@@ -150,7 +150,7 @@ async function renderMermaidDiagrams() {
   })
   
   console.log('[Mermaid] 找到的图表数量:', mermaidBlocks.length)
-  if (mermaidBlocks.length === 0) return
+  if (mermaidBlocks.length === 0) return 0
   
   try {
     // 使用缓存的实例或动态导入
@@ -284,8 +284,10 @@ async function renderMermaidDiagrams() {
         preElement.replaceWith(errorContainer)
       }
     }
+    return mermaidBlocks.length
   } catch (err) {
     console.error('加载 Mermaid 库失败:', err)
+    return 0
   }
 }
 
@@ -310,9 +312,9 @@ const parseContent = async () => {
       emit('toc-ready', result.toc)
     }
     
-    // 等待 DOM 更新后渲染 Mermaid
+    // 等待 DOM 更新后渲染 Mermaid（带重试机制）
     nextTick(() => {
-      setTimeout(renderMermaidDiagrams, 100)
+      tryRenderMermaid()
     })
   } catch (e) {
     console.error('Markdown 解析失败:', e)
@@ -323,10 +325,32 @@ const parseContent = async () => {
   }
 }
 
+// Mermaid 渲染重试机制
+let mermaidRetryCount = 0
+const MAX_MERMAID_RETRIES = 5
+const MERMAID_RETRY_DELAY = 200
+
+async function tryRenderMermaid() {
+  // 检查是否有 mermaid 内容需要渲染
+  if (!props.markdown?.includes('```mermaid')) return
+  
+  const result = await renderMermaidDiagrams()
+  
+  // 如果没找到图表且还有重试次数，继续尝试
+  if (result === 0 && mermaidRetryCount < MAX_MERMAID_RETRIES) {
+    mermaidRetryCount++
+    console.log(`[Mermaid] 未找到图表，${MERMAID_RETRY_DELAY}ms 后重试 (${mermaidRetryCount}/${MAX_MERMAID_RETRIES})`)
+    setTimeout(tryRenderMermaid, MERMAID_RETRY_DELAY)
+  } else {
+    mermaidRetryCount = 0 // 重置计数
+  }
+}
+
 // 监听主题变化重新渲染 Mermaid
 let themeObserver = null
 
 watch(() => props.markdown, () => {
+  mermaidRetryCount = 0 // 重置重试计数
   parseContent()
 }, { immediate: true })
 
