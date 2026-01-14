@@ -16,10 +16,7 @@
     "@tailwindcss/typography": "^0.5.19",
     "@vueuse/core": "^14.1.0",
     "autoprefixer": "^10.4.23",
-    "github-markdown-css": "^5.8.1",
-    "highlight.js": "^11.11.1",
     "katex": "^0.16.25",
-    "markdown-it": "^14.1.0",
     "mermaid": "^11.12.2",
     "motion-v": "^1.7.4",
     "naive-ui": "^2.43.2",
@@ -29,13 +26,11 @@
     "rehype-katex": "^7.0.1",
     "remark-math": "^6.0.0",
     "swiper": "^11.2.10",
-    "unist-util-visit": "^5.0.0",
     "vue": "^3.4.21"
   },
   "devDependencies": {
     "@bg-dev/nuxt-naiveui": "^2.0.0",
     "@nuxt/devtools": "latest",
-    "nuxt-purgecss": "^2.0.0",
     "sass": "^1.75.0",
     "tailwindcss": "^3.4.19"
   }

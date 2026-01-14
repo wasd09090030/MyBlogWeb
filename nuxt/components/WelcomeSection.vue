@@ -58,40 +58,64 @@
         <!-- 文章卡片 -->
         <div class="info-card articles-card" @click="goToArticles">
           <div class="card-content-wrapper">
-            <div class="card-icon">
-              <Icon name="file-text" size="xl" />
+            <div class="card-header">
+              <div class="card-icon">
+                <Icon name="file-text" size="lg" />
+              </div>
             </div>
-            <div class="card-content">
-              <h5 class="card-title">文章</h5>
+            <div class="card-text-group">
+              <div class="card-title-row">
+                <h5 class="card-title">文章</h5>
+                <span class="card-chip">最新</span>
+              </div>
+              <div class="card-footer">
+                <span class="card-cta">进入</span>
+                <span class="card-wave"></span>
+              </div>
             </div>
           </div>
-          <div class="card-image articles-image"></div>
         </div>
 
         <!-- 画廊卡片 -->
         <div class="info-card gallery-card" @click="goToGallery">
           <div class="card-content-wrapper">
-            <div class="card-icon">
-              <Icon name="images" size="xl" />
+            <div class="card-header">
+              <div class="card-icon">
+                <Icon name="images" size="lg" />
+              </div>
             </div>
-            <div class="card-content">
-              <h5 class="card-title">画廊</h5>
+            <div class="card-text-group">
+              <div class="card-title-row">
+                <h5 class="card-title">画廊</h5>
+                <span class="card-chip">灵感</span>
+              </div>
+              <div class="card-footer">
+                <span class="card-cta">进入</span>
+                <span class="card-wave"></span>
+              </div>
             </div>
           </div>
-          <div class="card-image gallery-image"></div>
         </div>
 
-        <!-- 关于站长卡片 -->
-        <div class="info-card host-card" @click="goToAbout">
+        <!-- 教程卡片 -->
+        <div class="info-card host-card" @click="goToTutorials">
           <div class="card-content-wrapper">
-            <div class="card-icon">
-              <Icon name="book" size="xl" />
+            <div class="card-header">
+              <div class="card-icon">
+                <Icon name="book" size="lg" />
+              </div>
             </div>
-            <div class="card-content">
-              <h5 class="card-title">教程</h5>
+            <div class="card-text-group">
+              <div class="card-title-row">
+                <h5 class="card-title">教程</h5>
+                <span class="card-chip">进阶</span>
+              </div>
+              <div class="card-footer">
+                <span class="card-cta">进入</span>
+                <span class="card-wave"></span>
+              </div>
             </div>
           </div>
-          <div class="card-image host-image"></div>
         </div>
       </div>
     </div>
@@ -138,6 +162,7 @@
       </button>
     </div>
   </div>
+
 </template>
 
 <script setup>
@@ -311,8 +336,8 @@ const goToGallery = () => {
   router.push('/gallery')
 }
 
-const goToAbout = () => {
-  router.push('/about')
+const goToTutorials = () => {
+  router.push('/tutorials')
 }
 
 // 悬浮按钮相关方法

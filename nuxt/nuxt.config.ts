@@ -116,8 +116,6 @@ export default defineNuxtConfig({
     optimizeDeps: {
       include: [
         'vue',
-        'highlight.js',
-        'markdown-it',
         'swiper',
         'swiper/bundle',
         'naive-ui',
