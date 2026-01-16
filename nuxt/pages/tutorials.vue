@@ -12,26 +12,21 @@
 
     <div
       v-else-if="paginatedArticles.length"
-      class="tutorials-list"
+      class="tutorials-content"
     >
       <div class="page-header">
         <h3 class="page-title">教程专栏</h3>
-        <p class="page-description">技多不压身</p>
+        <p class="page-description">循序渐进，系统化掌握核心技术</p>
       </div>
-      <div
-        v-for="(article, index) in paginatedArticles"
-        :key="article.id"
-        class="tutorial-item"
-      >
-        <!-- 序号 -->
-        <div class="tutorial-number">
-          <span class="number-text">{{ String(currentIndex + index + 1).padStart(2, '0') }}</span>
-        </div>
-
-        <!-- 卡片内容 -->
-        <div class="tutorial-card">
-          <!-- 左侧图片 -->
-          <div class="tutorial-image">
+      
+      <div class="tutorials-grid">
+        <NuxtLink
+          v-for="(article, index) in paginatedArticles"
+          :key="article.id"
+          :to="`/article/${article.id}`"
+          class="tutorial-card"
+        >
+          <div class="card-image">
             <img
               v-if="article.coverImage && article.coverImage !== 'null'"
               :src="article.coverImage"
@@ -40,24 +35,28 @@
               @error="handleImageError"
             />
             <div v-else class="image-placeholder">
-              <Icon name="image" size="2xl" class="text-muted" />
+              <Icon name="image" size="3xl" class="text-muted" />
+            </div>
+            
+            <!-- 序号角标 -->
+            <div class="card-index">
+              {{ String(currentIndex + index + 1).padStart(2, '0') }}
             </div>
           </div>
 
-          <!-- 右侧内容 -->
-          <div class="tutorial-content">
-            <div class="tutorial-header">
-              <NuxtLink :to="`/article/${article.id}`" class="tutorial-title-link">
-                <h3 class="tutorial-title">{{ article.title }}</h3>
-              </NuxtLink>
-              <span class="tutorial-date">{{ formatDate(article.createdAt) }}</span>
+          <div class="card-body">
+            <h3 class="card-title" :title="article.title">{{ article.title }}</h3>
+            <div class="card-meta">
+              <Icon name="calendar3" size="xs" class="me-1" />
+              {{ formatDate(article.createdAt) }}
             </div>
-
-            <div class="tutorial-summary">
-              {{ getExcerpt(article.content) }}
+            <p class="card-summary">{{ getExcerpt(article.content) }}</p>
+            
+            <div class="card-footer">
+              <span class="read-more">阅读全文 <Icon name="arrow-right" size="xs" /></span>
             </div>
           </div>
-        </div>
+        </NuxtLink>
       </div>
     </div>
 
@@ -277,290 +276,253 @@ defineExpose({
 }
 
 .page-description {
-  font-size: 1rem;
-  color: var(--text-muted, #6c757d);
-  margin: 0;
+  font-size: 1.1rem;
+  color: var(--text-secondary, #5a6c7d);
+  max-width: 600px;
+  margin: 0 auto;
 }
 
-.tutorials-list {
-  display: flex;
-  flex-direction: column;
+.tutorials-content {
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  padding: 2.5rem;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+.tutorials-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
   gap: 2rem;
-  background: rgba(255, 255, 255, 0.8);
-  border-radius: 15px;
-  padding: 2rem;
-}
-
-.tutorial-item {
-  display: flex;
-  flex-direction: row-reverse;
-  gap: 1.5rem;
-  align-items: stretch;
-}
-
-.tutorial-number {
-  flex-shrink: 0;
-  width: 60px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.number-text {
-  font-size: 2.5rem;
-  font-weight: 400;
-  color: #abababea;
-  line-height: 1;
+  margin-top: 2rem;
 }
 
 .tutorial-card {
-  flex: 1;
   display: flex;
-  gap: 1.5rem;
-  border-radius: 12px;
-  overflow: visible;
+  flex-direction: column;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 16px;
+  overflow: hidden;
   text-decoration: none;
   color: inherit;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  height: 100%;
 }
 
-.tutorial-image {
-  flex-shrink: 0;
-  width: 280px;
-  height: 180px;
+.tutorial-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.15);
+  border-color: rgba(100, 108, 255, 0.3);
+}
+
+.card-image {
+  position: relative;
+  width: 100%;
+  padding-top: 56.25%; /* 16:9 Aspect Ratio */
+  background: var(--bg-secondary, #f1f3f5);
   overflow: hidden;
-  background: var(--bg-secondary, #f8f9fa);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 12px;
 }
 
-.tutorial-image img {
+.card-image img {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.tutorial-card:hover .card-image img {
+  transform: scale(1.05);
 }
 
 .image-placeholder {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 100%;
-  height: 100%;
-  color: var(--text-muted, #adb5bd);
+  color: #dee2e6;
 }
 
-.tutorial-content {
+.card-index {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  color: white;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+  z-index: 2;
+}
+
+.card-body {
   flex: 1;
-  padding: 1.5rem 1.5rem 1.5rem 0;
+  padding: 1.5rem;
   display: flex;
   flex-direction: column;
 }
 
-.tutorial-header {
-  display: flex;
-  align-items: baseline;
-  gap: 1rem;
-  margin-bottom: 0.75rem;
-}
-
-.tutorial-title-link {
-  flex: 1;
-  text-decoration: none;
-  color: inherit;
-  min-width: 0;
-}
-
-.tutorial-title {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--text-primary, #2c3e50);
-  margin: 0;
+.card-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-primary, #2d3748);
+  margin: 0 0 0.75rem 0;
   line-height: 1.4;
-  white-space: nowrap;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
   overflow: hidden;
-  text-overflow: ellipsis;
-  cursor: pointer;
 }
 
-.tutorial-title-link:hover .tutorial-title {
-  color: #667eea;
+.tutorial-card:hover .card-title {
+  color: #646cff;
 }
 
-.tutorial-date {
-  flex-shrink: 0;
-  color: var(--text-muted, #6c757d);
-  font-size: 0.875rem;
-  white-space: nowrap;
+.card-meta {
+  display: flex;
+  align-items: center;
+  color: var(--text-muted, #9ca3af);
+  font-size: 0.85rem;
+  margin-bottom: 1rem;
 }
 
-.tutorial-summary {
-  font-size: 0.938rem;
-  color: var(--text-secondary, #5a6c7d);
+.card-summary {
+  font-size: 0.95rem;
+  color: var(--text-secondary, #4a5568);
   line-height: 1.6;
+  margin: 0 0 1.5rem 0;
   display: -webkit-box;
   -webkit-line-clamp: 3;
   line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  flex: 1;
+  flex-grow: 1;
 }
 
-/* 分页样式 */
-.pagination-container {
-  margin-top: 3rem;
-  padding-top: 2rem;
-  border-top: 1px solid var(--border-color, #e5e5e5);
+.card-footer {
+  margin-top: auto;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-color, #f0f0f0);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.read-more {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #646cff;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  transition: gap 0.2s ease;
+}
+
+.tutorial-card:hover .read-more {
+  gap: 0.5rem;
 }
 
 /* 深色主题 */
 .dark-theme .page-header {
-  border-bottom-color: var(--border-color-dark, #333);
+  border-bottom-color: rgba(255, 255, 255, 0.1);
 }
 
 .dark-theme .page-title {
-  color: var(--text-primary-dark, #e4e6eb);
+  color: var(--text-primary-dark, #f3f4f6);
 }
 
 .dark-theme .page-description {
-  color: var(--text-muted-dark, #adb5bd);
+  color: var(--text-secondary-dark, #9ca3af);
 }
 
-.dark-theme .tutorials-list {
-  background: rgba(26, 26, 26, 0.8);
+.dark-theme .tutorials-content {
+  background: rgba(30, 30, 30, 0.6);
+  border-color: rgba(255, 255, 255, 0.1);
 }
 
 .dark-theme .tutorial-card {
-  background: transparent;
+  background: rgba(40, 40, 40, 0.9);
+  border-color: rgba(255, 255, 255, 0.05);
 }
 
-.dark-theme .tutorial-image {
-  background: var(--bg-secondary-dark, #2a2a2a);
+.dark-theme .tutorial-card:hover {
+  box-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.5);
+  border-color: rgba(100, 108, 255, 0.4);
 }
 
-.dark-theme .number-text {
-  color: #4a4a4a;
+.dark-theme .card-image {
+  background: #2d3748;
 }
 
-.dark-theme .tutorial-date {
-  color: var(--text-muted-dark, #adb5bd);
+.dark-theme .card-title {
+  color: #e2e8f0;
 }
 
-.dark-theme .tutorial-title {
-  color: var(--text-primary-dark, #e4e6eb);
+.dark-theme .tutorial-card:hover .card-title {
+  color: #818cf8;
 }
 
-.dark-theme .tutorial-title-link:hover .tutorial-title {
-  color: #8b9bea;
+.dark-theme .card-summary {
+  color: #cbd5e0;
 }
 
-.dark-theme .tutorial-summary {
-  color: var(--text-secondary-dark, #b8bcc2);
+.dark-theme .card-footer {
+  border-top-color: rgba(255, 255, 255, 0.1);
 }
 
-.dark-theme .tutorial-tag {
-  background: var(--tag-bg-dark, #2a2a2a);
-  color: var(--text-secondary-dark, #b8bcc2);
+.dark-theme .read-more {
+  color: #818cf8;
 }
 
-.dark-theme .pagination-container {
-  border-top-color: var(--border-color-dark, #333);
+.dark-theme .image-placeholder {
+  color: #4a5568;
 }
+
 
 /* 响应式设计 */
 @media (max-width: 992px) {
-  .tutorial-number {
-    width: 50px;
-  }
-  
-  .number-text {
-    font-size: 2rem;
-  }
-  
-  .tutorial-image {
-    width: 220px;
-    height: 150px;
-  }
-  
-  .tutorial-title {
-    font-size: 1.125rem;
+  .tutorials-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
 @media (max-width: 768px) {
-  .tutorials-page {
-    padding: 0;
+  .tutorials-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
   }
   
-  .tutorials-list {
+  .tutorials-content {
     padding: 1.5rem;
   }
-  
-  .page-title {
-    font-size: 2rem;
-  }
-  
-  .tutorial-item {
-    flex-direction: column-reverse;
-    gap: 1rem;
-  }
-  
-  .tutorial-number {
-    width: 100%;
-    justify-content: flex-start;
-    padding-left: 0.5rem;
-  }
-  
-  .number-text {
-    font-size: 1.75rem;
-  }
-  
-  .tutorial-card {
-    flex-direction: column;
-    gap: 0;
-  }
-  
-  .tutorial-image {
-    width: 100%;
+
+  .card-image {
     height: 200px;
-  }
-  
-  .tutorial-content {
-    padding: 1.25rem;
-  }
-  
-  .tutorial-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.5rem;
-    margin-bottom: 0.5rem;
-  }
-  
-  .tutorial-title {
-    font-size: 1.125rem;
-    white-space: normal;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    line-clamp: 2;
-    -webkit-box-orient: vertical;
-  }
-  
-  .tutorial-summary {
-    font-size: 0.875rem;
   }
 }
 
 @media (max-width: 480px) {
+  .tutorials-content {
+    padding: 1rem;
+  }
+  
   .page-title {
     font-size: 1.75rem;
   }
   
-  .page-description {
-    font-size: 0.875rem;
-  }
-  
-  .tutorials-list {
-    gap: 1.5rem;
+  .card-body {
     padding: 1rem;
   }
 }

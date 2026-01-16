@@ -1,41 +1,14 @@
 <template>
   <div class="welcome-section">
-    <!-- 左侧幻灯片轮播区域包裹容器 -->
-    <div class="carousel-wrapper">
-      <div class="carousel-section">
-        <div class="swiper-container" ref="swiperContainer">
-          <div class="swiper-wrapper">
-            <div
-              v-for="(slide, index) in slides"
-              :key="`slide-${slide.id}-${index}`"
-              class="swiper-slide carousel-slide"
-              @click="slide.id ? goToArticle(slide.id) : null"
-              :style="{ cursor: slide.id ? 'pointer' : 'default' }"
-            >
-              <div class="slide-card">
-                <div
-                  class="slide-background"
-                  :style="{ backgroundImage: `url(${slide.coverImage})` }"
-                ></div>
-                <div class="slide-gradient"></div>
-                <div class="slide-category-badge">{{ getCategoryName(slide.category) }}</div>
-                <div class="slide-content">
-                  <h3 class="slide-title">{{ slide.title }}</h3>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- 导航按钮 -->
-          <div class="swiper-button-next carousel-nav-btn carousel-nav-next">
-            <Icon name="chevron-right" size="lg" />
-          </div>
-          <div class="swiper-button-prev carousel-nav-btn carousel-nav-prev">
-            <Icon name="chevron-left" size="lg" />
-          </div>
-
-          <!-- 分页器 -->
-          <div class="swiper-pagination"></div>
+    <!-- 左侧图片区域 -->
+    <div class="carousel-wrapper welcome-image-wrapper">
+      <div class="welcome-image-container">
+        <img src="https://cfimg.wasd09090030.top/file/Study/1768384800398_20251214_141332.avif" alt="Welcome Image" class="welcome-image" />
+        <div class="explore-btn-container">
+          <button class="explore-btn" @click="goToRandomArticle" aria-label="随机浏览文章">
+            <Icon name="compass" size="md" class="me-2" />
+            <span>开始探索</span>
+          </button>
         </div>
       </div>
     </div>
@@ -167,141 +140,17 @@
 
 <script setup>
 import { useArticles } from '~/composables/useArticles'
-// 动态导入Swiper CSS
-import 'swiper/css'
-import 'swiper/css/navigation'
-import 'swiper/css/pagination'
 import '~/assets/css/components/WelcomeSection.styles.css'
 
 const router = useRouter()
-const swiperContainer = ref(null)
 
 // 响应式数据
-const slides = ref([])
 const articleCount = ref(0)
 const loading = ref(false)
 const isFabExpanded = ref(false)
-let swiperInstance = null
 
 // API composable
-const { getFeaturedArticles, getArticles, getAllArticles } = useArticles()
-
-// 获取推荐文章数据 - 专为轮播设计的轻量级API
-const fetchFeaturedArticles = async () => {
-  if (loading.value) return
-
-  loading.value = true
-  try {
-    console.log('WelcomeSection: 开始获取推荐文章...')
-
-    // 使用专门的推荐文章API
-    const featuredArticles = await getFeaturedArticles(5)
-    slides.value = featuredArticles
-
-    // 获取文章总数 - 使用 summary=false 来获取包含 total 的分页数据
-    const articlesData = await getArticles({ page: 1, limit: 1, summary: false })
-    console.log('WelcomeSection: 获取文章数据响应:', articlesData)
-    
-    // 从分页数据中提取总数
-    if (articlesData && articlesData.total !== undefined) {
-      articleCount.value = articlesData.total
-      console.log('WelcomeSection: 成功获取文章总数:', articleCount.value)
-    } else {
-      console.warn('WelcomeSection: 无法从API获取准确的文章总数，使用推荐文章数量作为备选')
-      articleCount.value = featuredArticles.length
-    }
-
-    console.log('WelcomeSection: 获取推荐文章成功，轮播文章数:', slides.value.length, '总文章数:', articleCount.value)
-  } catch (error) {
-    console.error('WelcomeSection: 获取推荐文章失败:', error)
-    slides.value = []
-    articleCount.value = 0
-  } finally {
-    loading.value = false
-  }
-}
-
-// 动态导入Swiper
-let Swiper, Navigation, Pagination, Autoplay
-
-const loadSwiper = async () => {
-  try {
-    const swiperModule = await import('swiper')
-    const modulesModule = await import('swiper/modules')
-
-    Swiper = swiperModule.Swiper
-    Navigation = modulesModule.Navigation
-    Pagination = modulesModule.Pagination
-    Autoplay = modulesModule.Autoplay
-
-    console.log('Swiper modules loaded successfully')
-  } catch (err) {
-    console.error('Failed to load Swiper:', err)
-  }
-}
-
-// 初始化Swiper
-const initSwiper = async () => {
-  await loadSwiper()
-  await nextTick()
-
-  if (swiperContainer.value && Swiper && slides.value.length > 0) {
-    // 如果已有实例，先销毁
-    if (swiperInstance) {
-      swiperInstance.destroy(true, true)
-    }
-
-    swiperInstance = new Swiper(swiperContainer.value, {
-      modules: [Navigation, Pagination, Autoplay],
-      loop: slides.value.length > 1, // 只有多张图片时才启用循环
-      autoplay: slides.value.length > 1 ? {
-        delay: 4000,
-        disableOnInteraction: false,
-        pauseOnMouseEnter: true,
-      } : false,
-      speed: 800,
-      effect: 'slide',
-      navigation: {
-        nextEl: '.swiper-button-next',
-        prevEl: '.swiper-button-prev',
-      },
-      pagination: {
-        el: '.swiper-pagination',
-        clickable: true,
-        dynamicBullets: true,
-      },
-      on: {
-        slideChange: function () {
-          console.log('Slide changed to:', this.realIndex)
-        }
-      }
-    })
-
-    console.log('WelcomeSection: Swiper初始化完成，幻灯片数量:', slides.value.length)
-  }
-}
-
-// 跳转到文章详情
-const goToArticle = (articleId) => {
-  if (articleId && articleId !== 0) {
-    console.log('导航到文章:', articleId)
-    router.push(`/article/${articleId}`)
-  } else {
-    console.warn('无效的文章ID:', articleId)
-  }
-}
-
-// 获取分类名称
-const getCategoryName = (category) => {
-  const categoryMap = {
-    'study': '学习',
-    'game': '游戏',
-    'work': '个人作品',
-    'resource': '资源分享',
-    'other': '其他'
-  }
-  return categoryMap[category] || '其他'
-}
+const { getArticles, getAllArticles } = useArticles()
 
 // 页面导航功能
 const goToArticles = () => {
@@ -364,62 +213,101 @@ const handleFabAbout = () => {
 const goToRandomArticle = async () => {
   try {
     let articles = []
+    
+    console.log('获取所有文章...')
+    const allArticles = await getAllArticles()
 
-    // 优先从已加载的轮播文章中随机选择（最快）
-    if (slides.value && slides.value.length > 0) {
-      articles = slides.value
-      console.log('从轮播文章中随机选择，共', articles.length, '篇')
-    } else {
-      // 如果轮播文章为空，获取所有文章
-      console.log('获取所有文章...')
-      const allArticles = await getAllArticles()
-
-      if (allArticles && allArticles.length > 0) {
-        articles = allArticles
-        console.log('成功获取所有文章，共', articles.length, '篇')
-      } else {
-        console.warn('没有找到可用的文章')
-        return
-      }
-    }
-
-    // 从文章列表中随机选择一篇
-    if (articles.length > 0) {
+    if (allArticles && allArticles.length > 0) {
+      articles = allArticles
+      console.log('成功获取所有文章，共', articles.length, '篇')
+      
       const randomIndex = Math.floor(Math.random() * articles.length)
       const randomArticle = articles[randomIndex]
 
       if (randomArticle && randomArticle.id) {
         console.log('随机跳转到文章:', randomArticle.id, '-', randomArticle.title)
         router.push(`/article/${randomArticle.id}`)
-      } else {
-        console.warn('选中的文章没有有效的ID')
       }
+    } else {
+      console.warn('没有找到可用的文章')
     }
   } catch (error) {
     console.error('获取随机文章失败:', error)
   }
 }
 
-// 销毁Swiper实例
-const destroySwiper = () => {
-  if (swiperInstance) {
-    swiperInstance.destroy(true, true)
-    swiperInstance = null
-  }
-}
-
 // 生命周期
 onMounted(async () => {
-  console.log('WelcomeSection: 组件挂载，开始初始化...')
-  await fetchFeaturedArticles()
-  await initSwiper()
-})
-
-onUnmounted(() => {
-  destroySwiper()
+  console.log('WelcomeSection: 组件挂载')
 })
 </script>
 
 <style scoped>
 @import '~/assets/css/components/WelcomeSection.styles.css';
+
+.welcome-image-wrapper {
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+  /* 
+     保持 .carousel-wrapper 的布局属性如果不生效 
+     但我们保留了 class="carousel-wrapper" 在 HTML 中
+     所以这里不需要重复 flex 也行
+  */
+}
+
+.welcome-image-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.welcome-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.8s ease;
+}
+
+.explore-btn-container {
+  position: absolute;
+  bottom: 25px;
+  left: 25px;
+  z-index: 10;
+}
+
+.explore-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 24px;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 50px;
+  color: #333;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.explore-btn:hover {
+  background: #ffffff;
+}
+
+/* 深色模式适配 */
+:global(.dark-theme) .explore-btn {
+  background: rgba(30, 30, 30, 0.8);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: #e0e0e0;
+}
+
+:global(.dark-theme) .explore-btn:hover {
+  background: rgba(40, 40, 40, 0.95);
+  color: #818cf8;
+}
 </style>

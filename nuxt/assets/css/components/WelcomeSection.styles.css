@@ -123,7 +123,6 @@
   font-size: 0.95rem;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
 }
@@ -336,7 +335,6 @@
     radial-gradient(circle at 120% -20%, rgba(255, 255, 255, 0.12), transparent 40%),
     linear-gradient(135deg, var(--card-from), var(--card-to));
   border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.18);
   transition: transform 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease;
 }
 
@@ -367,7 +365,6 @@
 
 .info-card:hover {
   transform: translateY(-6px) scale(1.01);
-  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.24), 0 0 0 1px rgba(255, 255, 255, 0.03) inset;
   border-color: rgba(255, 255, 255, 0.12);
 }
 

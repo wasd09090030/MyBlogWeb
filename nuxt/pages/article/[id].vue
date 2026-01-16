@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-screen flex">
     <!-- 左侧：文章主体 -->
-    <div class="flex-1 bg-gray-50 dark:bg-gray-900">
+    <div class="flex-1 bg-gray-50 dark:bg-gray-900 rounded-xl overflow-hidden lg:rounded-l-xl lg:rounded-r-none">
       <!-- 加载状态 -->
       <div v-if="loading" class="flex flex-col items-center justify-center min-h-[60vh]">
         <n-spin size="large" />
@@ -111,7 +111,7 @@
     <!-- 右侧：文章目录侧边栏 -->
     <aside 
       v-if="article" 
-      class="hidden lg:block w-72 flex-shrink-0 bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700"
+      class="hidden lg:block w-72 flex-shrink-0 bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 rounded-r-xl"
     >
       <div class="sticky top-16 p-4 h-[calc(100vh-4rem)] overflow-y-auto">
         <!-- 目录加载中骨架屏 -->

@@ -245,13 +245,24 @@ onUnmounted(() => {
   position: sticky;
   top: 0;
   z-index: 1000;
-  background: var(--navbar-bg, rgba(255, 255, 255, 0.95));
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid var(--border-color, #e5e5e5);
-  padding: 0.2rem 1rem;
+  background: transparent;
+  backdrop-filter: none;
+  border-bottom: 1px solid transparent;
+  padding: 1rem;
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
               background-color 0.3s ease, 
+              border-color 0.3s ease,
+              padding 0.3s ease,
               box-shadow 0.3s ease;
+}
+
+.app-navbar.navbar-scrolled {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08); /* 更柔和的边框 */
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 
+              0 2px 4px -1px rgba(0, 0, 0, 0.03); /* 更细腻的阴影 */
+  padding: 0.6rem 1rem; /* 滚动后变窄 */
 }
 
 .app-navbar.navbar-hidden {
@@ -259,8 +270,14 @@ onUnmounted(() => {
 }
 
 .dark-theme .app-navbar {
-  background: var(--navbar-bg-dark, rgba(30, 30, 30, 0.95));
-  border-bottom-color: var(--border-color-dark, #333);
+  background: transparent;
+  border-bottom-color: transparent;
+}
+
+.dark-theme .app-navbar.navbar-scrolled {
+  background: rgba(30, 30, 30, 0.8);
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
 }
 .navbar-container {
   max-width: 1400px;
