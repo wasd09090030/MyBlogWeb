@@ -9,7 +9,9 @@
         </Teleport>
         <header class="app-navbar" :class="{ 'navbar-hidden': isNavbarHidden, 'navbar-scrolled': hasScrolled }">
           <div class="navbar-container">
-            <NuxtLink to="/" class="navbar-brand">WyrmKk</NuxtLink>
+            <NuxtLink to="/" class="navbar-brand">
+              <img src="/Picture/Mylogo.webp" alt="Logo" class="navbar-logo" />
+            </NuxtLink>
             <nav class="navbar-center-nav d-none d-lg-flex">
               <NuxtLink to="/" class="nav-link">
                 <Icon name="house" size="sm" class="me-1" />首页

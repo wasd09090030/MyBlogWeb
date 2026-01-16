@@ -3,7 +3,7 @@
     <!-- 左侧：文章主体 -->
     <div class="flex-1 bg-gray-50 dark:bg-gray-900 rounded-xl overflow-hidden lg:rounded-l-xl lg:rounded-r-none">
       <!-- 加载状态 -->
-      <div v-if="loading" class="flex flex-col items-center justify-center min-h-[60vh]">
+      <div v-if="pending" class="flex flex-col items-center justify-center min-h-[60vh]">
         <n-spin size="large" />
         <p class="mt-4 text-gray-500 dark:text-gray-400">加载中...</p>
       </div>
@@ -115,7 +115,7 @@
     >
       <div class="sticky top-16 p-4 h-[calc(100vh-4rem)] overflow-y-auto">
         <!-- 目录加载中骨架屏 -->
-        <div v-if="headings.length === 0 && loading" class="animate-pulse space-y-3">
+        <div v-if="headings.length === 0 && pending" class="animate-pulse space-y-3">
           <div class="h-10 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
           <div class="space-y-2 px-2">
             <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-4/5"></div>
@@ -145,12 +145,46 @@ import ArticleToc from '~/components/ArticleToc.vue'
 
 const route = useRoute()
 const router = useRouter()
-const { getArticleById } = useArticles()
+const config = useRuntimeConfig()
 
-// 状态
-const article = ref(null)
-const loading = ref(true)
-const error = ref(null)
+// SSR 预取文章数据
+const { data: article, pending, error } = await useAsyncData(
+  `article-${route.params.id}`,
+  async () => {
+    const id = route.params.id
+    if (!id) {
+      throw createError({
+        statusCode: 400,
+        statusMessage: '未提供文章ID'
+      })
+    }
+    
+    const response = await $fetch(`${config.public.apiBase}/articles/${id}`)
+    
+    if (!response) {
+      throw createError({
+        statusCode: 404,
+        statusMessage: '文章不存在'
+      })
+    }
+    
+    return response
+  },
+  {
+    // 客户端导航时重新获取
+    watch: [() => route.params.id]
+  }
+)
+
+// 处理 404 错误
+if (error.value) {
+  throw createError({
+    statusCode: error.value.statusCode || 404,
+    statusMessage: error.value.statusMessage || '文章加载失败'
+  })
+}
+
+// 目录数据
 const headings = ref([])
 
 // AI 摘要打字机效果
@@ -267,42 +301,16 @@ function onTocReady(toc) {
   }
 }
 
-// 获取文章
-async function fetchArticle() {
-  const id = route.params.id
-  if (!id) {
-    error.value = new Error('未提供文章ID')
-    loading.value = false
-    return
-  }
-
-  loading.value = true
-  error.value = null
-
-  try {
-    article.value = await getArticleById(id)
-    
-    nextTick(() => {
-      // 开始 AI 摘要打字机效果
-      if (article.value?.aiSummary) {
-        startTyping(article.value.aiSummary)
-      }
-      // 仅当使用 HTML 回退时从 DOM 提取标题
-      // Markdown 渲染会通过 @toc-ready 事件提供目录
-      if (!article.value?.contentMarkdown) {
-        extractHeadingsFromDOM()
-      }
-    })
-  } catch (e) {
-    error.value = e
-    console.error('获取文章失败:', e)
-  } finally {
-    loading.value = false
-  }
-}
-
+// 初始化客户端效果
 onMounted(() => {
-  fetchArticle()
+  // 开始 AI 摘要打字机效果
+  if (article.value?.aiSummary) {
+    startTyping(article.value.aiSummary)
+  }
+  // 仅当使用 HTML 回退时从 DOM 提取标题
+  if (article.value && !article.value.contentMarkdown) {
+    extractHeadingsFromDOM()
+  }
 })
 
 onUnmounted(() => {
