@@ -6,7 +6,7 @@
         <img src="https://cfimg.wasd09090030.top/file/Study/1768384800398_20251214_141332.avif" alt="Welcome Image" class="welcome-image" />
         <div class="explore-btn-container">
           <button class="explore-btn" @click="goToRandomArticle" aria-label="随机浏览文章">
-            <Icon name="compass" size="md" class="me-2" />
+            <Icon name="arrow-path" size="md" class="me-2" />
             <span>开始探索</span>
           </button>
         </div>

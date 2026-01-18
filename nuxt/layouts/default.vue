@@ -19,6 +19,9 @@
               <NuxtLink to="/tutorials" class="nav-link">
                 <Icon name="book" size="sm" class="me-1" />教程
               </NuxtLink>
+              <NuxtLink to="/tools" class="nav-link">
+                <Icon name="puzzle-piece" size="sm" class="me-1" />工具箱
+              </NuxtLink>
               <NuxtLink to="/about" class="nav-link">
                 <Icon name="person-circle" size="sm" class="me-1" />关于站长
               </NuxtLink>
@@ -193,6 +196,11 @@ const mobileMenuOptions = computed(() => [
     icon: () => h(resolveComponent('Icon'), { name: 'book', size: 'sm' })
   },
   {
+    label: '工具箱',
+    key: 'tools',
+    icon: () => h(resolveComponent('Icon'), { name: 'puzzle-piece', size: 'sm' })
+  },
+  {
     label: '关于站长',
     key: 'about',
     icon: () => h(resolveComponent('Icon'), { name: 'person-circle', size: 'sm' })
@@ -213,6 +221,8 @@ const handleMobileMenuSelect = (key) => {
     router.push('/')
   } else if (key === 'tutorials') {
     router.push('/tutorials')
+  } else if (key === 'tools') {
+    router.push('/tools')
   } else if (key === 'about') {
     router.push('/about')
   }
@@ -223,7 +233,8 @@ const isGalleryRoute = computed(() => route.path === '/gallery')
 const isArticleDetailRoute = computed(() => route.path.startsWith('/article/'))
 const isAboutRoute = computed(() => route.path === '/about')
 const isTutorialsRoute = computed(() => route.path === '/tutorials')
-const showSidebar = computed(() => !isGalleryRoute.value && !isArticleDetailRoute.value && !isAboutRoute.value)
+const isToolsRoute = computed(() => route.path.startsWith('/tools/'))
+const showSidebar = computed(() => !isGalleryRoute.value && !isArticleDetailRoute.value && !isAboutRoute.value && !isToolsRoute.value)
 
 onMounted(() => {
   initTheme()

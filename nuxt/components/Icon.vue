@@ -25,6 +25,8 @@ import {
   PencilSquareIcon,
   DocumentTextIcon,
   DocumentMinusIcon,
+  DocumentArrowDownIcon,
+  DocumentArrowUpIcon,
   BookOpenIcon,
   Squares2X2Icon,
   PhotoIcon,
@@ -61,7 +63,11 @@ import {
   ClockIcon,
   TagIcon,
   InformationCircleIcon,
-  ExclamationCircleIcon
+  ExclamationCircleIcon,
+  LightBulbIcon,
+  TrashIcon,
+  EllipsisHorizontalIcon,
+  ArrowDownTrayIcon
 } from '@heroicons/vue/24/outline'
 
 // Solid 图标 (用于 solid 变体)
@@ -194,7 +200,22 @@ const outlineIcons = {
   'clock': ClockIcon,
   'tag': TagIcon,
   'information-circle': InformationCircleIcon,
-  'exclamation-circle': ExclamationCircleIcon
+  'exclamation-circle': ExclamationCircleIcon,
+  'lightbulb': LightBulbIcon,
+  'light-bulb': LightBulbIcon,
+  'trash': TrashIcon,
+  'trash-can': TrashIcon,
+  'delete': TrashIcon,
+  'ellipsis-horizontal': EllipsisHorizontalIcon,
+  'three-dots': EllipsisHorizontalIcon,
+  'dots': EllipsisHorizontalIcon,
+  'file-earmark-text': DocumentTextIcon,
+  'file-pdf': DocumentArrowDownIcon,
+  'file-word': DocumentArrowUpIcon,
+  'document-arrow-down': DocumentArrowDownIcon,
+  'document-arrow-up': DocumentArrowUpIcon,
+  'download': ArrowDownTrayIcon,
+  'arrow-down-tray': ArrowDownTrayIcon
 }
 
 // Solid 图标注册表

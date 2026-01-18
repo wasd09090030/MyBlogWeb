@@ -14,7 +14,6 @@ export default defineNuxtConfig({
     'swiper/css/effect-cube',
     '~/assets/css/components/prose-custom.css', // 自定义 prose 样式
     '~/assets/css/layout.css', // 自定义布局工具类
-    '~/assets/css/style.css',
     '~/assets/css/app.css',
   ],
 
