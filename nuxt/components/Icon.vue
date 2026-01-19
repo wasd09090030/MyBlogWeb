@@ -67,7 +67,8 @@ import {
   LightBulbIcon,
   TrashIcon,
   EllipsisHorizontalIcon,
-  ArrowDownTrayIcon
+  ArrowDownTrayIcon,
+  WrenchScrewdriverIcon
 } from '@heroicons/vue/24/outline'
 
 // Solid 图标 (用于 solid 变体)
@@ -215,7 +216,8 @@ const outlineIcons = {
   'document-arrow-down': DocumentArrowDownIcon,
   'document-arrow-up': DocumentArrowUpIcon,
   'download': ArrowDownTrayIcon,
-  'arrow-down-tray': ArrowDownTrayIcon
+  'arrow-down-tray': ArrowDownTrayIcon,
+  'wrench-screwdriver': WrenchScrewdriverIcon
 }
 
 // Solid 图标注册表

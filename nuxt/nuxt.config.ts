@@ -4,7 +4,7 @@ export default defineNuxtConfig({
 
   // CSS配置 - 使用 Tailwind Typography
   css: [
-      '~/assets/css/theme-variables.css', 
+      '~/assets/css/theme-variables.css',
     '~/assets/css/tailwind.css', // Tailwind CSS 入口文件
     'katex/dist/katex.min.css', // KaTeX 数学公式样式
     'swiper/css',

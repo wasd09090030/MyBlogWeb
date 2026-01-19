@@ -33,6 +33,30 @@
         </template>
       </n-card>
 
+      <!-- 图像处理工具卡片 -->
+      <n-card
+        class="tool-card"
+        hoverable
+        @click="navigateTo('/tools/image-processor')"
+      >
+        <template #header>
+          <div class="tool-card-header">
+            <Icon name="photo" size="lg" class="tool-icon" />
+            <span>图像处理工具</span>
+          </div>
+        </template>
+        <div class="tool-description">
+          图片格式转换、压缩，支持 PNG/JPG/WebP/AVIF，所有处理本地完成，保护隐私
+        </div>
+        <template #footer>
+          <div class="tool-tags">
+            <n-tag type="info" size="small">格式转换</n-tag>
+            <n-tag type="success" size="small">压缩</n-tag>
+            <n-tag type="error" size="small">本地处理</n-tag>
+          </div>
+        </template>
+      </n-card>
+
       <!-- 预留更多工具卡片 -->
       <n-card 
         class="tool-card tool-card-coming-soon"

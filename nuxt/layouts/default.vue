@@ -20,7 +20,7 @@
                 <Icon name="book" size="sm" class="me-1" />教程
               </NuxtLink>
               <NuxtLink to="/tools" class="nav-link">
-                <Icon name="puzzle-piece" size="sm" class="me-1" />工具箱
+                <Icon name="wrench-screwdriver" size="sm" class="me-1" />工具箱
               </NuxtLink>
               <NuxtLink to="/about" class="nav-link">
                 <Icon name="person-circle" size="sm" class="me-1" />关于站长
@@ -233,7 +233,7 @@ const isGalleryRoute = computed(() => route.path === '/gallery')
 const isArticleDetailRoute = computed(() => route.path.startsWith('/article/'))
 const isAboutRoute = computed(() => route.path === '/about')
 const isTutorialsRoute = computed(() => route.path === '/tutorials')
-const isToolsRoute = computed(() => route.path.startsWith('/tools/'))
+const isToolsRoute = computed(() => route.path.startsWith('/tools'))
 const showSidebar = computed(() => !isGalleryRoute.value && !isArticleDetailRoute.value && !isAboutRoute.value && !isToolsRoute.value)
 
 onMounted(() => {
