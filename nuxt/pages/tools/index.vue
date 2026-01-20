@@ -57,6 +57,78 @@
         </template>
       </n-card>
 
+      <!-- Base64 转换工具卡片 -->
+      <n-card
+        class="tool-card"
+        hoverable
+        @click="navigateTo('/tools/base64-converter')"
+      >
+        <template #header>
+          <div class="tool-card-header">
+            <Icon name="code" size="lg" class="tool-icon" />
+            <span>图片 Base64 互转</span>
+          </div>
+        </template>
+        <div class="tool-description">
+          图片与 Base64 编码互相转换，支持多种图片格式，本地处理保护隐私
+        </div>
+        <template #footer>
+          <div class="tool-tags">
+            <n-tag type="info" size="small">编码</n-tag>
+            <n-tag type="success" size="small">解码</n-tag>
+            <n-tag type="error" size="small">本地处理</n-tag>
+          </div>
+        </template>
+      </n-card>
+
+      <!-- 密码生成器卡片 -->
+      <n-card
+        class="tool-card"
+        hoverable
+        @click="navigateTo('/tools/password-generator')"
+      >
+        <template #header>
+          <div class="tool-card-header">
+            <Icon name="key" size="lg" class="tool-icon" />
+            <span>密码生成器</span>
+          </div>
+        </template>
+        <div class="tool-description">
+          生成高强度随机密码，支持自定义长度和字符类型，本地生成确保安全
+        </div>
+        <template #footer>
+          <div class="tool-tags">
+            <n-tag type="info" size="small">随机生成</n-tag>
+            <n-tag type="success" size="small">高强度</n-tag>
+            <n-tag type="warning" size="small">批量生成</n-tag>
+          </div>
+        </template>
+      </n-card>
+
+      <!-- 文本对比工具卡片 -->
+      <n-card
+        class="tool-card"
+        hoverable
+        @click="navigateTo('/tools/text-diff')"
+      >
+        <template #header>
+          <div class="tool-card-header">
+            <Icon name="document-duplicate" size="lg" class="tool-icon" />
+            <span>文本差异对比</span>
+          </div>
+        </template>
+        <div class="tool-description">
+          对比两段文本的差异，高亮显示增删改，支持行内和并排视图
+        </div>
+        <template #footer>
+          <div class="tool-tags">
+            <n-tag type="info" size="small">Diff</n-tag>
+            <n-tag type="success" size="small">高亮显示</n-tag>
+            <n-tag type="warning" size="small">双视图</n-tag>
+          </div>
+        </template>
+      </n-card>
+
       <!-- 预留更多工具卡片 -->
       <n-card 
         class="tool-card tool-card-coming-soon"
