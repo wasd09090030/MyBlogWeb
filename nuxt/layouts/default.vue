@@ -234,7 +234,7 @@ const isArticleDetailRoute = computed(() => route.path.startsWith('/article/'))
 const isAboutRoute = computed(() => route.path === '/about')
 const isTutorialsRoute = computed(() => route.path === '/tutorials')
 const isToolsRoute = computed(() => route.path.startsWith('/tools'))
-const showSidebar = computed(() => !isGalleryRoute.value && !isArticleDetailRoute.value && !isAboutRoute.value && !isToolsRoute.value)
+const showSidebar = computed(() => !isGalleryRoute.value && !isArticleDetailRoute.value && !isAboutRoute.value && !isToolsRoute.value && !isTutorialsRoute.value)
 
 onMounted(() => {
   initTheme()

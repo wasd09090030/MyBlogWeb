@@ -1,88 +1,136 @@
 <template>
-  <div class="tutorials-page" ref="articleListContainer">
-    <n-alert v-if="error" type="error" title="加载失败" class="mb-4">
-      加载教程文章失败：{{ error.message }}
-    </n-alert>
-
-    <LoadingSpinner
-      v-if="loading"
-      text="正在加载教程列表..."
-      size="medium"
-    />
-
-    <div
-      v-else-if="paginatedArticles.length"
-      class="tutorials-content"
-    >
-      <div class="page-header">
-        <h3 class="page-title">教程专栏</h3>
-        <p class="page-description">循序渐进，系统化掌握核心技术</p>
-      </div>
-      
-      <div class="tutorials-grid">
-        <NuxtLink
-          v-for="(article, index) in paginatedArticles"
-          :key="article.id"
-          :to="`/article/${article.id}`"
-          class="tutorial-card"
-        >
-          <div class="card-image">
-            <img
-              v-if="article.coverImage && article.coverImage !== 'null'"
-              :src="article.coverImage"
-              :alt="article.title"
-              loading="lazy"
-              @error="handleImageError"
-            />
-            <div v-else class="image-placeholder">
-              <Icon name="image" size="3xl" class="text-muted" />
+  <div class="tutorials-page min-vh-100">
+    <!-- 头部区域：包含标题和筛选器 -->
+    <div class="page-hero">
+      <div class="container-fluid">
+        <div class="hero-content text-center">
+          <h1 class="page-title animate-in-up">教程专栏</h1>
+          <p class="page-description animate-in-up delay-1">
+            循序渐进，系统化掌握核心技术
+          </p>
+          
+          <!-- 筛选与排序工具栏 -->
+          <div class="toolbar animate-in-up delay-2">
+            <div class="filter-scroll-container">
+              <button 
+                class="filter-chip" 
+                :class="{ active: selectedTag === 'all' }"
+                @click="selectTag('all')"
+              >
+                全部
+              </button>
+              <button 
+                v-for="tag in availableTags" 
+                :key="tag"
+                class="filter-chip"
+                :class="{ active: selectedTag === tag }"
+                @click="selectTag(tag)"
+              >
+                {{ tag }}
+              </button>
             </div>
             
-            <!-- 序号角标 -->
-            <div class="card-index">
-              {{ String(currentIndex + index + 1).padStart(2, '0') }}
+            <div class="sort-control">
+              <button 
+                class="sort-btn" 
+                @click="toggleSort" 
+                :title="sortOrder === 'desc' ? '切换为最早发布' : '切换为最新发布'"
+              >
+                <Icon name="arrow-down-up" size="sm" class="me-1" />
+                {{ sortOrder === 'desc' ? '最新发布' : '最早发布' }}
+              </button>
             </div>
           </div>
-
-          <div class="card-body">
-            <h3 class="card-title" :title="article.title">{{ article.title }}</h3>
-            <div class="card-meta">
-              <Icon name="calendar3" size="xs" class="me-1" />
-              {{ formatDate(article.createdAt) }}
-            </div>
-            <p class="card-summary">{{ getExcerpt(article.content) }}</p>
-            
-            <div class="card-footer">
-              <span class="read-more">阅读全文 <Icon name="arrow-right" size="xs" /></span>
-            </div>
-          </div>
-        </NuxtLink>
+        </div>
       </div>
     </div>
 
-    <n-empty v-else description="暂无教程文章" class="my-5">
-      <template #icon>
-        <Icon name="journal-text" size="3xl" />
-      </template>
-      <template #extra>
-        <NuxtLink to="/" class="btn btn-primary">
-          返回首页
-        </NuxtLink>
-      </template>
-    </n-empty>
+    <!-- 主要内容区域 -->
+    <div class="container-fluid content-container" ref="articleListContainer">
+      <!-- 错误提示 -->
+      <n-alert v-if="error" type="error" title="加载失败" class="mb-4 animate-in-fade">
+        加载教程文章失败：{{ error.message }}
+      </n-alert>
 
-    <div v-if="totalPages > 1" class="pagination-container mt-4">
-      <div class="d-flex justify-content-center">
+      <!-- 加载状态 -->
+      <div v-if="loading" class="loading-container">
+        <LoadingSpinner text="正在整理教程资源..." size="large" />
+      </div>
+
+      <!-- 文章列表 -->
+      <div v-else-if="paginatedArticles.length" class="tutorials-grid">
+        <TransitionGroup name="list-stagger">
+          <NuxtLink
+            v-for="(article, index) in paginatedArticles"
+            :key="article.id"
+            :to="`/article/${article.id}`"
+            class="tutorial-card glass-panel"
+            :style="{ '--delay': `${index * 0.05}s` }"
+          >
+            <!-- 卡片封面 -->
+            <div class="card-image-wrapper">
+              <img
+                v-if="article.coverImage && article.coverImage !== 'null'"
+                :src="article.coverImage"
+                :alt="article.title"
+                class="card-img"
+                loading="lazy"
+                @error="handleImageError"
+              />
+              <div v-else class="image-placeholder gradient-soft">
+                <Icon name="journal-code" size="3xl" class="opacity-50" />
+              </div>
+              
+              <!-- 悬浮覆盖层 -->
+              <div class="image-overlay">
+                <span class="read-btn">
+                  开始学习 <Icon name="arrow-right" size="sm" />
+                </span>
+              </div>
+            </div>
+
+            <!-- 卡片内容 -->
+            <div class="card-content">
+              <div class="card-meta">
+                <span class="date">
+                  <Icon name="calendar3" size="xs" class="me-1" />
+                  {{ formatDate(article.createdAt) }}
+                </span>
+                <div v-if="article.tags && article.tags.length" class="tags-mini">
+                  <span v-for="tag in article.tags.slice(0, 2)" :key="tag" class="tag-dot">#{{ tag }}</span>
+                </div>
+              </div>
+
+              <h3 class="card-title" :title="article.title">{{ article.title }}</h3>
+              
+              <p class="card-excerpt">{{ getExcerpt(article.content) }}</p>
+            </div>
+          </NuxtLink>
+        </TransitionGroup>
+      </div>
+
+      <!-- 空状态 -->
+      <n-empty v-else description="暂无符合条件的教程" class="my-5 animate-in-fade">
+        <template #icon>
+          <Icon name="journal-x" size="4xl" />
+        </template>
+        <template #extra>
+          <button class="btn-reset" @click="resetFilters">重置筛选</button>
+        </template>
+      </n-empty>
+
+      <!-- 分页 -->
+      <div v-if="totalPages > 1" class="pagination-wrapper animate-in-up delay-3">
         <n-pagination
           v-model:page="currentPage"
           :page-count="totalPages"
-          :page-slot="7"
+          :page-slot="5"
+          size="medium"
           @update:page="scrollToListTop"
         />
-      </div>
-
-      <div class="text-center text-muted mt-3">
-        共 {{ tutorialArticles.length }} 篇教程，当前 {{ currentPage }} / {{ totalPages }} 页
+        <div class="pagination-info">
+          第 {{ currentPage }} 页 / 共 {{ totalPages }} 页
+        </div>
       </div>
     </div>
   </div>
@@ -91,7 +139,6 @@
 <script setup>
 import { useArticles } from '~/composables/useArticles'
 
-// 设置页面元数据，设置布局为不显示侧边栏
 definePageMeta({
   name: 'tutorials',
   keepalive: true,
@@ -104,228 +151,317 @@ defineOptions({
 })
 
 useHead({
-  title: 'WyrmKk - 教程',
+  title: '教程专栏 - 系统化学习资源',
   meta: [
-    { name: 'description', content: '系统化的学习资源，带你深入理解各类技术知识' },
-    { name: 'keywords', content: '教程,学习,技术教程,编程教程' }
-  ],
-  link: [
-    { rel: 'icon', type: 'image/x-icon', href: '/icon/favicon.ico' }
+    { name: 'description', content: '精心编排的开发教程，涵盖前端、后端、设计等多个领域，助你系统化掌握核心技术。' },
+    { name: 'keywords', content: '编程教程,Web开发,Vue3,Nuxt,设计系统,UI/UX' }
   ]
 })
 
+// 状态管理
 const articleListContainer = ref(null)
 const articles = ref([])
 const error = ref(null)
-const loading = ref(false)
-
+const loading = ref(true)
 const { getAllArticles } = useArticles()
 
+// 筛选与排序状态
 const currentPage = ref(1)
-const articlesPerPage = 10
+const articlesPerPage = 9 // 3x3 grid
+const selectedTag = ref('all')
+const sortOrder = ref('desc') // 'desc' | 'asc'
 
-// 过滤出带有"教程"标签的文章，并按创建时间倒序排列
-const tutorialArticles = computed(() => {
-  return articles.value
-    .filter(article => {
-      // 检查文章是否有 tags 属性，并且包含"教程"标签
-      if (!article.tags || !Array.isArray(article.tags)) return false
-      return article.tags.some(tag => tag === '教程')
-    })
-    .sort((a, b) => {
-      // 按创建时间倒序排列（新的在上）
-      const dateA = new Date(a.createdAt)
-      const dateB = new Date(b.createdAt)
-      return dateB - dateA
-    })
-})
-
-const totalPages = computed(() => Math.ceil(tutorialArticles.value.length / articlesPerPage))
-const currentIndex = computed(() => (currentPage.value - 1) * articlesPerPage)
-
-const paginatedArticles = computed(() => {
-  const start = (currentPage.value - 1) * articlesPerPage
-  return tutorialArticles.value.slice(start, start + articlesPerPage)
-})
-
-const scrollToListTop = () => {
-  nextTick(() => {
-    if (articleListContainer.value) {
-      articleListContainer.value.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    }
-  })
-}
-
-const getCategoryName = (category) => {
-  if (!category) return '其他'
-  const lowerCategory = category.toLowerCase()
-  const categoryMap = {
-    'study': '学习',
-    'game': '游戏',
-    'work': '个人作品',
-    'resource': '资源分享'
-  }
-  return categoryMap[lowerCategory] || '其他'
-}
-
-const getCategoryClass = (category) => {
-  if (!category) return 'category-other'
-  const lowerCategory = category.toLowerCase()
-  const categoryClassMap = {
-    'study': 'category-study',
-    'game': 'category-game',
-    'work': 'category-work',
-    'resource': 'category-resource'
-  }
-  return categoryClassMap[lowerCategory] || 'category-other'
-}
-
-const getExcerpt = (content) => {
-  if (!content) return ''
-  // 只移除 HTML 标签，不截取字数，让 CSS line-clamp 控制显示
-  return content.replace(/<[^>]*>/g, '').trim()
-}
-
-const handleImageError = (event) => {
-  event.target.style.display = 'none'
-}
-
-function formatDate(dateString) {
-  if (!dateString) return '未知日期'
-  const date = new Date(dateString)
-  return date.toLocaleDateString('zh-CN', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  })
-}
-
+// 获取所有基础文章数据
 const fetchArticles = async () => {
-  if (loading.value) return
-
   loading.value = true
   error.value = null
-
   try {
-    console.log('TutorialsPage: 开始获取文章数据...')
-    const articlesData = await getAllArticles()
-    articles.value = articlesData
-    console.log('TutorialsPage: 获取文章成功，总数:', articles.value.length)
-    console.log('TutorialsPage: 教程文章数量:', tutorialArticles.value.length)
+    const data = await getAllArticles()
+    articles.value = data || []
   } catch (e) {
     error.value = e
-    console.error('TutorialsPage: 获取文章失败:', e)
+    console.error('获取教程失败:', e)
   } finally {
     loading.value = false
   }
 }
 
-onMounted(async () => {
-  console.log('TutorialsPage: 组件挂载')
-  await fetchArticles()
+// 1. 过滤出所有教程类的文章
+const allTutorialArticles = computed(() => {
+  return articles.value.filter(article => {
+    if (!article.tags || !Array.isArray(article.tags)) return false
+    return article.tags.includes('教程')
+  })
 })
 
-onActivated(() => {
-  console.log('TutorialsPage: 组件被激活（从缓存恢复）')
+// 2. 提取所有可用标签（排除'教程'本身，因为它在所有文章中都存在）
+const availableTags = computed(() => {
+  const tags = new Set()
+  allTutorialArticles.value.forEach(article => {
+    article.tags.forEach(tag => {
+      if (tag !== '教程') tags.add(tag)
+    })
+  })
+  return Array.from(tags).sort()
 })
 
-onDeactivated(() => {
-  console.log('TutorialsPage: 组件被停用（进入缓存）')
+// 3. 根据用户选择进行筛选和排序
+const processedArticles = computed(() => {
+  let result = [...allTutorialArticles.value]
+
+  // 标签筛选
+  if (selectedTag.value !== 'all') {
+    result = result.filter(article => article.tags.includes(selectedTag.value))
+  }
+
+  // 排序
+  result.sort((a, b) => {
+    const dateA = new Date(a.createdAt)
+    const dateB = new Date(b.createdAt)
+    return sortOrder.value === 'desc' ? dateB - dateA : dateA - dateB
+  })
+
+  return result
 })
 
-// 监听页码变化，确保不超出范围
-watch(totalPages, (newTotal) => {
-  if (currentPage.value > newTotal && newTotal > 0) {
-    currentPage.value = newTotal
+// 4. 分页逻辑
+const totalPages = computed(() => Math.ceil(processedArticles.value.length / articlesPerPage))
+const paginatedArticles = computed(() => {
+  const start = (currentPage.value - 1) * articlesPerPage
+  return processedArticles.value.slice(start, start + articlesPerPage)
+})
+
+// 交互方法
+const selectTag = (tag) => {
+  selectedTag.value = tag
+  currentPage.value = 1 // 重置页码
+}
+
+const toggleSort = () => {
+  sortOrder.value = sortOrder.value === 'desc' ? 'asc' : 'desc'
+  currentPage.value = 1
+}
+
+const resetFilters = () => {
+  selectedTag.value = 'all'
+  sortOrder.value = 'desc'
+  currentPage.value = 1
+}
+
+const scrollToListTop = () => {
+  nextTick(() => {
+    if (articleListContainer.value) {
+      window.scrollTo({
+        top: articleListContainer.value.offsetTop - 100,
+        behavior: 'smooth'
+      })
+    }
+  })
+}
+
+const handleImageError = (event) => {
+  event.target.style.display = 'none'
+  event.target.parentElement.classList.add('image-error-fallback')
+}
+
+const formatDate = (dateString) => {
+  if (!dateString) return ''
+  return new Date(dateString).toLocaleDateString('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  })
+}
+
+const getExcerpt = (content) => {
+  if (!content) return ''
+  return content.replace(/<[^>]*>/g, '').trim().substring(0, 100) + '...'
+}
+
+// 生命周期
+onMounted(() => {
+  fetchArticles()
+})
+
+// 监听筛选条件变化，如果当前页超过总页数，重置为第1页
+watch([selectedTag, sortOrder], () => {
+  if (currentPage.value > totalPages.value) {
+    currentPage.value = 1
   }
 })
 
-const refreshData = async () => {
-  console.log('TutorialsPage: 手动刷新数据')
-  await fetchArticles()
-}
-
-defineExpose({
-  refreshData
-})
+defineExpose({ refreshData: fetchArticles })
 </script>
 
 <style scoped>
+/* 页面容器 */
 .tutorials-page {
-  width: 100%;
-  margin: 0;
-  padding: 0;
+  padding-bottom: 4rem;
 }
 
-.page-header {
-  text-align: center;
-  margin-bottom: 2rem;
-  padding-bottom: 2rem;
-  border-bottom: 2px solid var(--border-color, #e5e5e5);
+/* Hero Section */
+.page-hero {
+  padding: 2rem 1rem 1.5rem;
+  margin-bottom: 1.5rem;
 }
 
 .page-title {
-  font-size: 2rem;
-  font-weight: 600;
-  color: var(--text-primary, #2c3e50);
+  font-size: 2.25rem;
+  font-weight: 800;
   margin-bottom: 0.5rem;
-  background-color: #3b3838;
+  background: linear-gradient(135deg, var(--text-primary) 0%, var(--text-secondary) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  letter-spacing: -0.02em;
 }
 
 .page-description {
   font-size: 1.1rem;
-  color: var(--text-secondary, #5a6c7d);
+  color: var(--text-secondary);
   max-width: 600px;
+  margin: 0 auto 2rem;
+}
+
+/* 筛选工具栏 */
+.toolbar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0.5rem;
+}
+
+.filter-scroll-container {
+  display: flex;
+  gap: 0.75rem;
+  overflow-x: auto;
+  padding: 0.25rem 0.5rem;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+  max-width: 100%;
+}
+
+.filter-scroll-container::-webkit-scrollbar {
+  display: none;
+}
+
+.filter-chip {
+  padding: 0.4rem 1rem;
+  border-radius: 2rem;
+  border: 1px solid var(--border-color);
+  background: rgba(255, 255, 255, 0.5);
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  backdrop-filter: blur(4px);
+}
+
+.filter-chip:hover {
+  background: rgba(255, 255, 255, 0.8);
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+  transform: translateY(-1px);
+}
+
+.filter-chip.active {
+  background: var(--accent-primary);
+  border-color: var(--accent-primary);
+  color: white;
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--accent-primary), transparent 75%);
+}
+
+.sort-btn {
+  display: flex;
+  align-items: center;
+  padding: 0.4rem 1rem;
+  border-radius: 0.5rem;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.sort-btn:hover {
+  color: var(--accent-primary);
+}
+
+.btn-reset {
+  background: var(--accent-primary);
+  color: white;
+  border: none;
+  padding: 0.5rem 1.5rem;
+  border-radius: 2rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-reset:hover {
+  background: var(--accent-primary-hover, #0b5ed7);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+/* 列表网格 */
+.tutorials-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 2rem;
+  padding: 0 1rem;
+  max-width: 1200px;
   margin: 0 auto;
 }
 
-.tutorials-content {
-  background: rgba(255, 255, 255, 0.6);
-  backdrop-filter: blur(10px);
-  border-radius: 20px;
-  padding: 2.5rem;
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.5);
-}
-
-.tutorials-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 2rem;
-  margin-top: 2rem;
-}
-
+/* 卡片样式 */
 .tutorial-card {
+  position: relative;
   display: flex;
   flex-direction: column;
-  background: rgba(255, 255, 255, 0.9);
   border-radius: 16px;
   overflow: hidden;
   text-decoration: none;
-  color: inherit;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  border: 1px solid rgba(0, 0, 0, 0.05);
   height: 100%;
 }
 
-.tutorial-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.15);
-  border-color: rgba(100, 108, 255, 0.3);
+.dark-theme .tutorial-card {
+  background: rgba(30, 30, 30, 0.6);
+  border-color: rgba(255, 255, 255, 0.05);
 }
 
-.card-image {
+.tutorial-card:hover {
+  transform: translateY(-6px) scale(1.01);
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.8);
+  border-color: var(--accent-primary);
+  z-index: 10;
+}
+
+.dark-theme .tutorial-card:hover {
+  background: rgba(40, 40, 40, 0.8);
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.3);
+}
+
+.card-image-wrapper {
   position: relative;
   width: 100%;
-  padding-top: 56.25%; /* 16:9 Aspect Ratio */
-  background: var(--bg-secondary, #f1f3f5);
+  padding-top: 56.25%; /* 16:9 */
   overflow: hidden;
 }
 
-.card-image img {
+.card-img {
   position: absolute;
   top: 0;
   left: 0;
@@ -335,195 +471,166 @@ defineExpose({
   transition: transform 0.5s ease;
 }
 
-.tutorial-card:hover .card-image img {
-  transform: scale(1.05);
+.tutorial-card:hover .card-img {
+  transform: scale(1.08);
 }
 
-.image-placeholder {
+.image-overlay {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.3);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #dee2e6;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  backdrop-filter: blur(2px);
 }
 
-.card-index {
-  position: absolute;
-  top: 12px;
-  left: 12px;
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(4px);
+.tutorial-card:hover .image-overlay {
+  opacity: 1;
+}
+
+.read-btn {
   color: white;
-  padding: 4px 10px;
-  border-radius: 20px;
-  font-size: 0.85rem;
   font-weight: 600;
-  letter-spacing: 1px;
-  z-index: 2;
+  padding: 0.5rem 1.2rem;
+  border-radius: 2rem;
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(4px);
+  transform: translateY(10px);
+  transition: transform 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
-.card-body {
-  flex: 1;
+.tutorial-card:hover .read-btn {
+  transform: translateY(0);
+}
+
+.card-content {
   padding: 1.5rem;
+  flex: 1;
   display: flex;
   flex-direction: column;
 }
 
-.card-title {
-  font-size: 1.15rem;
-  font-weight: 700;
-  color: var(--text-primary, #2d3748);
-  margin: 0 0 0.75rem 0;
-  line-height: 1.4;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.tutorial-card:hover .card-title {
-  color: #646cff;
-}
-
 .card-meta {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  color: var(--text-muted, #9ca3af);
-  font-size: 0.85rem;
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
 }
 
-.card-summary {
+.tags-mini {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.tag-dot {
+  color: var(--accent-primary);
+  font-weight: 500;
+  background: color-mix(in srgb, var(--accent-primary), transparent 90%);
+  padding: 0.1rem 0.5rem;
+  border-radius: 4px;
+}
+
+.card-title {
+  font-size: 1.25rem;
+  color: var(--text-primary);
+  margin-bottom: 0.75rem;
+
+}
+
+.card-excerpt {
   font-size: 0.95rem;
-  color: var(--text-secondary, #4a5568);
+  color: var(--text-secondary);
   line-height: 1.6;
-  margin: 0 0 1.5rem 0;
   display: -webkit-box;
   -webkit-line-clamp: 3;
   line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  flex-grow: 1;
+  margin-bottom: 0;
 }
 
-.card-footer {
-  margin-top: auto;
-  padding-top: 1rem;
-  border-top: 1px solid var(--border-color, #f0f0f0);
+/* 分页 */
+.pagination-wrapper {
+  margin-top: 4rem;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: flex-end;
+  gap: 1rem;
 }
 
-.read-more {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #646cff;
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  transition: gap 0.2s ease;
+.pagination-info {
+  color: var(--text-tertiary);
+  font-size: 0.9rem;
 }
 
-.tutorial-card:hover .read-more {
-  gap: 0.5rem;
+/* 动画 */
+.animate-in-up {
+  animation: fadeInUp 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  opacity: 0;
+  transform: translateY(20px);
 }
 
-/* 深色主题 */
-.dark-theme .page-header {
-  border-bottom-color: rgba(255, 255, 255, 0.1);
+.animate-in-fade {
+  animation: fadeIn 0.6s ease forwards;
+  opacity: 0;
 }
 
-.dark-theme .page-title {
-  color: var(--text-primary-dark, #f3f4f6);
-}
+.delay-1 { animation-delay: 0.1s; }
+.delay-2 { animation-delay: 0.2s; }
+.delay-3 { animation-delay: 0.3s; }
 
-.dark-theme .page-description {
-  color: var(--text-secondary-dark, #9ca3af);
-}
-
-.dark-theme .tutorials-content {
-  background: rgba(30, 30, 30, 0.6);
-  border-color: rgba(255, 255, 255, 0.1);
-}
-
-.dark-theme .tutorial-card {
-  background: rgba(40, 40, 40, 0.9);
-  border-color: rgba(255, 255, 255, 0.05);
-}
-
-.dark-theme .tutorial-card:hover {
-  box-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.5);
-  border-color: rgba(100, 108, 255, 0.4);
-}
-
-.dark-theme .card-image {
-  background: #2d3748;
-}
-
-.dark-theme .card-title {
-  color: #e2e8f0;
-}
-
-.dark-theme .tutorial-card:hover .card-title {
-  color: #818cf8;
-}
-
-.dark-theme .card-summary {
-  color: #cbd5e0;
-}
-
-.dark-theme .card-footer {
-  border-top-color: rgba(255, 255, 255, 0.1);
-}
-
-.dark-theme .read-more {
-  color: #818cf8;
-}
-
-.dark-theme .image-placeholder {
-  color: #4a5568;
-}
-
-
-/* 响应式设计 */
-@media (max-width: 992px) {
-  .tutorials-grid {
-    grid-template-columns: repeat(2, 1fr);
+@keyframes fadeInUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
+@keyframes fadeIn {
+  to { opacity: 1; }
+}
+
+/* 列表交错动画 Vue Transition Group */
+.list-stagger-enter-active,
+.list-stagger-leave-active {
+  transition: all 0.4s ease;
+  transition-delay: var(--delay);
+}
+.list-stagger-enter-from,
+.list-stagger-leave-to {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+/* 响应式调整 */
 @media (max-width: 768px) {
+  .page-title {
+    font-size: 2rem;
+  }
+  
   .tutorials-grid {
     grid-template-columns: 1fr;
     gap: 1.5rem;
   }
   
-  .tutorials-content {
-    padding: 1.5rem;
-  }
-
-  .card-image {
-    height: 200px;
-  }
-}
-
-@media (max-width: 480px) {
-  .tutorials-content {
-    padding: 1rem;
+  .toolbar {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
   }
   
-  .page-title {
-    font-size: 1.75rem;
-  }
-  
-  .card-body {
-    padding: 1rem;
+  .sort-control {
+    display: flex;
+    justify-content: flex-end;
   }
 }
 </style>
