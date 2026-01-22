@@ -70,7 +70,13 @@ import {
   ArrowDownTrayIcon,
   WrenchScrewdriverIcon,
   KeyIcon,
-  DocumentDuplicateIcon
+  DocumentDuplicateIcon,
+  InboxIcon,
+  PlusCircleIcon,
+  EnvelopeIcon,
+  MapPinIcon,
+  ArrowUpTrayIcon,
+  BookmarkIcon
 } from '@heroicons/vue/24/outline'
 
 // Solid 图标 (用于 solid 变体)
@@ -223,7 +229,18 @@ const outlineIcons = {
   'copy': DocumentDuplicateIcon,
   'download': ArrowDownTrayIcon,
   'arrow-down-tray': ArrowDownTrayIcon,
-  'wrench-screwdriver': WrenchScrewdriverIcon
+  'wrench-screwdriver': WrenchScrewdriverIcon,
+  'inbox': InboxIcon,
+  'plus-circle': PlusCircleIcon,
+  'plus': PlusCircleIcon,
+  'envelope': EnvelopeIcon,
+  'mail': EnvelopeIcon,
+  'map-pin': MapPinIcon,
+  'location': MapPinIcon,
+  'arrow-up-tray': ArrowUpTrayIcon,
+  'upload': ArrowUpTrayIcon,
+  'save': BookmarkIcon,
+  'bookmark': BookmarkIcon
 }
 
 // Solid 图标注册表

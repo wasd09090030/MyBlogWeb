@@ -6,10 +6,13 @@ export const UserRoles = {
   ADMIN: 'admin'
 }
 
-// Token 存储键名
+// Cookie 键名
 const TOKEN_KEY = 'auth_token'
 const REFRESH_TOKEN_KEY = 'auth_refresh_token'
 const TOKEN_EXPIRES_KEY = 'auth_token_expires'
+const USER_ROLE_KEY = 'user_role'
+const IS_AUTHENTICATED_KEY = 'is_authenticated'
+const LOGIN_TIME_KEY = 'login_time'
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
@@ -41,6 +44,19 @@ export const useAuthStore = defineStore('auth', {
   },
 
   actions: {
+    // 获取 Cookie 实例
+    _getCookies() {
+      if (!import.meta.client) return {}
+      return {
+        token: useCookie(TOKEN_KEY, { maxAge: 60 * 60 * 24 * 7 }), // 7天
+        refreshToken: useCookie(REFRESH_TOKEN_KEY, { maxAge: 60 * 60 * 24 * 30 }), // 30天
+        tokenExpires: useCookie(TOKEN_EXPIRES_KEY, { maxAge: 60 * 60 * 24 * 7 }),
+        userRole: useCookie(USER_ROLE_KEY, { maxAge: 60 * 60 * 24 * 7 }),
+        isAuthenticated: useCookie(IS_AUTHENTICATED_KEY, { maxAge: 60 * 60 * 24 * 7 }),
+        loginTime: useCookie(LOGIN_TIME_KEY, { maxAge: 60 * 60 * 24 * 7 })
+      }
+    },
+
     // 验证管理员密码 - 通过API调用
     async verifyAdminPassword(password) {
       const config = useRuntimeConfig()
@@ -72,10 +88,12 @@ export const useAuthStore = defineStore('auth', {
           this.refreshToken = result.refreshToken
           this.tokenExpiresAt = result.expiresAt
           
-          if (process.client) {
-            localStorage.setItem(TOKEN_KEY, result.token)
-            localStorage.setItem(REFRESH_TOKEN_KEY, result.refreshToken)
-            localStorage.setItem(TOKEN_EXPIRES_KEY, result.expiresAt)
+          // 使用 Cookie 存储
+          if (import.meta.client) {
+            const cookies = this._getCookies()
+            cookies.token.value = result.token
+            cookies.refreshToken.value = result.refreshToken
+            cookies.tokenExpires.value = result.expiresAt
           }
           
           return {
@@ -127,10 +145,11 @@ export const useAuthStore = defineStore('auth', {
           this.refreshToken = result.refreshToken
           this.tokenExpiresAt = result.expiresAt
           
-          if (process.client) {
-            localStorage.setItem(TOKEN_KEY, result.token)
-            localStorage.setItem(REFRESH_TOKEN_KEY, result.refreshToken)
-            localStorage.setItem(TOKEN_EXPIRES_KEY, result.expiresAt)
+          if (import.meta.client) {
+            const cookies = this._getCookies()
+            cookies.token.value = result.token
+            cookies.refreshToken.value = result.refreshToken
+            cookies.tokenExpires.value = result.expiresAt
           }
           return true
         }
@@ -197,12 +216,10 @@ export const useAuthStore = defineStore('auth', {
 
           // 验证成功，设置认证状态
           this.isAuthenticated = true
-          if (process.client) {
-            localStorage.setItem('isAuthenticated', 'true')
-
-            // 记录登录时间（用于会话超时）
-            const loginTime = Date.now()
-            localStorage.setItem('loginTime', loginTime.toString())
+          if (import.meta.client) {
+            const cookies = this._getCookies()
+            cookies.isAuthenticated.value = 'true'
+            cookies.loginTime.value = Date.now().toString()
           }
         }
       }
@@ -210,8 +227,9 @@ export const useAuthStore = defineStore('auth', {
       // 更新角色
       if (Object.values(UserRoles).includes(role)) {
         this.userRole = role
-        if (process.client) {
-          localStorage.setItem('userRole', role)
+        if (import.meta.client) {
+          const cookies = this._getCookies()
+          cookies.userRole.value = role
         }
         return {
           success: true
@@ -263,13 +281,14 @@ export const useAuthStore = defineStore('auth', {
       this.refreshToken = null
       this.tokenExpiresAt = null
 
-      if (process.client) {
-        localStorage.setItem('userRole', UserRoles.GUEST)
-        localStorage.removeItem('isAuthenticated')
-        localStorage.removeItem('loginTime')
-        localStorage.removeItem(TOKEN_KEY)
-        localStorage.removeItem(REFRESH_TOKEN_KEY)
-        localStorage.removeItem(TOKEN_EXPIRES_KEY)
+      if (import.meta.client) {
+        const cookies = this._getCookies()
+        cookies.userRole.value = UserRoles.GUEST
+        cookies.isAuthenticated.value = null
+        cookies.loginTime.value = null
+        cookies.token.value = null
+        cookies.refreshToken.value = null
+        cookies.tokenExpires.value = null
       }
 
       return {
@@ -277,16 +296,40 @@ export const useAuthStore = defineStore('auth', {
       }
     },
 
+    // 修改密码
+    async changePassword(currentPassword, newPassword) {
+      const config = useRuntimeConfig()
+      const baseURL = config.public.apiBase
+
+      try {
+        const result = await $fetch(`${baseURL}/auth/change-password`, {
+          method: 'POST',
+          headers: this.authHeaders,
+          body: { currentPassword, newPassword }
+        })
+
+        return result
+      } catch (error) {
+        console.error('修改密码失败:', error)
+        return {
+          success: false,
+          message: error.data?.message || '修改密码失败，请重试'
+        }
+      }
+    },
+
     // 初始化状态
     initialize() {
-      if (!process.client) return
+      if (!import.meta.client) return
 
-      const savedRole = localStorage.getItem('userRole')
-      const savedAuth = localStorage.getItem('isAuthenticated')
-      const savedLoginTime = localStorage.getItem('loginTime')
-      const savedToken = localStorage.getItem(TOKEN_KEY)
-      const savedRefreshToken = localStorage.getItem(REFRESH_TOKEN_KEY)
-      const savedTokenExpires = localStorage.getItem(TOKEN_EXPIRES_KEY)
+      const cookies = this._getCookies()
+      
+      const savedRole = cookies.userRole.value
+      const savedAuth = cookies.isAuthenticated.value
+      const savedLoginTime = cookies.loginTime.value
+      const savedToken = cookies.token.value
+      const savedRefreshToken = cookies.refreshToken.value
+      const savedTokenExpires = cookies.tokenExpires.value
 
       // 恢复 Token
       if (savedToken) {
@@ -324,7 +367,8 @@ export const useAuthStore = defineStore('auth', {
       // 如果之前保存的是管理员角色但没有通过认证，则重置为游客
       if (savedRole === UserRoles.ADMIN && !this.isAuthenticated) {
         this.userRole = UserRoles.GUEST
-        localStorage.setItem('userRole', UserRoles.GUEST)
+        const cookies = this._getCookies()
+        cookies.userRole.value = UserRoles.GUEST
       }
       // 否则恢复之前保存的角色
       else if (savedRole && Object.values(UserRoles).includes(savedRole)) {

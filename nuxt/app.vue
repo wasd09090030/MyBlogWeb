@@ -1,6 +1,6 @@
 <template>
   <NuxtLayout>
-    <NuxtPage :keepalive="true" :page-key="getPageKey" />
+    <NuxtPage :keepalive="shouldKeepAlive" :page-key="getPageKey" />
   </NuxtLayout>
 </template>
 
@@ -8,18 +8,24 @@
 
 const route = useRoute()
 
+// 判断是否启用 keepalive - admin 页面禁用以避免布局切换冲突
+const shouldKeepAlive = computed(() => {
+  return !route.path.startsWith('/admin')
+})
+
 // 获取页面 key - 对于首页使用固定 key 以启用缓存
 const getPageKey = (route) => {
-  console.log('getPageKey 被调用, route.name:', route.name, 'route.path:', route.path, 'route.fullPath:', route.fullPath)
+  // admin 页面不需要缓存 key
+  if (route.path.startsWith('/admin')) {
+    return route.fullPath
+  }
 
   // 对于首页（index 页面），使用固定的 key 以便缓存
   if (route.name === 'index') {
-    console.log('→ 返回固定 key: index-page')
     return 'index-page'
   }
 
   // 对于其他页面，使用完整路径作为 key
-  console.log('→ 返回动态 key:', route.fullPath)
   return route.fullPath
 }
 
