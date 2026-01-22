@@ -68,7 +68,9 @@ import {
   TrashIcon,
   EllipsisHorizontalIcon,
   ArrowDownTrayIcon,
-  WrenchScrewdriverIcon
+  WrenchScrewdriverIcon,
+  KeyIcon,
+  DocumentDuplicateIcon
 } from '@heroicons/vue/24/outline'
 
 // Solid 图标 (用于 solid 变体)
@@ -162,6 +164,7 @@ const outlineIcons = {
   'person-circle': UserCircleIcon,
   'link': LinkIcon,
   'link-45deg': LinkIcon,
+  'code': CodeBracketIcon,
   'code-bracket': CodeBracketIcon,
   'code-slash': CodeBracketIcon,
   'github': CodeBracketIcon,
@@ -199,6 +202,7 @@ const outlineIcons = {
   'layout-text-sidebar-reverse': Bars3BottomLeftIcon,
   'eye': EyeIcon,
   'clock': ClockIcon,
+  'key': KeyIcon,
   'tag': TagIcon,
   'information-circle': InformationCircleIcon,
   'exclamation-circle': ExclamationCircleIcon,
@@ -215,6 +219,8 @@ const outlineIcons = {
   'file-word': DocumentArrowUpIcon,
   'document-arrow-down': DocumentArrowDownIcon,
   'document-arrow-up': DocumentArrowUpIcon,
+  'document-duplicate': DocumentDuplicateIcon,
+  'copy': DocumentDuplicateIcon,
   'download': ArrowDownTrayIcon,
   'arrow-down-tray': ArrowDownTrayIcon,
   'wrench-screwdriver': WrenchScrewdriverIcon

@@ -3,44 +3,27 @@
     <!-- 头部区域：包含标题和筛选器 -->
     <div class="page-hero">
       <div class="container-fluid">
-        <div class="hero-content text-center">
-          <h1 class="page-title animate-in-up">教程专栏</h1>
-          <p class="page-description animate-in-up delay-1">
-            循序渐进，系统化掌握核心技术
-          </p>
-          
-          <!-- 筛选与排序工具栏 -->
-          <div class="toolbar animate-in-up delay-2">
-            <div class="filter-scroll-container">
-              <button 
-                class="filter-chip" 
-                :class="{ active: selectedTag === 'all' }"
-                @click="selectTag('all')"
-              >
-                全部
-              </button>
-              <button 
-                v-for="tag in availableTags" 
-                :key="tag"
-                class="filter-chip"
-                :class="{ active: selectedTag === tag }"
-                @click="selectTag(tag)"
-              >
-                {{ tag }}
-              </button>
-            </div>
-            
-            <div class="sort-control">
-              <button 
-                class="sort-btn" 
-                @click="toggleSort" 
-                :title="sortOrder === 'desc' ? '切换为最早发布' : '切换为最新发布'"
-              >
-                <Icon name="arrow-down-up" size="sm" class="me-1" />
-                {{ sortOrder === 'desc' ? '最新发布' : '最早发布' }}
-              </button>
-            </div>
-          </div>
+        <div class="tags-container">
+          <Motion
+            v-for="tag in availableTags"
+            :key="tag"
+            as="button"
+            class="filter-chip"
+            :class="{ active: selectedTag === tag }"
+            :initial="{ opacity: 0, scale: 0.9 }"
+            :animate="{ opacity: 1, scale: 1 }"
+            :transition="{ 
+              type: 'spring', 
+              stiffness: 400, 
+              damping: 25,
+              mass: 0.8
+            }"
+            :while-hover="{ scale: 1.05 }"
+            :while-tap="{ scale: 0.95 }"
+            @click="selectTag(tag)"
+          >
+            {{ tag }}
+          </Motion>
         </div>
       </div>
     </div>
@@ -137,6 +120,7 @@
 </template>
 
 <script setup>
+import { Motion } from 'motion-v'
 import { useArticles } from '~/composables/useArticles'
 
 definePageMeta({
@@ -233,7 +217,11 @@ const paginatedArticles = computed(() => {
 
 // 交互方法
 const selectTag = (tag) => {
-  selectedTag.value = tag
+  if (selectedTag.value === tag) {
+    selectedTag.value = 'all'
+  } else {
+    selectedTag.value = tag
+  }
   currentPage.value = 1 // 重置页码
 }
 
@@ -301,97 +289,61 @@ defineExpose({ refreshData: fetchArticles })
 
 /* Hero Section */
 .page-hero {
-  padding: 2rem 1rem 1.5rem;
-  margin-bottom: 1.5rem;
-}
-
-.page-title {
-  font-size: 2.25rem;
-  font-weight: 800;
-  margin-bottom: 0.5rem;
-  background: linear-gradient(135deg, var(--text-primary) 0%, var(--text-secondary) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  letter-spacing: -0.02em;
-}
-
-.page-description {
-  font-size: 1.1rem;
-  color: var(--text-secondary);
-  max-width: 600px;
-  margin: 0 auto 2rem;
-}
-
-/* 筛选工具栏 */
-.toolbar {
+  padding: 2rem 1rem 1rem;
+  margin-bottom: 1rem;
   display: flex;
   justify-content: center;
-  align-items: center;
-  gap: 1.5rem;
+}
+
+.tags-container {
+  display: flex;
   flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.8rem;
   max-width: 900px;
   margin: 0 auto;
-  padding: 0.5rem;
-}
-
-.filter-scroll-container {
-  display: flex;
-  gap: 0.75rem;
-  overflow-x: auto;
-  padding: 0.25rem 0.5rem;
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE/Edge */
-  max-width: 100%;
-}
-
-.filter-scroll-container::-webkit-scrollbar {
-  display: none;
 }
 
 .filter-chip {
-  padding: 0.4rem 1rem;
-  border-radius: 2rem;
-  border: 1px solid var(--border-color);
-  background: rgba(255, 255, 255, 0.5);
+  padding: 0.5rem 1.2rem;
+  border-radius: 9999px; /* Pill shape */
+  border: 1px solid rgba(var(--accent-primary-rgb), 0.15);
+  background: rgba(255, 255, 255, 0.6);
   color: var(--text-secondary);
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s ease;
   white-space: nowrap;
-  backdrop-filter: blur(4px);
+  backdrop-filter: blur(8px);
+  /* Pastel colors logic - simplified to soft accent */
+  background: color-mix(in srgb, var(--bg-secondary), white 40%);
+  color: color-mix(in srgb, var(--text-secondary), var(--accent-primary) 20%);
+  border-color: transparent;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+}
+
+.dark-theme .filter-chip {
+  background: rgba(30, 30, 30, 0.4);
+  color: var(--text-secondary);
 }
 
 .filter-chip:hover {
-  background: rgba(255, 255, 255, 0.8);
-  border-color: var(--accent-primary);
+  background: white;
   color: var(--accent-primary);
-  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.dark-theme .filter-chip:hover {
+  background: rgba(50, 50, 50, 0.6);
+  color: var(--accent-primary);
 }
 
 .filter-chip.active {
-  background: var(--accent-primary);
-  border-color: var(--accent-primary);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--accent-primary), white 20%), var(--accent-primary));
   color: white;
-  box-shadow: 0 4px 12px color-mix(in srgb, var(--accent-primary), transparent 75%);
-}
-
-.sort-btn {
-  display: flex;
-  align-items: center;
-  padding: 0.4rem 1rem;
-  border-radius: 0.5rem;
-  border: none;
-  background: transparent;
-  color: var(--text-secondary);
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: color 0.2s;
-}
-
-.sort-btn:hover {
-  color: var(--accent-primary);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--accent-primary), transparent 60%);
+  border-color: transparent;
+  font-weight: 600;
 }
 
 .btn-reset {
@@ -613,24 +565,18 @@ defineExpose({ refreshData: fetchArticles })
 
 /* 响应式调整 */
 @media (max-width: 768px) {
-  .page-title {
-    font-size: 2rem;
-  }
-  
   .tutorials-grid {
     grid-template-columns: 1fr;
     gap: 1.5rem;
   }
   
-  .toolbar {
-    flex-direction: column;
-    gap: 1rem;
-    align-items: stretch;
+  .tags-container {
+    gap: 0.5rem;
   }
   
-  .sort-control {
-    display: flex;
-    justify-content: flex-end;
+  .filter-chip {
+    padding: 0.4rem 1rem;
+    font-size: 0.9rem;
   }
 }
 </style>
