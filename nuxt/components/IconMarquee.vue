@@ -33,26 +33,24 @@
 <script setup>
 // 第一列图标配置
 const iconsColumn1 = [
-  { id: 1, src: '/icon/1.png' },
-  { id: 2, src: '/icon/2.png' },
-  { id: 3, src: '/icon/3.png' },
-  { id: 4, src: '/icon/4.png' },
-  { id: 5, src: '/icon/5.png' },
-  { id: 6, src: '/icon/6.png' },
-  { id: 7, src: '/icon/7.png' },
-  { id: 8, src: '/icon/8.png' }
+  { id: 1, src: '/icon/unityeditoricon.svg' },
+  { id: 2, src: '/icon/cloudflare_icon.svg' },
+  { id: 3, src: '/icon/file_type_vscode_icon.svg' },
+  { id: 4, src: '/icon/file_type_vue_icon_130078.svg' },
+  { id: 5, src: '/icon/flutterio_logo_icon_171148.svg' },
+  { id: 6, src: '/icon/folder_react_icon.svg' },
+  { id: 7, src: '/icon/github_111098.svg' }
 ]
 
 // 第二列图标配置
 const iconsColumn2 = [
-  { id: 9, src: '/icon/9.png' },
-  { id: 10, src: '/icon/10.png' },
-  { id: 11, src: '/icon/11.png' },
-  { id: 12, src: '/icon/12.png' },
-  { id: 13, src: '/icon/13.png' },
-  { id: 14, src: '/icon/14.png' },
-  { id: 15, src: '/icon/15.png' },
-  { id: 16, src: '/icon/16.png' }
+  { id: 8, src: '/icon/google_logo_icon_169090.svg' },
+  { id: 9, src: '/icon/googleC.svg' },
+  { id: 10, src: '/icon/java_logo_icon_169577.svg' },
+  { id: 11, src: '/icon/microsoft_logo_icon_170957.svg' },
+  { id: 12, src: '/icon/steam_icon_160719.svg' },
+  { id: 13, src: '/icon/Ubuntu.svg' },
+  { id: 14, src: '/icon/Windows.svg' }
 ]
 </script>
 
@@ -110,19 +108,12 @@ const iconsColumn2 = [
   flex-shrink: 0;
 }
 
-.icon-item:hover {
-  background: rgba(47, 79, 243, 0.15);
-  border-color: rgba(42, 37, 212, 0.3);
-}
+
 
 .icon-item i {
   font-size: 1.8rem;
   color: rgba(255, 255, 255, 0.85);
   transition: color 0.3s ease;
-}
-
-.icon-item:hover i {
-  color: rgba(255, 255, 255, 1);
 }
 
 .icon-image {
@@ -132,9 +123,7 @@ const iconsColumn2 = [
   transition: transform 0.3s ease;
 }
 
-.icon-item:hover .icon-image {
-  transform: scale(1.1);
-}
+
 
 /* 向下滚动关键帧 */
 @keyframes scrollDown {
@@ -162,8 +151,4 @@ const iconsColumn2 = [
   border-color: rgba(255, 255, 255, 0.1);
 }
 
-.dark-theme .icon-item:hover {
-  background: rgba(255, 255, 255, 0.12);
-  border-color: rgba(255, 255, 255, 0.25);
-}
 </style>

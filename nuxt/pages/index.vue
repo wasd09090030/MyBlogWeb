@@ -241,7 +241,7 @@ useHead(() => ({
     { name: 'keywords', content: '博客,文章,技术分享,个人网站' }
   ],
   link: [
-    { rel: 'icon', type: 'image/x-icon', href: '/icon/favicon.ico' }
+    { rel: 'icon', type: 'image/x-icon', href: '/icon/Myfavicon.ico' }
   ]
 }))
 

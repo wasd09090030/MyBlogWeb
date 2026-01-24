@@ -87,7 +87,7 @@
 </template>
 
 <script setup>
-import { onBeforeUnmount, onMounted, ref } from 'vue';
+import { onBeforeUnmount, onMounted, ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useArticles } from '~/composables/useArticles';
 import '../assets/css/components/SideBar.styles.css';
@@ -95,12 +95,24 @@ import '../assets/css/components/SideBar.styles.css';
 const router = useRouter();
 const isCollapsed = ref(true);
 
-const categories = ref([
-  { key: 'study', label: '学习', icon: 'journal-text', count: 0 },
-  { key: 'game', label: '游戏', icon: 'controller', count: 0 },
-  { key: 'work', label: '个人作品', icon: 'code-square', count: 0 },
-  { key: 'resource', label: '资源分享', icon: 'folder2-open', count: 0 }
-]);
+// 使用优化后的composable（带缓存）
+const { getAllArticles, categoryStats, monthStats } = useArticles();
+
+// 基础分类配置
+const categoryConfig = [
+  { key: 'study', label: '学习', icon: 'journal-text' },
+  { key: 'game', label: '游戏', icon: 'controller' },
+  { key: 'work', label: '个人作品', icon: 'code-square' },
+  { key: 'resource', label: '资源分享', icon: 'folder2-open' }
+];
+
+// 计算属性：分类列表（响应式更新）
+const categories = computed(() => {
+  return categoryConfig.map(cat => ({
+    ...cat,
+    count: categoryStats.value?.[cat.key] || 0
+  }));
+});
 
 const generateRecentMonths = (length = 6) => {
   const months = [];
@@ -112,7 +124,6 @@ const generateRecentMonths = (length = 6) => {
     months.push({
       key: `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`,
       label,
-      count: 0,
       year: date.getFullYear(),
       month: date.getMonth() + 1
     });
@@ -121,56 +132,21 @@ const generateRecentMonths = (length = 6) => {
   return months;
 };
 
-const monthArchives = ref(generateRecentMonths());
+// 月份归档（计算属性，响应式更新）
+const monthArchives = computed(() => {
+  const baseMonths = generateRecentMonths();
+  return baseMonths.map(month => ({
+    ...month,
+    count: monthStats.value?.[month.key] || 0
+  }));
+});
 
-// 获取文章数据并统计分类和月份
-const { getAllArticles } = useArticles();
-
-const fetchArticleStats = async () => {
+// 初始化：确保缓存已加载
+const initStats = async () => {
   try {
-    const articles = await getAllArticles();
-    
-    // 统计分类文章数
-    const categoryCounts = {
-      study: 0,
-      game: 0,
-      work: 0,
-      resource: 0
-    };
-
-    // 统计月份文章数
-    const monthCounts = {};
-
-    articles.forEach(article => {
-      // 统计分类
-      if (article.category && categoryCounts[article.category] !== undefined) {
-        categoryCounts[article.category]++;
-      }
-
-      // 统计月份 (假设文章有 createdAt 字段)
-      if (article.createdAt) {
-        const date = new Date(article.createdAt);
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const key = `${year}-${month}`;
-        monthCounts[key] = (monthCounts[key] || 0) + 1;
-      }
-    });
-
-    // 更新分类计数
-    categories.value.forEach(category => {
-      category.count = categoryCounts[category.key] || 0;
-    });
-
-    // 更新月份计数
-    monthArchives.value.forEach(month => {
-      month.count = monthCounts[month.key] || 0;
-    });
-
-    console.log('SideBar: 文章统计完成', {
-      categories: categoryCounts,
-      months: monthCounts
-    });
+    // 调用getAllArticles会自动使用/更新缓存
+    await getAllArticles();
+    console.log('SideBar: 文章统计完成（使用缓存）');
   } catch (error) {
     console.error('SideBar: 获取文章统计失败:', error);
   }
@@ -205,8 +181,8 @@ onMounted(async () => {
     isCollapsed.value = savedState === 'collapsed';
   }
   
-  // 获取文章统计数据
-  await fetchArticleStats();
+  // 初始化文章统计（使用缓存）
+  await initStats();
 });
 
 onBeforeUnmount(() => {
