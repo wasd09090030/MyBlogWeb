@@ -47,6 +47,13 @@
   background: linear-gradient(135deg, rgba(255,255,255,0.8), rgba(248,249,250,0.9));
   cursor: pointer;
   text-align: left;
+  transition: all 0.3s ease;
+}
+
+.category-card:hover {
+  background: #b2f7ef;
+  transform: translateY(-3px);
+  box-shadow: 0 4px 12px rgba(178, 247, 239, 0.4);
 }
 
 .category-main {
@@ -121,12 +128,13 @@
   justify-content: space-between;
   align-items: center;
   background-color: rgba(248,249,250,0.9);
-  /* transition removed */
+  transition: all 0.3s ease;
 }
 
 .archive-item:hover {
-  border-color: var(--bs-primary);
-  /* transform removed */
+  box-shadow: 0 0 0 1px #b2f7ef;
+  border-color: #b2f7ef;
+  transform: translateX(5px);
 }
 
 .dark-theme .archive-item {

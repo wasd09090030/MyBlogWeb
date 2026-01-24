@@ -6,7 +6,9 @@
         <img src="https://cfimg.wasd09090030.top/file/Study/1768384800398_20251214_141332.avif" alt="Welcome Image" class="welcome-image" />
         <div class="explore-btn-container">
           <button class="explore-btn" @click="goToRandomArticle" aria-label="随机浏览文章">
-            <Icon name="arrow-path" size="md" class="me-2" />
+            <ClientOnly>
+              <Icon name="arrow-path" size="md" class="me-2" />
+            </ClientOnly>
             <span>开始探索</span>
           </button>
         </div>
@@ -30,64 +32,61 @@
       <div class="bottom-cards">
         <!-- 文章卡片 -->
         <div class="info-card articles-card" @click="goToArticles">
+          <!-- 白色斜切背景层 -->
+          <div class="hover-bg-effect"></div>
+          <!-- Hover时出现的内容 -->
+          <div class="card-hover-reveal">
+            <span class="hover-text">Start</span>
+            <ClientOnly>
+              <Icon name="arrow-right" size="lg" />
+            </ClientOnly>
+          </div>
+          <!-- 默认内容 -->
           <div class="card-content-wrapper">
-            <div class="card-header">
-              <div class="card-icon">
+            <div class="card-icon">
+              <ClientOnly>
                 <Icon name="file-text" size="lg" />
-              </div>
+              </ClientOnly>
             </div>
-            <div class="card-text-group">
-              <div class="card-title-row">
-                <h5 class="card-title">文章</h5>
-                <span class="card-chip">最新</span>
-              </div>
-              <div class="card-footer">
-                <span class="card-cta">进入</span>
-                <span class="card-wave"></span>
-              </div>
-            </div>
+            <h5 class="card-title">文章</h5>
           </div>
         </div>
 
         <!-- 画廊卡片 -->
         <div class="info-card gallery-card" @click="goToGallery">
+          <div class="hover-bg-effect"></div>
+          <div class="card-hover-reveal">
+            <span class="hover-text">Start</span>
+            <ClientOnly>
+              <Icon name="arrow-right" size="lg" />
+            </ClientOnly>
+          </div>
           <div class="card-content-wrapper">
-            <div class="card-header">
-              <div class="card-icon">
+            <div class="card-icon">
+              <ClientOnly>
                 <Icon name="images" size="lg" />
-              </div>
+              </ClientOnly>
             </div>
-            <div class="card-text-group">
-              <div class="card-title-row">
-                <h5 class="card-title">画廊</h5>
-                <span class="card-chip">灵感</span>
-              </div>
-              <div class="card-footer">
-                <span class="card-cta">进入</span>
-                <span class="card-wave"></span>
-              </div>
-            </div>
+            <h5 class="card-title">画廊</h5>
           </div>
         </div>
 
         <!-- 教程卡片 -->
         <div class="info-card host-card" @click="goToTutorials">
+          <div class="hover-bg-effect"></div>
+          <div class="card-hover-reveal">
+            <span class="hover-text">Start</span>
+            <ClientOnly>
+              <Icon name="arrow-right" size="lg" />
+            </ClientOnly>
+          </div>
           <div class="card-content-wrapper">
-            <div class="card-header">
-              <div class="card-icon">
+            <div class="card-icon">
+              <ClientOnly>
                 <Icon name="book" size="lg" />
-              </div>
+              </ClientOnly>
             </div>
-            <div class="card-text-group">
-              <div class="card-title-row">
-                <h5 class="card-title">教程</h5>
-                <span class="card-chip">进阶</span>
-              </div>
-              <div class="card-footer">
-                <span class="card-cta">进入</span>
-                <span class="card-wave"></span>
-              </div>
-            </div>
+            <h5 class="card-title">教程</h5>
           </div>
         </div>
       </div>
@@ -107,19 +106,25 @@
         <div class="fab-menu-item" @click="handleFabArticles">
           <span class="fab-menu-label">文章</span>
           <div class="fab-menu-icon articles-icon">
-            <Icon name="file-text" size="md" />
+            <ClientOnly>
+              <Icon name="file-text" size="md" />
+            </ClientOnly>
           </div>
         </div>
         <div class="fab-menu-item" @click="handleFabGallery">
           <span class="fab-menu-label">画廊</span>
           <div class="fab-menu-icon gallery-icon">
-            <Icon name="images" size="md" />
+            <ClientOnly>
+              <Icon name="images" size="md" />
+            </ClientOnly>
           </div>
         </div>
         <div class="fab-menu-item" @click="handleFabAbout">
           <span class="fab-menu-label">关于</span>
           <div class="fab-menu-icon about-icon">
-            <Icon name="person-circle" size="md" />
+            <ClientOnly>
+              <Icon name="person-circle" size="md" />
+            </ClientOnly>
           </div>
         </div>
       </div>
@@ -130,8 +135,10 @@
         :class="{ 'fab-main-btn-active': isFabExpanded }"
         @click="toggleFab"
       >
-        <Icon name="grid-3x3-gap-fill" size="lg" class="fab-icon-default" />
-        <Icon name="x-lg" size="lg" class="fab-icon-close" />
+        <ClientOnly>
+          <Icon name="grid-3x3-gap-fill" size="lg" class="fab-icon-default" />
+          <Icon name="x-lg" size="lg" class="fab-icon-close" />
+        </ClientOnly>
       </button>
     </div>
   </div>

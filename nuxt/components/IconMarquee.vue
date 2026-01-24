@@ -44,7 +44,7 @@ const iconsColumn1 = [
 
 // 第二列图标配置
 const iconsColumn2 = [
-  { id: 8, src: '/icon/google_logo_icon_169090.svg' },
+  { id: 8, src: '/icon/chatgpt_logo.svg' },
   { id: 9, src: '/icon/googleC.svg' },
   { id: 10, src: '/icon/java_logo_icon_169577.svg' },
   { id: 11, src: '/icon/microsoft_logo_icon_170957.svg' },

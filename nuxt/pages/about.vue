@@ -117,7 +117,7 @@
             :transition="{ delay: 0.3, type: 'spring', duration: 1 }"
             :hover="{ rotate: 0, scale: 1.02 }"
           >
-            <img src="/Picture/Host.webp" alt="Profile" class="profile-img" />
+            <img src="https://cfimg.wasd09090030.top/file/websource/1769253665220_Host.webp" alt="Profile" class="profile-img" />
           </Motion>
           
           <Motion

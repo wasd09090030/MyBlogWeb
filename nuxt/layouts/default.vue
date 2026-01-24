@@ -10,7 +10,7 @@
         <header class="app-navbar" :class="{ 'navbar-hidden': isNavbarHidden, 'navbar-scrolled': hasScrolled }">
           <div class="navbar-container">
             <NuxtLink to="/" class="navbar-brand">
-              <img src="/Picture/Mylogo.webp" alt="Logo" class="navbar-logo" />
+              <img src="https://cfimg.wasd09090030.top/file/websource/1769254183482_logo.webp" alt="Logo" class="navbar-logo" />
             </NuxtLink>
             <nav class="navbar-center-nav d-none d-lg-flex">
               <NuxtLink to="/" class="nav-link">
@@ -300,16 +300,7 @@ onUnmounted(() => {
   justify-content: space-between;
   position: relative;
 }
-.navbar-brand {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--primary-color, #0099ff);
-  text-decoration: none;
-  transition: color 0.2s;
-}
-.navbar-brand:hover {
-  color: var(--primary-color-hover, #3456ff);
-}
+
 .navbar-center-nav {
   display: flex;
   align-items: center;

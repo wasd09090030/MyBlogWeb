@@ -241,6 +241,7 @@
 
 /* 顶部区域布局 */
 .top-section {
+  flex: 1; /* 让顶部区域占据剩余空间 */
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -251,7 +252,7 @@
   border: 1px solid rgba(102, 126, 234, 0.15);
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
   transition: all 0.3s ease;
-  min-height: auto;
+  min-height: 0; /* 允许压缩 */
   position: relative;
   overflow: hidden;
 }
@@ -317,229 +318,122 @@
   flex: 0 0 auto;
   display: flex;
   gap: 15px;
-  height: 100px;
+  height: 65px; /* Adjusted to 65px as requested */
+  margin-bottom: 0; /* Ensure tight to bottom if needed */
 }
 
-/* 信息卡片重设计：纯色渐变 + 交互动效 */
+/* 信息卡片重设计：纯色剪影风格 */
 .info-card {
-  --card-from: #102040;
-  --card-to: #1f3b73;
-  --card-accent: #7dd3fc;
   flex: 1;
   position: relative;
-  border-radius: 14px;
+  border-radius: 10px;
   padding: 0;
   cursor: pointer;
   overflow: hidden;
-  background:
-    radial-gradient(circle at 120% -20%, rgba(255, 255, 255, 0.12), transparent 40%),
-    linear-gradient(135deg, var(--card-from), var(--card-to));
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  transition: transform 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border: none;
+  z-index: 1; 
+  /* 确保不会有 transform 影响内部 fixed/absolute 元素的参考系，不过这里没有 transform，只有子元素变化 */
 }
 
-.info-card::before {
-  content: '';
+/* 1. 背景层动画 (模拟 ::after 效果) */
+.hover-bg-effect {
   position: absolute;
-  inset: -25% auto auto -30%;
-  width: 180px;
-  height: 180px;
-  background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.3), transparent 55%);
-  opacity: 0.8;
-  filter: blur(10px);
-  transform: translate3d(0, 0, 0);
-  animation: float-glow 8s ease-in-out infinite;
+  left: -20%;
+  right: -20%;
+  top: 0;
+  bottom: 0;
+  background: white;
+  z-index: 1; /* 在原背景色之上，由于默认背景色在 .info-card 上，所以这个 div 在其上 */
+  transform: skewX(-45deg) scale(0, 1);
+  transition: transform 0.5s ease;
   pointer-events: none;
 }
 
-.info-card::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(120deg, rgba(255, 255, 255, 0) 10%, rgba(255, 255, 255, 0.08) 50%, rgba(255, 255, 255, 0) 90%);
-  opacity: 0.4;
-  transform: translateX(-20%);
-  transition: transform 0.4s ease, opacity 0.4s ease;
-  pointer-events: none;
+.info-card:hover .hover-bg-effect {
+  transform: skewX(-45deg) scale(1, 1);
 }
 
-.info-card:hover {
-  transform: translateY(-6px) scale(1.01);
-  border-color: rgba(255, 255, 255, 0.12);
-}
-
-.info-card:hover::after {
-  transform: translateX(0);
-  opacity: 0.7;
-}
-
-.info-card:active {
-  transform: translateY(-2px) scale(0.99);
-}
-
+/* 2. 原内容层 (Icon + Title) */
 .card-content-wrapper {
   position: relative;
   height: 100%;
-  min-height: 0;
   display: flex;
-  /* flex-direction: column;  Modified for horizontal layout priority */
-  flex-direction: row; /* Changed to row for compact layout */
-  justify-content: space-between;
-  align-items: center; /* Changed from stretch */
-  padding: 0 16px; /* Adjusted padding */
-  z-index: 1;
-  color: #edf2ff;
-  gap: 12px; /* Gap between icon and text */
+  flex-direction: row;
+  justify-content: center; /* Center content horizontally */
+  align-items: center;
+  padding: 0 20px;
+  z-index: 2; /* 位于背景层之上 */
+  color: #ffffff;
+  gap: 12px;
+  transition: opacity 0.3s ease; /* 简单的淡出 */
 }
 
-.card-header {
-  /* display: flex;
+.info-card:hover .card-content-wrapper {
+  opacity: 0;
+}
+
+/* 3. 新内容层 (Start + Arrow) */
+.card-hover-reveal {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 6px; */
-  /* Remapped for icon container */
+  justify-content: center;
+  gap: 8px;
+  z-index: 3; /* 最高层级 */
+  opacity: 0;
+  color: black;
+  font-weight: bold;
+  font-size: 1.2rem;
+  transition: opacity 0.3s ease 0.1s; /* 稍微延迟一点出现，配合背景划过 */
+  pointer-events: none;
+}
+
+.info-card:hover .card-hover-reveal {
+  opacity: 1;
+}
+
+.hover-text {
+  font-weight: 1000; /* Extra bold */
+  letter-spacing: 0.5px;
+}
+
+.card-icon {
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-}
-
-/* .card-icon maintained */
-
-/* New class for the text part */
-.card-text-group {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-width: 0;
-}
-
-.card-title-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-}
-
-/* .card-chip maintained */
-
-.card-body {
-  /* display: flex;
-  flex-direction: column;
-  gap: 2px;
-  flex: 1;
-  min-height: 0; */
-  /* Deprecated in new layout, style moved to .card-text-group or specific elements */ 
-  display: contents; 
+  height: 28px;
+  width: 28px;
+  opacity: 0.95;
+  transform: translateY(10px); /* 视觉修正 */
 }
 
 .card-title {
   margin: 0;
-  font-size: 1.15rem; /* Increased size back */
-  font-weight: 700;
-  letter-spacing: 0.2px;
-  line-height: 1.05;
-  text-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
-}
-
-.card-footer {
-  /* display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 4px; */
-  /* Integrated into text group or modified */
-  display: flex;
-  align-items: center;
-  justify-content: flex-start; /* Changed */
-  gap: 8px;
-  margin-top: 2px;
-}
-
-.card-cta {
-  position: relative;
-  font-size: 0.82rem;
+  font-size: 1.25rem; /* Increased font size */
   font-weight: 600;
-  letter-spacing: 0.22px;
-  color: #f8fafc;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
+  letter-spacing: 0.5px;
   line-height: 1;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
-.card-cta::after {
-  content: '→';
-  font-size: 0.9rem;
-  transition: transform 0.3s ease;
-}
 
-.info-card:hover .card-cta::after {
-  transform: translateX(4px);
-}
-
-.card-wave {
-  flex: 1;
-  height: 2px;
-  border-radius: 999px;
-  background: linear-gradient(90deg, rgba(255, 255, 255, 0.4), var(--card-accent), rgba(255, 255, 255, 0.2));
-  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15);
-  overflow: hidden;
-  position: relative;
-}
-
-.card-wave::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.7), transparent);
-  width: 40%;
-  animation: wave-flow 2.2s ease-in-out infinite;
-}
-
-.info-card:hover .card-icon {
-  transform: translateY(-2px) rotate(-2deg);
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
-}
-
-/* 三张卡片的主题色 */
+/* 三张卡片的主题色 - 更新为新配色 */
 .articles-card {
-  --card-from: #0f1b2c;
-  --card-to: #1f3a8a;
-  --card-accent: #8bd5ff;
+  background-color: #ff595eff; /* Vibrant Coral */
 }
 
 .gallery-card {
-  --card-from: #0f2321;
-  --card-to: #0f766e;
-  --card-accent: #6ff0c5;
+  background-color: #8ac926ff; /* Yellow Green */
 }
 
 .host-card {
-  --card-from: #281629;
-  --card-to: #4b2d72;
-  --card-accent: #ffc777;
-}
-
-@keyframes float-glow {
-  0%, 100% {
-    transform: translate3d(0, 0, 0);
-  }
-  50% {
-    transform: translate3d(8px, -6px, 0);
-  }
-}
-
-@keyframes wave-flow {
-  0% {
-    transform: translateX(-100%);
-  }
-  50% {
-    transform: translateX(50%);
-  }
-  100% {
-    transform: translateX(140%);
-  }
+  background-color: #1982c4ff; /* Steel Blue */
 }
 
 /* ========== 移动端悬浮按钮样式 ========== */
@@ -988,12 +882,17 @@
   box-shadow: 0 6px 14px rgba(0, 0, 0, 0.28);
 }
 
-.dark-theme .articles-card,
-.dark-theme .gallery-card,
+/* Remove gradient overrides for dark theme to maintain pure color look */
+.dark-theme .articles-card {
+  background-color: #ff595eff;
+}
+
+.dark-theme .gallery-card {
+  background-color: #8ac926ff;
+}
+
 .dark-theme .host-card {
-  background:
-    radial-gradient(circle at 120% -20%, rgba(255, 255, 255, 0.08), transparent 45%),
-    linear-gradient(135deg, var(--card-from), var(--card-to));
+  background-color: #1982c4ff;
 }
 
 .dark-theme .carousel-nav-btn {
