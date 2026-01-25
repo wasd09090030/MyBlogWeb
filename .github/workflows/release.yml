@@ -51,7 +51,7 @@ jobs:
           draft: false
           prerelease: false
           body: |
-            ## 🚀 Nuxt Frontend Release ${{ github.ref_name }}
+            ## 🚀 Nuxt Frontend Project Release ${{ github.ref_name }}
             
             ### 📦 构建信息
             - **构建时间**: ${{ job.status == 'success' && 'Success' || 'Failed' }}
