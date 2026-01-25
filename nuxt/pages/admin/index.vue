@@ -138,6 +138,12 @@
                 </template>
                 管理画廊
               </n-button>
+              <n-button block quaternary class="justify-start" @click="$router.push('/admin/imagebed')">
+                <template #icon>
+                  <Icon name="images" size="md" class="text-gray-500" />
+                </template>
+                管理图床
+              </n-button>
               <n-button block quaternary class="justify-start" @click="$router.push('/admin/password')">
                 <template #icon>
                   <Icon name="key" size="md" class="text-red-500" />

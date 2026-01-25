@@ -1,5 +1,5 @@
 export default defineNuxtConfig({
-  compatibilityDate: '2025-11-09',
+  compatibilityDate: '2026-01-09',
   devtools: { enabled: true },
 
   // CSS配置 - 使用 Tailwind Typography
@@ -21,6 +21,7 @@ export default defineNuxtConfig({
   modules: [
     '@pinia/nuxt',
     'motion-v/nuxt',
+    '@nuxt/icon', // Nuxt Icon 模块
     '@bg-dev/nuxt-naiveui', // Naive UI 模块
     '@nuxtjs/mdc' // MDC Markdown 渲染模块
   ],
@@ -32,7 +33,6 @@ export default defineNuxtConfig({
         default: 'material-theme-lighter',
         dark: 'material-theme-darker'
       },
-      lines: true,
       langs: [
         'javascript',
         'typescript',
@@ -109,13 +109,19 @@ export default defineNuxtConfig({
     }
   },
 
+  // Nuxt Icon 配置
+  icon: {
+    // 只使用 heroicons 集合（包含 outline 和 solid 变体）
+    serverBundle: {
+      collections: ['heroicons']
+    }
+  },
+
   // Naive UI 配置
   naiveui: {
     colorModePreference: 'system',
     iconSize: 18,
-    themeConfig: {},
-    // 确保正确的模块解析
-    importStyle: 'css'
+    themeConfig: {}
   },
 
   // 依赖配置
