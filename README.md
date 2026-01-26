@@ -14,8 +14,8 @@
 
 ## 🚀 技术栈
 
-**前端**: Vue 3 + Vite + Bootstrap 5 + Vue Router + Axios  
-**后端**: NestJS + TypeORM + SQLite + Markdown-it  
+**前端**: Nuxt + Vite + Naiveui + pinia + Axios  
+**后端**: .net web api 8.0 + EFcore + SQLite 
 **特色**: 组件化开发，RESTful API，性能优化
 
 ## 🛠️ 快速开始
