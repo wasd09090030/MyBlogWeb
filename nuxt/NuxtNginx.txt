@@ -67,7 +67,7 @@ listen 80;
 
     # Nuxt静态资源优先处理（关键：防止被代理到Node.js）
     location ~* ^/_nuxt/ {
-        root /www/wwwroot/Nuxt/.output/public;
+        root /www/wwwroot/Nuxt/public;
         try_files $uri $uri/ =404;
         
         # 设置正确的MIME类型
@@ -83,7 +83,7 @@ listen 80;
         }
         
         # 静态资源强缓存（1年）
-        add_header Cache-Control "public, max-age=31536000, immutable";
+        add_header Cache-Control "public, max-age=60000, immutable";
         add_header X-Content-Type-Options "nosniff";
         
         # 开启Gzip
@@ -94,7 +94,7 @@ listen 80;
 
     # 其他静态资源（icon、Picture等）
     location ~* ^/(icon|Picture|flower|pointer)/ {
-        root /www/wwwroot/Nuxt/.output/public;
+        root /www/wwwroot/Nuxt/public;
         try_files $uri $uri/ =404;
         add_header Cache-Control "public, max-age=31536000, immutable";
         expires 1y;
