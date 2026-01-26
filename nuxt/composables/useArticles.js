@@ -4,7 +4,19 @@ export const useArticles = () => {
   // 获取 API 基础 URL 的辅助函数（确保在正确的上下文中获取）
   const getBaseURL = () => {
     const config = useRuntimeConfig()
-    return config.public.apiBase || 'http://localhost:5000/api'
+    const apiBase = config.public.apiBase
+    
+    // 如果环境变量已配置，直接使用
+    if (apiBase) {
+      // SSR 阶段：如果是相对路径，转换为内网完整地址
+      if (process.server && apiBase.startsWith('/')) {
+        return 'http://127.0.0.1:5000' + apiBase
+      }
+      return apiBase
+    }
+    
+    // Fallback：开发环境默认值
+    return 'http://localhost:5000/api'
   }
   
   // 引用全局缓存

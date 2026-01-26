@@ -111,10 +111,13 @@ export default defineNuxtConfig({
 
   // Nuxt Icon 配置
   icon: {
-    // 只使用 heroicons 集合（包含 outline 和 solid 变体）
+    // 修改 API 前缀，避免与 /api/ 冲突
     serverBundle: {
       collections: ['heroicons']
-    }
+    },
+    // 自定义图标 API 路径前缀（不使用 /api/ 以避免与后端 API 冲突）
+    provider: 'server',
+    serverKnownCssClasses: ['nuxt-icon']
   },
 
   // Naive UI 配置
@@ -259,7 +262,8 @@ export default defineNuxtConfig({
 
   // 实验性功能
   experimental: {
-    payloadExtraction: true,
+    // SSR 动态站点不需要 payload 提取（避免 404 警告）
+    payloadExtraction: false,
     renderJsonPayloads: true,
     viewTransition: true,
     // 启用内联路由规则
