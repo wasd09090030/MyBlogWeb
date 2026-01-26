@@ -15,6 +15,7 @@ namespace BlogApi.Data
         public DbSet<Comment> Comments { get; set; }
         public DbSet<Like> Likes { get; set; }
         public DbSet<Gallery> Galleries { get; set; }
+        public DbSet<ImagebedConfig> ImagebedConfigs { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -94,6 +95,18 @@ namespace BlogApi.Data
                 entity.Property(e => e.ImageUrl).IsRequired();
                 entity.Property(e => e.SortOrder).HasDefaultValue(0);
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
+            });
+
+            // ImagebedConfig configuration
+            modelBuilder.Entity<ImagebedConfig>(entity =>
+            {
+                entity.ToTable("imagebed_configs");
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Domain).IsRequired();
+                entity.Property(e => e.ApiToken).IsRequired();
+                entity.Property(e => e.UploadFolder);
+                entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+                entity.Property(e => e.UpdatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
             });
         }
     }

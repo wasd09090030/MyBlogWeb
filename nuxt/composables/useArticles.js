@@ -1,14 +1,18 @@
 // 文章相关的Composable - 适配Nuxt 3
 // 提供缓存优化和非缓存两种API访问方式
 export const useArticles = () => {
-  const config = useRuntimeConfig()
-  const baseURL = config.public.apiBase
+  // 获取 API 基础 URL 的辅助函数（确保在正确的上下文中获取）
+  const getBaseURL = () => {
+    const config = useRuntimeConfig()
+    return config.public.apiBase || 'http://localhost:5000/api'
+  }
   
   // 引用全局缓存
   const articleCache = useArticleCache()
 
   // 获取推荐文章（使用useFetch自动缓存）
   const getFeaturedArticles = async (limit = 5) => {
+    const baseURL = getBaseURL()
     const { data, error } = await useFetch(`${baseURL}/articles/featured`, {
       key: `featured-articles-${limit}`,
       params: { limit },
@@ -31,6 +35,7 @@ export const useArticles = () => {
       return articleCache.searchArticlesLocal(keyword)
     }
     // 否则调用API
+    const baseURL = getBaseURL()
     return await $fetch(`${baseURL}/articles/search`, {
       params: { keyword }
     })
@@ -50,6 +55,7 @@ export const useArticles = () => {
       params.category = category
     }
 
+    const baseURL = getBaseURL()
     return await $fetch(`${baseURL}/articles`, {
       params
     })
@@ -67,11 +73,13 @@ export const useArticles = () => {
       return articleCache.getArticlesByCategory(category)
     }
     // 否则调用API
+    const baseURL = getBaseURL()
     return await $fetch(`${baseURL}/articles/category/${category}`)
   }
 
   // 获取单篇文章（使用useAsyncData缓存）
   const getArticleById = async (id) => {
+    const baseURL = getBaseURL()
     const { data, error } = await useAsyncData(
       `article-${id}`,
       () => $fetch(`${baseURL}/articles/${id}`),

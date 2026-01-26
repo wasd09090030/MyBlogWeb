@@ -2,8 +2,11 @@
 // 使用Nuxt的useState实现跨组件共享缓存
 
 export const useArticleCache = () => {
-  const config = useRuntimeConfig()
-  const baseURL = config.public.apiBase
+  // 获取 API 基础 URL 的辅助函数（确保在正确的上下文中获取）
+  const getBaseURL = () => {
+    const config = useRuntimeConfig()
+    return config.public.apiBase || 'http://localhost:5000/api'
+  }
 
   // 全局缓存状态 - 所有组件共享
   const articlesCache = useState('articles-cache', () => null)
@@ -44,6 +47,7 @@ export const useArticleCache = () => {
 
     try {
       // 使用单次大批量请求获取所有文章
+      const baseURL = getBaseURL()
       const result = await $fetch(`${baseURL}/articles`, {
         params: { summary: true, page: 1, limit: 100 }
       })

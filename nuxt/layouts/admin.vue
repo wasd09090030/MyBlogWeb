@@ -1,7 +1,8 @@
 <template>
   <n-config-provider :theme="isDarkMode ? darkTheme : null">
     <n-message-provider>
-      <div class="min-h-screen bg-gray-100 dark:bg-gray-900">
+      <n-dialog-provider>
+        <div class="min-h-screen bg-gray-100 dark:bg-gray-900">
         <!-- 顶部导航栏 -->
         <header class="bg-white dark:bg-gray-800 shadow-sm sticky top-0 z-50">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -71,7 +72,8 @@
         <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <slot />
         </main>
-      </div>
+        </div>
+      </n-dialog-provider>
     </n-message-provider>
   </n-config-provider>
 </template>
