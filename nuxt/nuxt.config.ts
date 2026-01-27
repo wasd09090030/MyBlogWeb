@@ -26,6 +26,11 @@ export default defineNuxtConfig({
     '@nuxtjs/mdc' // MDC Markdown 渲染模块
   ],
 
+  pinia: {
+    // Nuxt 4 使用 app/ 目录，需要明确指定 store 目录
+    storesDirs: ['./app/stores']
+  },
+
   // MDC 模块配置
   mdc: {
     highlight: {
