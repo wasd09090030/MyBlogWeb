@@ -87,9 +87,6 @@
 </template>
 
 <script setup>
-import { onBeforeUnmount, onMounted, ref, computed } from 'vue';
-import { useRouter } from 'vue-router';
-import { useArticles } from '~/composables/useArticles';
 import '../assets/css/components/SideBar.styles.css';
 
 const router = useRouter();

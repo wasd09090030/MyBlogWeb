@@ -23,8 +23,6 @@
 </template>
 
 <script setup>
-import { useTheme } from '~/composables/useTheme'
-
 const { isDarkMode } = useTheme()
 
 defineProps({

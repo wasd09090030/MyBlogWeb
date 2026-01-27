@@ -138,11 +138,6 @@
 </template>
 
 <script setup>
-import { useArticles } from '~/composables/useArticles'
-import CommentSection from '~/components/CommentSection.vue'
-import MarkdownRenderer from '~/components/MarkdownRenderer.vue'
-import ArticleToc from '~/components/ArticleToc.vue'
-
 const route = useRoute()
 const router = useRouter()
 const config = useRuntimeConfig()

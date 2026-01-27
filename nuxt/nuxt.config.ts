@@ -345,7 +345,9 @@ export default defineNuxtConfig({
     // 仅预渲染首页，避免全站 crawl
     prerender: {
       crawlLinks: false,
-      routes: ['/']
+      routes: ['/'],
+      // 忽略 payload.json 的 404 错误（SSR模式下正常）
+      failOnError: false
     },
     // 服务器端存储缓存
     storage: {

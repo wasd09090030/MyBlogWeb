@@ -132,13 +132,6 @@
 </template>
 
 <script setup>
-import { useGallery } from '~/composables/useGallery'
-import GalleryLoadingAnimation from '~/components/GalleryLoadingAnimation.vue'
-import FadeSlideshow from '~/components/gallery/FadeSlideshow.vue'
-import AccordionGallery from '~/components/gallery/AccordionGallery.vue'
-import CoverflowGallery from '~/components/gallery/CoverflowGallery.vue'
-import MasonryWaterfall from '~/components/gallery/MasonryWaterfall.vue'
-
 // 设置页面元数据
 useHead({
   title: 'WyrmKk - 图片画廊',
