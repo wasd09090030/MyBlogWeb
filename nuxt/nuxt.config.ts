@@ -142,8 +142,6 @@ export default defineNuxtConfig({
         'swiper',
         'swiper/bundle',
         'naive-ui',
-        // '@heroicons/vue/24/outline',
-        // '@heroicons/vue/24/solid',
         'katex',
         'motion-v',
         '@vueuse/core',
@@ -312,37 +310,20 @@ export default defineNuxtConfig({
         'cache-control': 'no-cache, no-store, must-revalidate'
       }
     },
-    // 首页和文章列表 - SWR缓存策略
+    // 首页 - 预渲染 + ISR
     '/': {
-      swr: 60, // 60秒重新验证
-      cache: {
-        maxAge: 60,
-        staleMaxAge: 120
-      }
+      prerender: true,
+      isr: 3600 // 60秒重新验证
     },
-    // 文章详情页 - ISR增量静态再生成
+    // 其余页面保持 SSR
     '/article/**': {
-      swr: 300, // 5分钟重新验证
-      cache: {
-        maxAge: 300,
-        staleMaxAge: 600
-      }
+      ssr: true
     },
-    // 画廊页面
     '/gallery': {
-      swr: 600, // 10分钟重新验证
-      cache: {
-        maxAge: 600,
-        staleMaxAge: 1200
-      }
+      ssr: true
     },
-    // 关于页面 - 长期缓存
     '/about': {
-      swr: 3600,
-      cache: {
-        maxAge: 3600,
-        staleMaxAge: 7200
-      }
+      ssr: true
     }
   },
 
@@ -361,10 +342,10 @@ export default defineNuxtConfig({
     },
     // 优化服务器输出
     minify: true,
-    // 禁用预渲染（避免 Nuxt 3.20+ 的 styles.mjs 模块解析问题）
+    // 仅预渲染首页，避免全站 crawl
     prerender: {
       crawlLinks: false,
-      routes: []
+      routes: ['/']
     },
     // 服务器端存储缓存
     storage: {

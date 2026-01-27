@@ -6,9 +6,9 @@
         <img src="https://cfimg.wasd09090030.top/file/Study/1768384800398_20251214_141332.avif" alt="Welcome Image" class="welcome-image" />
         <div class="explore-btn-container">
           <button class="explore-btn" @click="goToRandomArticle" aria-label="随机浏览文章">
-            <ClientOnly>
+
               <Icon name="arrow-path" size="md" class="me-2" />
-            </ClientOnly>
+
             <span>开始探索</span>
           </button>
         </div>
@@ -37,9 +37,9 @@
           <!-- Hover时出现的内容 -->
           <div class="card-hover-reveal">
             <span class="hover-text">Start</span>
-            <ClientOnly>
+  
               <Icon name="arrow-right" size="lg" />
-            </ClientOnly>
+         
           </div>
           <!-- 默认内容 -->
           <div class="card-content-wrapper">

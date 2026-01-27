@@ -155,9 +155,9 @@
 
 // SEO 优化
 useHead({
-  title: '实用工具箱',
+  title: '实用的纯前端实现的工具箱',
   meta: [
-    { name: 'description', content: '在线工具集合，包括 Markdown 转 PDF/DOCX 等实用功能' }
+    { name: 'description', content: '在线工具集合，包括 Markdown 转 PDF/DOCX 、图片与base64互转、图片压缩/转化格式、密码生成、文本差异对比等实用功能' }
   ]
 })
 </script>
