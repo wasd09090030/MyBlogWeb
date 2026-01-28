@@ -5,6 +5,7 @@ namespace BlogApi.DTOs
     public class CreateArticleDto
     {
         public string Title { get; set; } = string.Empty;
+        public string? Slug { get; set; }
         public string Content { get; set; } = string.Empty;
         public string? ContentMarkdown { get; set; }
         public string? CoverImage { get; set; }
@@ -16,6 +17,7 @@ namespace BlogApi.DTOs
     public class UpdateArticleDto
     {
         public string? Title { get; set; }
+        public string? Slug { get; set; }
         public string? Content { get; set; }
         public string? ContentMarkdown { get; set; }
         public string? CoverImage { get; set; }
@@ -28,6 +30,7 @@ namespace BlogApi.DTOs
     {
         public int Id { get; set; }
         public string Title { get; set; } = string.Empty;
+        public string? Slug { get; set; }
         public string? CoverImage { get; set; }
         public ArticleCategory Category { get; set; }
         public DateTime CreatedAt { get; set; }
@@ -42,6 +45,7 @@ namespace BlogApi.DTOs
     {
         public int Id { get; set; }
         public string Title { get; set; } = string.Empty;
+        public string? Slug { get; set; }
         public string Content { get; set; } = string.Empty;
         public string? ContentMarkdown { get; set; }
         public string? CoverImage { get; set; }

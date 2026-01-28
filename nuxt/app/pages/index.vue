@@ -402,6 +402,13 @@ const listContext = computed(() => {
   }
 })
 
+const getArticlePath = (article) => {
+  if (!article?.id || article.id === 'null' || article.id === 'undefined') {
+    return '/'
+  }
+  return article.slug ? `/article/${article.id}-${article.slug}` : `/article/${article.id}`
+}
+
 const articleRoutesMap = computed(() => {
   const query = {}
   if (route.query.search) {
@@ -414,7 +421,7 @@ const articleRoutesMap = computed(() => {
   const routesMap = new Map()
   listContext.value.articles.forEach(article => {
     routesMap.set(article.id, {
-      path: `/article/${article.id}`,
+      path: getArticlePath(article),
       query: { ...query }
     })
   })
@@ -479,7 +486,7 @@ const getArticleDetailRoute = (articleId) => {
     console.warn('ArticleList: 无效的 articleId:', articleId)
     return { path: '/' }
   }
-  return articleRoutesMap.value.get(articleId) || { path: `/article/${articleId}`, query: {} }
+  return articleRoutesMap.value.get(articleId) || { path: getArticlePath({ id: articleId }), query: {} }
 }
 
 const handleImageError = (event) => {

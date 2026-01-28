@@ -178,6 +178,13 @@ const articleCount = ref(0)
 const latestArticles = ref([])
 const commentStats = ref({ total: 0, pending: 0 })
 
+const getArticlePath = (article) => {
+  if (!article?.id || article.id === 'null' || article.id === 'undefined') {
+    return '/'
+  }
+  return article.slug ? `/article/${article.id}-${article.slug}` : `/article/${article.id}`
+}
+
 // 表格列配置
 const tableColumns = [
   {
@@ -187,7 +194,7 @@ const tableColumns = [
     render: (row) => h(
       'a',
       {
-        href: `/article/${row.id}`,
+        href: getArticlePath(row),
         target: '_blank',
         class: 'text-primary hover:underline'
       },

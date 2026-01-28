@@ -28,6 +28,7 @@ namespace BlogApi.Data
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.Id).HasColumnName("id");
                 entity.Property(e => e.Title).HasColumnName("title").IsRequired();
+                entity.Property(e => e.Slug).HasColumnName("slug").HasMaxLength(200).IsRequired();
                 entity.Property(e => e.Content).HasColumnName("content").IsRequired();
                 entity.Property(e => e.ContentMarkdown).HasColumnName("contentMarkdown");
                 entity.Property(e => e.CoverImage).HasColumnName("coverImage");
@@ -62,6 +63,7 @@ namespace BlogApi.Data
                 
                 entity.Property(e => e.CreatedAt).HasColumnName("createdAt");
                 entity.Property(e => e.UpdatedAt).HasColumnName("updatedAt");
+                entity.HasIndex(e => e.Slug).IsUnique();
                 entity.HasMany(e => e.Comments)
                     .WithOne(c => c.Article)
                     .HasForeignKey(c => c.ArticleId)

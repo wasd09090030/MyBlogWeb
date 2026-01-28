@@ -33,6 +33,17 @@
                 />
               </n-form-item>
 
+              <!-- Slug -->
+              <n-form-item label="文章 Slug（英文）">
+                <div class="w-full">
+                  <n-input
+                    v-model:value="articleForm.slug"
+                    placeholder="可留空自动生成，例如: nuxt-seo-guide"
+                  />
+                  <p class="text-xs text-gray-500 mt-1">留空时后台会自动生成英文 slug</p>
+                </div>
+              </n-form-item>
+
               <!-- 文章类别 -->
               <n-form-item label="文章类别">
                 <n-select
@@ -191,6 +202,7 @@ const isGeneratingAi = ref(false)
 
 const articleForm = ref({
   title: '',
+  slug: '',
   contentMarkdown: '',
   coverImage: '',
   category: 'study',
@@ -244,6 +256,7 @@ const fetchArticle = async (id) => {
     const article = await getArticle(id)
     articleForm.value = {
       title: article.title,
+      slug: article.slug || '',
       contentMarkdown: article.contentMarkdown || article.content,
       coverImage: article.coverImage || '',
       category: article.category || 'study',
@@ -282,6 +295,7 @@ const saveArticle = async () => {
   try {
     const payload = {
       title: articleForm.value.title,
+      slug: articleForm.value.slug?.trim() || null,
       contentMarkdown: articleForm.value.contentMarkdown,
       coverImage: articleForm.value.coverImage || null,
       category: articleForm.value.category.toLowerCase(),

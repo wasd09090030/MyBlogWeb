@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using BlogApi.Data;
 using BlogApi.Models;
 using BlogApi.DTOs;
+using BlogApi.Utils;
 
 namespace BlogApi.Services
 {
@@ -19,6 +20,7 @@ namespace BlogApi.Services
             var article = new Article
             {
                 Title = dto.Title,
+                Slug = await GenerateUniqueSlugAsync(dto.Slug ?? dto.Title),
                 Content = dto.Content,
                 ContentMarkdown = dto.ContentMarkdown,
                 CoverImage = dto.CoverImage,
@@ -67,6 +69,7 @@ namespace BlogApi.Services
                 {
                     Id = a.Id,
                     Title = a.Title,
+                    Slug = a.Slug,
                     CoverImage = a.CoverImage,
                     Category = a.Category,
                     CreatedAt = a.CreatedAt,
@@ -175,6 +178,7 @@ namespace BlogApi.Services
                 {
                     Id = a.Id,
                     Title = a.Title,
+                    Slug = a.Slug,
                     CoverImage = a.CoverImage,
                     Category = a.Category,
                     CreatedAt = a.CreatedAt,
@@ -202,6 +206,14 @@ namespace BlogApi.Services
             if (article == null) return null;
 
             if (dto.Title != null) article.Title = dto.Title;
+            if (dto.Slug != null)
+            {
+                article.Slug = await GenerateUniqueSlugAsync(dto.Slug, article.Id);
+            }
+            else if (string.IsNullOrWhiteSpace(article.Slug))
+            {
+                article.Slug = await GenerateUniqueSlugAsync(article.Title, article.Id);
+            }
             if (dto.Content != null) article.Content = dto.Content;
             if (dto.ContentMarkdown != null) article.ContentMarkdown = dto.ContentMarkdown;
             if (dto.CoverImage != null) article.CoverImage = dto.CoverImage;
@@ -213,6 +225,26 @@ namespace BlogApi.Services
 
             await _context.SaveChangesAsync();
             return article;
+        }
+
+        private async Task<string> GenerateUniqueSlugAsync(string? source, int? excludeId = null)
+        {
+            var baseSlug = SlugHelper.Slugify(source ?? string.Empty);
+            if (string.IsNullOrWhiteSpace(baseSlug))
+            {
+                baseSlug = "article";
+            }
+
+            var slug = baseSlug;
+            var suffix = 1;
+
+            while (await _context.Articles.AnyAsync(a => a.Slug == slug && (!excludeId.HasValue || a.Id != excludeId.Value)))
+            {
+                suffix++;
+                slug = $"{baseSlug}-{suffix}";
+            }
+
+            return slug;
         }
 
         public async Task<bool> DeleteAsync(int id)

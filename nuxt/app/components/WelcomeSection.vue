@@ -44,9 +44,9 @@
           <!-- 默认内容 -->
           <div class="card-content-wrapper">
             <div class="card-icon">
-              <ClientOnly>
+        
                 <Icon name="file-text" size="lg" />
-              </ClientOnly>
+        
             </div>
             <h5 class="card-title">文章</h5>
           </div>
@@ -57,15 +57,15 @@
           <div class="hover-bg-effect"></div>
           <div class="card-hover-reveal">
             <span class="hover-text">Start</span>
-            <ClientOnly>
+        
               <Icon name="arrow-right" size="lg" />
-            </ClientOnly>
+
           </div>
           <div class="card-content-wrapper">
             <div class="card-icon">
-              <ClientOnly>
+        
                 <Icon name="images" size="lg" />
-              </ClientOnly>
+      
             </div>
             <h5 class="card-title">画廊</h5>
           </div>
@@ -76,15 +76,15 @@
           <div class="hover-bg-effect"></div>
           <div class="card-hover-reveal">
             <span class="hover-text">Start</span>
-            <ClientOnly>
+          
               <Icon name="arrow-right" size="lg" />
-            </ClientOnly>
+       
           </div>
           <div class="card-content-wrapper">
             <div class="card-icon">
-              <ClientOnly>
+          
                 <Icon name="book" size="lg" />
-              </ClientOnly>
+          
             </div>
             <h5 class="card-title">教程</h5>
           </div>
@@ -106,25 +106,24 @@
         <div class="fab-menu-item" @click="handleFabArticles">
           <span class="fab-menu-label">文章</span>
           <div class="fab-menu-icon articles-icon">
-            <ClientOnly>
+         
               <Icon name="file-text" size="md" />
-            </ClientOnly>
+         
           </div>
         </div>
         <div class="fab-menu-item" @click="handleFabGallery">
           <span class="fab-menu-label">画廊</span>
           <div class="fab-menu-icon gallery-icon">
-            <ClientOnly>
+      
               <Icon name="images" size="md" />
-            </ClientOnly>
+       
           </div>
         </div>
         <div class="fab-menu-item" @click="handleFabAbout">
           <span class="fab-menu-label">关于</span>
           <div class="fab-menu-icon about-icon">
-            <ClientOnly>
+       
               <Icon name="person-circle" size="md" />
-            </ClientOnly>
           </div>
         </div>
       </div>
@@ -135,10 +134,10 @@
         :class="{ 'fab-main-btn-active': isFabExpanded }"
         @click="toggleFab"
       >
-        <ClientOnly>
+      
           <Icon name="grid-3x3-gap-fill" size="lg" class="fab-icon-default" />
           <Icon name="x-lg" size="lg" class="fab-icon-close" />
-        </ClientOnly>
+ 
       </button>
     </div>
   </div>
@@ -233,7 +232,7 @@ const goToRandomArticle = async () => {
 
       if (randomArticle && randomArticle.id) {
         console.log('随机跳转到文章:', randomArticle.id, '-', randomArticle.title)
-        router.push(`/article/${randomArticle.id}`)
+        router.push(getArticlePath(randomArticle))
       }
     } else {
       console.warn('没有找到可用的文章')
@@ -247,6 +246,13 @@ const goToRandomArticle = async () => {
 onMounted(async () => {
   console.log('WelcomeSection: 组件挂载')
 })
+
+const getArticlePath = (article) => {
+  if (!article?.id || article.id === 'null' || article.id === 'undefined') {
+    return '/'
+  }
+  return article.slug ? `/article/${article.id}-${article.slug}` : `/article/${article.id}`
+}
 </script>
 
 <style scoped>

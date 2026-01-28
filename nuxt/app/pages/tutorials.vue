@@ -46,7 +46,7 @@
           <NuxtLink
             v-for="(article, index) in paginatedArticles"
             :key="article.id"
-            :to="`/article/${article.id}`"
+            :to="getArticlePath(article)"
             class="tutorial-card glass-panel"
             :style="{ '--delay': `${index * 0.05}s` }"
           >
@@ -250,6 +250,13 @@ const scrollToListTop = () => {
 const handleImageError = (event) => {
   event.target.style.display = 'none'
   event.target.parentElement.classList.add('image-error-fallback')
+}
+
+const getArticlePath = (article) => {
+  if (!article?.id || article.id === 'null' || article.id === 'undefined') {
+    return '/'
+  }
+  return article.slug ? `/article/${article.id}-${article.slug}` : `/article/${article.id}`
 }
 
 const formatDate = (dateString) => {

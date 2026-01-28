@@ -141,13 +141,16 @@
 const route = useRoute()
 const router = useRouter()
 const config = useRuntimeConfig()
+const rawIdParam = computed(() => String(route.params.id || ''))
+const articleId = computed(() => rawIdParam.value.split('-')[0])
+const routeSlug = computed(() => rawIdParam.value.split('-').slice(1).join('-'))
 
 // SSR 预取文章数据
 const { data: article, pending, error } = await useAsyncData(
   `article-${route.params.id}`,
   async () => {
-    const id = route.params.id
-    if (!id) {
+    const id = articleId.value
+    if (!id || !/^\d+$/.test(id)) {
       throw createError({
         statusCode: 400,
         statusMessage: '未提供文章ID'
@@ -167,9 +170,25 @@ const { data: article, pending, error } = await useAsyncData(
   },
   {
     // 客户端导航时重新获取
-    watch: [() => route.params.id]
+    watch: [articleId]
   }
 )
+
+const canonicalPath = computed(() => {
+  if (!article.value) return ''
+  if (!article.value.slug) return `/article/${article.value.id}`
+  return `/article/${article.value.id}-${article.value.slug}`
+})
+
+const canonicalUrl = computed(() => {
+  if (!canonicalPath.value) return ''
+  const baseUrl = (config.public.siteUrl || '').replace(/\/$/, '')
+  return `${baseUrl}${canonicalPath.value}`
+})
+
+if (article.value?.slug && routeSlug.value !== article.value.slug) {
+  await navigateTo({ path: canonicalPath.value, query: route.query }, { redirectCode: 301 })
+}
 
 // 处理 404 错误
 if (error.value) {
@@ -193,8 +212,13 @@ useSeoMeta({
   ogTitle: () => article.value?.title || '文章详情',
   ogDescription: () => article.value?.aiSummary || getDescription(article.value?.content),
   ogImage: () => article.value?.coverImage !== 'null' ? article.value?.coverImage : '',
+  ogUrl: () => canonicalUrl.value || undefined,
   ogType: 'article',
 })
+
+useHead(() => ({
+  link: canonicalUrl.value ? [{ rel: 'canonical', href: canonicalUrl.value }] : []
+}))
 
 // 辅助函数
 function getDescription(content, maxLength = 160) {

@@ -144,6 +144,13 @@ const formatDate = (dateString) => {
   return new Date(dateString).toLocaleDateString('zh-CN')
 }
 
+const getArticlePath = (article) => {
+  if (!article?.id || article.id === 'null' || article.id === 'undefined') {
+    return '/'
+  }
+  return article.slug ? `/article/${article.id}-${article.slug}` : `/article/${article.id}`
+}
+
 // 表格列配置
 const tableColumns = [
   {
@@ -190,7 +197,7 @@ const tableColumns = [
       h(NButton, { size: 'small', quaternary: true, type: 'error', onClick: () => confirmDelete(row) }, {
         icon: () => h(resolveComponent('Icon'), { name: 'trash', size: 'sm' })
       }),
-      h('a', { href: `/article/${row.id}`, target: '_blank', class: 'inline-flex' }, [
+      h('a', { href: getArticlePath(row), target: '_blank', class: 'inline-flex' }, [
         h(NButton, { size: 'small', quaternary: true, type: 'info' }, {
           icon: () => h(resolveComponent('Icon'), { name: 'eye', size: 'sm' })
         })
