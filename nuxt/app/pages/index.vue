@@ -235,7 +235,7 @@ const pageDescription = computed(() => {
 })
 
 useHead(() => ({
-  title: `WyrmKk - ${pageTitle.value}`,
+  title: `${pageTitle.value}`,
   meta: [
     { name: 'description', content: '欢迎来到我的个人博客，分享技术文章和生活感悟' },
     { name: 'keywords', content: '博客,文章,技术分享,个人网站' }

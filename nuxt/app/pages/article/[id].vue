@@ -180,11 +180,19 @@ const canonicalPath = computed(() => {
   return `/article/${article.value.id}-${article.value.slug}`
 })
 
+const baseSiteUrl = computed(() => (config.public.siteUrl || '').replace(/\/$/, ''))
 const canonicalUrl = computed(() => {
   if (!canonicalPath.value) return ''
-  const baseUrl = (config.public.siteUrl || '').replace(/\/$/, '')
-  return `${baseUrl}${canonicalPath.value}`
+  return `${baseSiteUrl.value}${canonicalPath.value}`
 })
+
+const resolveUrl = (value) => {
+  if (!value) return ''
+  if (/^https?:\/\//i.test(value)) return value
+  if (!baseSiteUrl.value) return value
+  if (value.startsWith('/')) return `${baseSiteUrl.value}${value}`
+  return `${baseSiteUrl.value}/${value}`
+}
 
 if (article.value?.slug && routeSlug.value !== article.value.slug) {
   await navigateTo({ path: canonicalPath.value, query: route.query }, { redirectCode: 301 })
@@ -211,14 +219,69 @@ useSeoMeta({
   description: () => article.value?.aiSummary || getDescription(article.value?.content),
   ogTitle: () => article.value?.title || '文章详情',
   ogDescription: () => article.value?.aiSummary || getDescription(article.value?.content),
-  ogImage: () => article.value?.coverImage !== 'null' ? article.value?.coverImage : '',
+  ogImage: () => {
+    const image = article.value?.coverImage
+    return image && image !== 'null' ? image : undefined
+  },
   ogUrl: () => canonicalUrl.value || undefined,
   ogType: 'article',
+  twitterImage: () => {
+    const image = article.value?.coverImage
+    return image && image !== 'null' ? image : undefined
+  }
 })
 
 useHead(() => ({
   link: canonicalUrl.value ? [{ rel: 'canonical', href: canonicalUrl.value }] : []
 }))
+
+const schemaGraph = computed(() => {
+  if (!article.value) return []
+
+  const title = article.value?.title || '文章详情'
+  const description = article.value?.aiSummary || getDescription(article.value?.content)
+  const imageUrl = resolveUrl(article.value?.coverImage && article.value?.coverImage !== 'null'
+    ? article.value.coverImage
+    : '/og-default.svg')
+  const articleUrl = canonicalUrl.value || resolveUrl(canonicalPath.value)
+  const siteUrl = baseSiteUrl.value || resolveUrl('/')
+
+  return [
+    {
+      '@type': 'Article',
+      headline: title,
+      description,
+      image: imageUrl,
+      author: {
+        '@type': 'Person',
+        name: 'WyrmKk',
+        url: siteUrl
+      },
+      datePublished: article.value?.createdAt,
+      dateModified: article.value?.updatedAt || article.value?.createdAt,
+      mainEntityOfPage: articleUrl
+    },
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        {
+          '@type': 'ListItem',
+          position: 1,
+          name: '首页',
+          item: siteUrl
+        },
+        {
+          '@type': 'ListItem',
+          position: 2,
+          name: title,
+          item: articleUrl
+        }
+      ]
+    }
+  ]
+})
+
+useSchemaOrg(schemaGraph)
 
 // 辅助函数
 function getDescription(content, maxLength = 160) {

@@ -81,7 +81,8 @@
     </div>
 
     <div class="toggle-button" @click="toggleCollapse">
-      <Icon :name="isCollapsed ? 'layout-sidebar' : 'x-lg'" size="md" />
+      <Icon v-if="isHydrated" :name="isCollapsed ? 'layout-sidebar' : 'x-lg'" size="md" />
+      <Icon v-else name="layout-sidebar" size="md" />
     </div>
   </div>
 </template>
@@ -91,6 +92,7 @@ import '../assets/css/components/SideBar.styles.css';
 
 const router = useRouter();
 const isCollapsed = ref(true);
+const isHydrated = ref(false);
 
 // 使用优化后的composable（带缓存）
 const { getAllArticles, categoryStats, monthStats } = useArticles();
@@ -172,6 +174,7 @@ const handleClickOutside = (event) => {
 };
 
 onMounted(async () => {
+  isHydrated.value = true;
   document.addEventListener('click', handleClickOutside);
   const savedState = localStorage.getItem('sidebarState');
   if (savedState) {

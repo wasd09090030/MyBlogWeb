@@ -44,7 +44,8 @@
           :class="{ 'searching': isSearching }"
           title="执行搜索"
         >
-          <Icon :name="isSearching ? 'arrow-path' : 'search'" size="sm" />
+          <Icon v-if="isHydrated" :name="isSearching ? 'arrow-path' : 'search'" size="sm" />
+          <Icon v-else name="search" size="sm" />
         </button>
       </div>
     </div>
@@ -57,6 +58,7 @@ const isSearching = ref(false)
 const isExpanded = ref(false)
 const searchInput = ref(null)
 const toggleBtn = ref(null)
+const isHydrated = ref(false)
 
 // 切换搜索栏展开/收缩
 const toggleSearchBar = async () => {
@@ -127,6 +129,10 @@ const onBlur = (e) => {
     }
   }, 150)
 }
+
+onMounted(() => {
+  isHydrated.value = true
+})
 </script>
 
 <style scoped>

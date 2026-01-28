@@ -46,7 +46,8 @@
                 :aria-label="isDarkMode ? '切换到浅色模式' : '切换到深色模式'"
               >
                 <template #icon>
-                  <Icon :name="isDarkMode ? 'sun-fill' : 'moon-fill'" size="md" :solid="true" />
+                  <Icon v-if="isHydrated" :name="isDarkMode ? 'sun-fill' : 'moon-fill'" size="md" :solid="true" />
+                  <Icon v-else name="moon-fill" size="md" :solid="true" />
                 </template>
               </n-button>
               <SearchBar />
@@ -59,9 +60,10 @@
             <template #footer>
               <div class="mobile-drawer-footer">
                 <n-button block @click="toggleTheme">
-                  <template #icon>
-                    <Icon :name="isDarkMode ? 'sun-fill' : 'moon-fill'" size="md" :solid="true" />
-                  </template>
+                <template #icon>
+                  <Icon v-if="isHydrated" :name="isDarkMode ? 'sun-fill' : 'moon-fill'" size="md" :solid="true" />
+                  <Icon v-else name="moon-fill" size="md" :solid="true" />
+                </template>
                   {{ isDarkMode ? '浅色模式' : '深色模式' }}
                 </n-button>
               </div>
@@ -128,6 +130,7 @@ const router = useRouter()
 const { isDarkMode, initTheme, toggleTheme } = useTheme()
 
 const showMobileMenu = ref(false)
+const isHydrated = ref(false)
 
 // 导航栏滚动隐藏/显示逻辑
 const isNavbarHidden = ref(false)
@@ -237,6 +240,7 @@ const isToolsRoute = computed(() => route.path.startsWith('/tools'))
 const showSidebar = computed(() => !isGalleryRoute.value && !isArticleDetailRoute.value && !isAboutRoute.value && !isToolsRoute.value && !isTutorialsRoute.value)
 
 onMounted(() => {
+  isHydrated.value = true
   initTheme()
   window.addEventListener('scroll', handleScroll, { passive: true })
 })

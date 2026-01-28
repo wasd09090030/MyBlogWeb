@@ -11,7 +11,8 @@
         :loading="likingInProgress"
       >
         <template #icon>
-          <Icon :name="isLiked ? 'heart-fill' : 'heart'" :solid="isLiked" />
+          <Icon v-if="isHydrated" :name="isLiked ? 'heart-fill' : 'heart'" :solid="isLiked" />
+          <Icon v-else name="heart" />
         </template>
         <span class="like-count">{{ likeCount }}</span>
         <span class="like-text">{{ isLiked ? '已点赞' : '点赞' }}</span>
@@ -131,7 +132,8 @@
                 @click="likeComment(comment.id)"
               >
                 <template #icon>
-                  <Icon :name="comment.isLiked ? 'heart-fill' : 'heart'" />
+                  <Icon v-if="isHydrated" :name="comment.isLiked ? 'heart-fill' : 'heart'" />
+                  <Icon v-else name="heart" />
                 </template>
                 {{ comment.likes || 0 }}
               </n-button>
@@ -170,6 +172,7 @@ const likingInProgress = ref(false)
 const submitting = ref(false)
 const submitSuccess = ref(false)
 const loadingComments = ref(true)
+const isHydrated = ref(false)
 
 const newComment = ref({
   author: '',
@@ -324,6 +327,7 @@ watch(() => props.articleId, (newId, oldId) => {
 })
 
 onMounted(() => {
+  isHydrated.value = true
   fetchComments()
   fetchLikeStatus()
 })

@@ -23,7 +23,8 @@ export default defineNuxtConfig({
     'motion-v/nuxt',
     '@nuxt/icon', // Nuxt Icon 模块
     '@bg-dev/nuxt-naiveui', // Naive UI 模块
-    '@nuxtjs/mdc' // MDC Markdown 渲染模块
+    '@nuxtjs/mdc', // MDC Markdown 渲染模块
+    '@nuxtjs/seo' // Nuxt SEO 模块
   ],
 
   pinia: {
@@ -228,6 +229,44 @@ export default defineNuxtConfig({
     }
   },
 
+  // 站点信息（供 SEO 模块使用）
+  site: {
+    url: process.env.NUXT_PUBLIC_SITE_URL || 'https://wasd09090030.top',
+    name: 'WyrmKk',
+    description: '分享技术、生活与创作的个人博客',
+    defaultLocale: 'zh-CN'
+  },
+
+  seoUtils: {
+    autoIcons: true,
+    fallbackTitle: true,
+    titleSeparator: '·'
+  },
+
+  robots: {
+    disallow: process.env.NODE_ENV !== 'production'
+      ? ['/']
+      : ['/admin/**', '/api/**']
+  },
+
+  sitemap: {
+    exclude: ['/admin/**', '/api/**'],
+    sources: ['/api/__sitemap__/urls']
+  },
+
+  schemaOrg: {
+    identity: {
+      type: 'Person',
+      name: 'WyrmKk',
+      url: process.env.NUXT_PUBLIC_SITE_URL || 'https://wasd09090030.top',
+      sameAs: [
+        process.env.NUXT_PUBLIC_TWITTER_URL || 'https://x.com/wyrmwyrm1',
+        process.env.NUXT_PUBLIC_GITHUB_URL || 'https://github.com/wasd09090030'
+      ].filter(Boolean)
+    },
+    reactive: true
+  },
+
   // 应用配置
   app: {
     // 页面过渡动画优化
@@ -235,15 +274,10 @@ export default defineNuxtConfig({
     layoutTransition: { name: 'layout', mode: 'out-in' },
 
     head: {
-      title: 'My Blog',
-      htmlAttrs: {
-        lang: 'zh-CN'
-      },
+      title: 'WyrmKk',
       meta: [
         { charset: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1, viewport-fit=cover' },
-        { name: 'description', content: 'A beautiful blog built with Nuxt 3' },
-        { name: 'keywords', content: 'blog, nuxt, vue, frontend' },
         { name: 'theme-color', content: '#ffffff', media: '(prefers-color-scheme: light)' },
         { name: 'theme-color', content: '#1a1a1a', media: '(prefers-color-scheme: dark)' },
         // 性能优化meta
