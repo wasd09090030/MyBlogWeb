@@ -7,7 +7,7 @@
         <div class="explore-btn-container">
           <button class="explore-btn" @click="goToRandomArticle" aria-label="随机浏览文章">
 
-              <Icon name="arrow-path" size="md" class="me-2" />
+              <Icon name="arrow-path" size="20" class="me-2" />
 
             <span>开始探索</span>
           </button>
@@ -42,12 +42,8 @@
          
           </div>
           <!-- 默认内容 -->
-          <div class="card-content-wrapper">
-            <div class="card-icon">
-        
-                <Icon name="file-text" size="lg" />
-        
-            </div>
+          <div class="card-content-wrapper">      
+                <Icon name="file-text" size="24" />
             <h5 class="card-title">文章</h5>
           </div>
         </div>
@@ -61,12 +57,8 @@
               <Icon name="arrow-right" size="lg" />
 
           </div>
-          <div class="card-content-wrapper">
-            <div class="card-icon">
-        
-                <Icon name="images" size="lg" />
-      
-            </div>
+          <div class="card-content-wrapper">    
+                <Icon name="images" size="24" />
             <h5 class="card-title">画廊</h5>
           </div>
         </div>
@@ -81,11 +73,11 @@
        
           </div>
           <div class="card-content-wrapper">
-            <div class="card-icon">
+
           
-                <Icon name="book" size="lg" />
+                <Icon name="book" size="24" />
           
-            </div>
+
             <h5 class="card-title">教程</h5>
           </div>
         </div>

@@ -402,17 +402,6 @@
   letter-spacing: 0.5px;
 }
 
-.card-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  height: 28px;
-  width: 28px;
-  opacity: 0.95;
-  transform: translateY(10px); /* 视觉修正 */
-}
-
 .card-title {
   margin: 0;
   font-size: 1.25rem; /* Increased font size */
@@ -510,10 +499,6 @@
     padding: 10px 12px;
   }
 
-  .card-icon {
-    width: 34px;
-    height: 34px;
-  }
 
   .card-title {
     font-size: 0.96rem;
@@ -816,17 +801,7 @@
   transform: scale(0.95);
 }
 
-.articles-icon {
-  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-}
 
-.gallery-icon {
-  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-}
-
-.about-icon {
-  background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-}
 
 /* 暗色主题悬浮按钮适配 */
 .dark-theme .fab-main-btn {
@@ -860,9 +835,7 @@
   box-shadow: 0 14px 38px rgba(0, 0, 0, 0.5);
 }
 
-.dark-theme .card-icon {
-  background: rgba(255, 255, 255, 0.16);
-}
+
 
 .dark-theme .card-chip {
   background: rgba(255, 255, 255, 0.12);
