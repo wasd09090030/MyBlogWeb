@@ -15,8 +15,10 @@ export const useArticles = () => {
       return apiBase
     }
     
-    // Fallback：开发环境默认值
-    return 'http://localhost:5000/api'
+    // Fallback：生产环境走反向代理，开发环境走本地后端
+    return process.env.NODE_ENV === 'production'
+      ? '/api'
+      : 'http://localhost:5000/api'
   }
   
   // 引用全局缓存

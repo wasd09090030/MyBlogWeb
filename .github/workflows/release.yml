@@ -30,6 +30,10 @@ jobs:
       
       - name: Build Nuxt application
         working-directory: ./nuxt
+        env:
+          NODE_ENV: production
+          NUXT_PUBLIC_API_BASE_URL: /api
+          NUXT_PUBLIC_SITE_URL: https://blog.wasd09090030.top
         run: npm run build
       
       - name: Create production archive

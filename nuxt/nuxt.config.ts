@@ -224,7 +224,8 @@ export default defineNuxtConfig({
 
     // 公共配置（客户端+服务器端）
     public: {
-      apiBase: process.env.NUXT_PUBLIC_API_BASE_URL || 'http://localhost:5000/api',
+      apiBase: process.env.NUXT_PUBLIC_API_BASE_URL
+        || (process.env.NODE_ENV === 'production' ? '/api' : 'http://localhost:5000/api'),
       siteUrl: process.env.NUXT_PUBLIC_SITE_URL || 'http://localhost:3000'
     }
   },
