@@ -26,6 +26,8 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<BlogDbContext>(options =>
     options.UseSqlite("Data Source=blog.sqlite"));
 
+builder.Services.AddHttpClient();
+
 // Add services
 builder.Services.AddScoped<ArticleService>();
 builder.Services.AddScoped<CommentService>();

@@ -18,10 +18,26 @@ namespace BlogApi.DTOs
     {
         public int Id { get; set; }
         public string ImageUrl { get; set; } = string.Empty;
+        public int? ImageWidth { get; set; }
+        public int? ImageHeight { get; set; }
         public int SortOrder { get; set; }
         public bool IsActive { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
+    }
+
+    public class GalleryDimensionsDto
+    {
+        public int Id { get; set; }
+        public int? ImageWidth { get; set; }
+        public int? ImageHeight { get; set; }
+    }
+
+    public class GalleryRefreshResultDto
+    {
+        public int Total { get; set; }
+        public int Updated { get; set; }
+        public int Failed { get; set; }
     }
 
     public class UpdateSortOrderDto

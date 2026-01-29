@@ -3,6 +3,12 @@
       <div class="flex justify-between items-center mb-6">
         <h2 class="text-2xl font-bold text-gray-800 dark:text-white">画廊管理</h2>
         <div class="flex gap-2">
+          <n-button type="warning" :loading="isRefreshingDimensions" @click="refreshAllDimensions">
+            <template #icon>
+              <Icon name="arrow-path" size="sm" />
+            </template>
+            刷新宽高
+          </n-button>
           <n-button type="success" @click="showBatchImportModal = true">
             <template #icon>
               <Icon name="arrow-up-tray" size="sm" />
@@ -103,9 +109,10 @@
                 </div>
 
                 <!-- 卡片底部信息 -->
-                <div class="flex justify-between items-center p-3 text-sm text-gray-500">
+                <div class="grid grid-cols-3 items-center p-3 text-xs text-gray-500">
                   <span>#{{ gallery.sortOrder }}</span>
-                  <span>{{ formatDate(gallery.createdAt) }}</span>
+                  <span class="text-center">{{ formatDimensions(gallery) }}</span>
+                  <span class="text-right">{{ formatDate(gallery.createdAt) }}</span>
                 </div>
               </n-card>
             </div>
@@ -222,13 +229,14 @@ definePageMeta({
 })
 
 const message = useMessage()
-const { getAllGalleries, createGallery, updateGallery, deleteGallery, toggleActive: toggleActiveApi, batchImport, updateSort } = useAdminGallery()
+const { getAllGalleries, createGallery, updateGallery, deleteGallery, toggleActive: toggleActiveApi, batchImport, updateSort, refreshDimensions } = useAdminGallery()
 
 const galleries = ref([])
 const loading = ref(true)
 const isSaving = ref(false)
 const isDeleting = ref(false)
 const isBatchImporting = ref(false)
+const isRefreshingDimensions = ref(false)
 const isEdit = ref(false)
 const galleryToDelete = ref(null)
 const isValidPreview = ref(true)
@@ -262,6 +270,14 @@ const batchPreviewUrls = computed(() => {
 const formatDate = (dateString) => {
   if (!dateString) return '-'
   return new Date(dateString).toLocaleDateString('zh-CN')
+}
+
+const formatDimensions = (gallery) => {
+  if (!gallery) return '-'
+  if (gallery.imageWidth && gallery.imageHeight) {
+    return `${gallery.imageWidth}x${gallery.imageHeight}`
+  }
+  return '-'
 }
 
 // 获取画廊列表
@@ -388,6 +404,21 @@ const handleBatchImport = async () => {
     message.error('批量导入失败')
   } finally {
     isBatchImporting.value = false
+  }
+}
+
+// 刷新宽高
+const refreshAllDimensions = async () => {
+  isRefreshingDimensions.value = true
+  try {
+    const result = await refreshDimensions()
+    await fetchGalleries()
+    message.success(`刷新完成：成功 ${result.updated} / ${result.total}，失败 ${result.failed}`)
+  } catch (error) {
+    console.error('刷新宽高失败:', error)
+    message.error('刷新宽高失败')
+  } finally {
+    isRefreshingDimensions.value = false
   }
 }
 

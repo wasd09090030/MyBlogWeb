@@ -105,6 +105,20 @@ export const useAdminGallery = () => {
     }
   }
 
+  // 刷新图片宽高
+  const refreshDimensions = async () => {
+    try {
+      const result = await $fetch(`${baseURL}/gallery/refresh-dimensions`, {
+        method: 'POST',
+        headers: authStore.authHeaders
+      })
+      return result
+    } catch (error) {
+      console.error('刷新图片宽高失败:', error)
+      throw error
+    }
+  }
+
   return {
     getAllGalleries,
     createGallery,
@@ -112,6 +126,7 @@ export const useAdminGallery = () => {
     deleteGallery,
     toggleActive,
     batchImport,
-    updateSort
+    updateSort,
+    refreshDimensions
   }
 }

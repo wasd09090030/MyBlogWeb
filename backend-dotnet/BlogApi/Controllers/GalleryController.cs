@@ -46,6 +46,31 @@ namespace BlogApi.Controllers
             return Ok(gallery);
         }
 
+        // 公开接口：获取图片宽高
+        [HttpGet("{id}/dimensions")]
+        public async Task<ActionResult<GalleryDimensionsDto>> GetDimensions(int id)
+        {
+            var gallery = await _galleryService.GetByIdAsync(id);
+            if (gallery == null)
+                return NotFound();
+
+            return Ok(new GalleryDimensionsDto
+            {
+                Id = gallery.Id,
+                ImageWidth = gallery.ImageWidth,
+                ImageHeight = gallery.ImageHeight
+            });
+        }
+
+        // 管理员接口：刷新所有图片宽高
+        [Authorize]
+        [HttpPost("refresh-dimensions")]
+        public async Task<ActionResult<GalleryRefreshResultDto>> RefreshDimensions()
+        {
+            var result = await _galleryService.RefreshAllDimensionsAsync();
+            return Ok(result);
+        }
+
         // 管理员接口：创建画廊图片
         [Authorize]
         [HttpPost]
