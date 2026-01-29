@@ -76,5 +76,5 @@ desktop.ini
 # Nuxt cache
 **/.nuxt/
 **/.output/
-
+**/.data/
 

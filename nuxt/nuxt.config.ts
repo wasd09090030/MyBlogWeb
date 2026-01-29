@@ -22,10 +22,29 @@ export default defineNuxtConfig({
     '@pinia/nuxt',
     'motion-v/nuxt',
     '@nuxt/icon', // Nuxt Icon 模块
+    '@nuxt/fonts', // Nuxt Fonts 模块
     '@bg-dev/nuxt-naiveui', // Naive UI 模块
     '@nuxtjs/mdc', // MDC Markdown 渲染模块
     '@nuxtjs/seo' // Nuxt SEO 模块
   ],
+
+  // 字体配置（本地化）
+  fonts: {
+    // 仅使用本地字体提供者，避免任何外部请求
+    provider: 'local',
+    defaults: {
+      weights: [400],
+      styles: ['normal', 'italic'],
+      subsets: ['latin']
+    },
+    families: [
+      {
+        name: 'Open Sans',
+        provider: 'local',
+        global: true
+      }
+    ]
+  },
 
   pinia: {
     // Nuxt 4 使用 app/ 目录，需要明确指定 store 目录
@@ -286,11 +305,6 @@ export default defineNuxtConfig({
       ],
       link: [
         { rel: 'icon', type: 'image/x-icon', href: '/icon/Myfavicon.ico' },
-        // DNS预解析和预连接
-        { rel: 'dns-prefetch', href: 'https://fonts.googleapis.com' },
-        { rel: 'dns-prefetch', href: 'https://fonts.gstatic.com' },
-        { rel: 'preconnect', href: 'https://fonts.googleapis.com', crossorigin: '' },
-        { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' }
       ]
     }
   },

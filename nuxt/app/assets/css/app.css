@@ -34,7 +34,7 @@ input[type="reset"],
 
 /* 全局样式 */
 #app {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: 'Open Sans', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   transition: var(--theme-transition);
   position: relative;
   min-height: 100vh;
@@ -249,7 +249,7 @@ main {
 /* Footer 样式 */
 .blog-footer {
   background: var(--footer-bg);
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: 'Open Sans', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   padding: 1rem 0;
   margin-top: 0.3rem;
   border-top: 1px solid var(--border-color);
