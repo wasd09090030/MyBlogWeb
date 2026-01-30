@@ -36,6 +36,7 @@ builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<DeepSeekService>();
 builder.Services.AddScoped<ImagebedService>();
+builder.Services.AddScoped<CfImageConfigService>();
 
 // JWT 认证配置
 var jwtSecretKey = builder.Configuration["Jwt:SecretKey"] 
@@ -91,6 +92,7 @@ using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<BlogDbContext>();
     dbContext.Database.EnsureCreated();
+    EnsureCfImageConfigTable(dbContext);
 }
 
 // Configure the HTTP request pipeline
@@ -110,3 +112,25 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+static void EnsureCfImageConfigTable(BlogDbContext dbContext)
+{
+    const string sql = @"
+CREATE TABLE IF NOT EXISTS cf_image_configs (
+    Id INTEGER PRIMARY KEY AUTOINCREMENT,
+    IsEnabled INTEGER NOT NULL DEFAULT 1,
+    ZoneDomain TEXT NULL,
+    UseHttps INTEGER NOT NULL DEFAULT 1,
+    Fit TEXT NOT NULL DEFAULT 'scale-down',
+    Width INTEGER NOT NULL DEFAULT 300,
+    Quality INTEGER NOT NULL DEFAULT 50,
+    Format TEXT NOT NULL DEFAULT 'webp',
+    SignatureParam TEXT NOT NULL DEFAULT 'sig',
+    SignatureToken TEXT NULL,
+    SignatureSecret TEXT NULL,
+    CreatedAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UpdatedAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);";
+
+    dbContext.Database.ExecuteSqlRaw(sql);
+}

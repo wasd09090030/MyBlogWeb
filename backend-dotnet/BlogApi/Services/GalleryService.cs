@@ -22,22 +22,33 @@ namespace BlogApi.Services
 
         public async Task<List<Gallery>> GetAllActiveAsync()
         {
-            return await _context.Galleries
+            var galleries = await _context.Galleries
                 .Where(g => g.IsActive)
                 .OrderBy(g => g.SortOrder)
                 .ToListAsync();
+
+            await ApplyThumbnailUrlsAsync(galleries);
+            return galleries;
         }
 
         public async Task<List<Gallery>> GetAllAsync()
         {
-            return await _context.Galleries
+            var galleries = await _context.Galleries
                 .OrderBy(g => g.SortOrder)
                 .ToListAsync();
+
+            await ApplyThumbnailUrlsAsync(galleries);
+            return galleries;
         }
 
         public async Task<Gallery?> GetByIdAsync(int id)
         {
-            return await _context.Galleries.FindAsync(id);
+            var gallery = await _context.Galleries.FindAsync(id);
+            if (gallery != null)
+            {
+                await ApplyThumbnailUrlAsync(gallery);
+            }
+            return gallery;
         }
 
         public async Task<Gallery> CreateAsync(CreateGalleryDto dto)
@@ -62,7 +73,91 @@ namespace BlogApi.Services
 
             _context.Galleries.Add(gallery);
             await _context.SaveChangesAsync();
+            await ApplyThumbnailUrlAsync(gallery);
             return gallery;
+        }
+
+        private async Task ApplyThumbnailUrlsAsync(List<Gallery> galleries)
+        {
+            if (galleries.Count == 0) return;
+            var config = await _context.CfImageConfigs.AsNoTracking().FirstOrDefaultAsync();
+            foreach (var gallery in galleries)
+            {
+                gallery.ThumbnailUrl = BuildThumbnailUrl(gallery.ImageUrl, config);
+            }
+        }
+
+        private async Task ApplyThumbnailUrlAsync(Gallery gallery)
+        {
+            var config = await _context.CfImageConfigs.AsNoTracking().FirstOrDefaultAsync();
+            gallery.ThumbnailUrl = BuildThumbnailUrl(gallery.ImageUrl, config);
+        }
+
+        private string? BuildThumbnailUrl(string imageUrl, CfImageConfig? config)
+        {
+            if (string.IsNullOrWhiteSpace(imageUrl)) return null;
+            if (config == null || !config.IsEnabled) return imageUrl;
+            if (!Uri.TryCreate(imageUrl, UriKind.Absolute, out var sourceUri)) return imageUrl;
+
+            string? baseHost = null;
+            string? zoneScheme = null;
+            if (!string.IsNullOrWhiteSpace(config.ZoneDomain))
+            {
+                var trimmedZone = config.ZoneDomain.Trim();
+                if (Uri.TryCreate(trimmedZone, UriKind.Absolute, out var zoneUri))
+                {
+                    baseHost = zoneUri.Host;
+                    zoneScheme = zoneUri.Scheme;
+                }
+                else
+                {
+                    baseHost = trimmedZone;
+                }
+            }
+
+            baseHost ??= sourceUri.Host;
+
+            var scheme = config.UseHttps
+                ? "https"
+                : (string.IsNullOrWhiteSpace(zoneScheme) ? sourceUri.Scheme : zoneScheme);
+
+            var options = new List<string>();
+            if (!string.IsNullOrWhiteSpace(config.Fit)) options.Add($"fit={config.Fit}");
+            if (config.Width > 0) options.Add($"width={config.Width}");
+            if (config.Quality > 0) options.Add($"quality={config.Quality}");
+            if (!string.IsNullOrWhiteSpace(config.Format)) options.Add($"format={config.Format}");
+
+            var optionString = options.Count > 0 ? string.Join(',', options) : "";
+
+            var baseUrl = $"{scheme}://{baseHost}/cdn-cgi/image/{optionString}/{imageUrl}";
+            var signature = BuildSignature(optionString, imageUrl, config);
+            if (!string.IsNullOrWhiteSpace(signature))
+            {
+                baseUrl = baseUrl.Contains('?') ? $"{baseUrl}&{signature}" : $"{baseUrl}?{signature}";
+            }
+
+            return baseUrl;
+        }
+
+        private string? BuildSignature(string optionString, string imageUrl, CfImageConfig config)
+        {
+            if (!string.IsNullOrWhiteSpace(config.SignatureSecret))
+            {
+                var param = string.IsNullOrWhiteSpace(config.SignatureParam) ? "sig" : config.SignatureParam.Trim();
+                var data = $"{optionString}|{imageUrl}";
+                using var hmac = new System.Security.Cryptography.HMACSHA256(System.Text.Encoding.UTF8.GetBytes(config.SignatureSecret));
+                var hash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(data));
+                var sig = Convert.ToHexString(hash).ToLowerInvariant();
+                return $"{param}={sig}";
+            }
+
+            if (!string.IsNullOrWhiteSpace(config.SignatureToken))
+            {
+                var param = string.IsNullOrWhiteSpace(config.SignatureParam) ? "sig" : config.SignatureParam.Trim();
+                return $"{param}={config.SignatureToken}";
+            }
+
+            return null;
         }
 
         public async Task<Gallery?> UpdateAsync(int id, UpdateGalleryDto dto)
@@ -83,6 +178,7 @@ namespace BlogApi.Services
             gallery.UpdatedAt = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
+            await ApplyThumbnailUrlAsync(gallery);
             return gallery;
         }
 
@@ -160,6 +256,7 @@ namespace BlogApi.Services
                 await _context.SaveChangesAsync();
             }
 
+            await ApplyThumbnailUrlsAsync(galleries);
             return galleries;
         }
 

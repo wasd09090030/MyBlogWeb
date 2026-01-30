@@ -13,7 +13,7 @@
       >
         <div class="item-inner">
           <img
-            :src="item.imageUrl"
+            :src="item.thumbnailUrl || item.imageUrl"
             :alt="item.title || '画廊图片'"
             class="waterfall-image"
             loading="lazy"

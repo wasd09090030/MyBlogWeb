@@ -24,6 +24,86 @@
         </div>
       </div>
 
+      <!-- Cloudflare 缩略图配置 -->
+      <n-card class="mb-4">
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center gap-2">
+            <Icon name="cog-6-tooth" size="sm" class="text-gray-500" />
+            <span class="font-semibold text-gray-700 dark:text-gray-200">缩略图设置（Cloudflare）</span>
+            <n-tag :type="cfConfigForm.isEnabled ? 'success' : 'default'" size="small">
+              {{ cfConfigForm.isEnabled ? '已启用' : '未启用' }}
+            </n-tag>
+          </div>
+          <div class="flex gap-2">
+            <n-button size="small" quaternary :loading="isLoadingCfConfig" @click="loadCfConfig">
+              <template #icon>
+                <Icon name="arrow-path" size="sm" />
+              </template>
+              刷新
+            </n-button>
+            <n-button size="small" type="primary" :loading="isSavingCfConfig" @click="saveCfConfig">
+              保存设置
+            </n-button>
+          </div>
+        </div>
+
+        <n-spin :show="isLoadingCfConfig">
+          <n-form :model="cfConfigForm" label-placement="left" label-width="120">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
+              <n-form-item label="启用缩略图">
+                <n-switch v-model:value="cfConfigForm.isEnabled" />
+              </n-form-item>
+              <n-form-item label="强制 HTTPS">
+                <n-switch v-model:value="cfConfigForm.useHttps" />
+              </n-form-item>
+              <n-form-item label="Zone 域名">
+                <n-input
+                  v-model:value="cfConfigForm.zoneDomain"
+                  placeholder="imgbed.test.test 或 https://imgbed.test.test"
+                />
+              </n-form-item>
+              <n-form-item label="缩放模式">
+                <n-select
+                  v-model:value="cfConfigForm.fit"
+                  :options="fitOptions"
+                  filterable
+                />
+              </n-form-item>
+              <n-form-item label="缩略图宽度">
+                <n-input-number v-model:value="cfConfigForm.width" :min="0" />
+              </n-form-item>
+              <n-form-item label="图片质量">
+                <n-input-number v-model:value="cfConfigForm.quality" :min="0" :max="100" />
+              </n-form-item>
+              <n-form-item label="输出格式">
+                <n-select
+                  v-model:value="cfConfigForm.format"
+                  :options="formatOptions"
+                  filterable
+                />
+              </n-form-item>
+              <n-form-item label="签名参数名">
+                <n-input v-model:value="cfConfigForm.signatureParam" placeholder="sig" />
+              </n-form-item>
+              <n-form-item label="签名 Token">
+                <n-input v-model:value="cfConfigForm.signatureToken" placeholder="与 WAF 规则匹配的 token" />
+              </n-form-item>
+              <n-form-item label="签名 Secret">
+                <n-input
+                  v-model:value="cfConfigForm.signatureSecret"
+                  type="password"
+                  show-password-on="click"
+                  placeholder="可选 HMAC 密钥"
+                />
+              </n-form-item>
+            </div>
+          </n-form>
+          <p class="text-xs text-gray-500 mt-3">
+            提示：若启用 WAF 校验，请填写“签名 Token”或“签名 Secret”，并确保规则使用对应的参数名。
+          </p>
+        </n-spin>
+      </n-card>
+
       <!-- 加载状态 -->
       <n-spin :show="loading">
         <div v-if="!loading && galleries.length === 0" class="text-center py-16 text-gray-400">
@@ -230,6 +310,7 @@ definePageMeta({
 
 const message = useMessage()
 const { getAllGalleries, createGallery, updateGallery, deleteGallery, toggleActive: toggleActiveApi, batchImport, updateSort, refreshDimensions } = useAdminGallery()
+const cfConfigApi = useCfImageConfig()
 
 const galleries = ref([])
 const loading = ref(true)
@@ -237,6 +318,8 @@ const isSaving = ref(false)
 const isDeleting = ref(false)
 const isBatchImporting = ref(false)
 const isRefreshingDimensions = ref(false)
+const isLoadingCfConfig = ref(false)
+const isSavingCfConfig = ref(false)
 const isEdit = ref(false)
 const galleryToDelete = ref(null)
 const isValidPreview = ref(true)
@@ -251,6 +334,38 @@ const showBatchImportModal = ref(false)
 // 批量导入相关
 const batchImportUrls = ref('')
 const batchImportActive = ref(true)
+
+const defaultCfConfig = {
+  isEnabled: true,
+  zoneDomain: '',
+  useHttps: true,
+  fit: 'scale-down',
+  width: 300,
+  quality: 50,
+  format: 'webp',
+  signatureParam: 'sig',
+  signatureToken: '',
+  signatureSecret: ''
+}
+
+const cfConfigForm = ref({ ...defaultCfConfig })
+
+const fitOptions = [
+  { label: 'scale-down', value: 'scale-down' },
+  { label: 'cover', value: 'cover' },
+  { label: 'contain', value: 'contain' },
+  { label: 'fill', value: 'fill' },
+  { label: 'crop', value: 'crop' },
+  { label: 'pad', value: 'pad' }
+]
+
+const formatOptions = [
+  { label: 'webp', value: 'webp' },
+  { label: 'avif', value: 'avif' },
+  { label: 'jpeg', value: 'jpeg' },
+  { label: 'png', value: 'png' },
+  { label: 'auto', value: 'auto' }
+]
 
 const galleryForm = ref({
   id: null,
@@ -468,8 +583,43 @@ const handleImageError = (event) => {
   event.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23eee" width="100" height="100"/%3E%3Ctext x="50" y="50" text-anchor="middle" dy=".3em" fill="%23999"%3E加载失败%3C/text%3E%3C/svg%3E'
 }
 
+const loadCfConfig = async () => {
+  isLoadingCfConfig.value = true
+  try {
+    const config = await cfConfigApi.getConfig()
+    cfConfigForm.value = {
+      ...defaultCfConfig,
+      ...config
+    }
+  } catch (error) {
+    console.error('获取缩略图配置失败:', error)
+    message.error('获取缩略图配置失败')
+  } finally {
+    isLoadingCfConfig.value = false
+  }
+}
+
+const saveCfConfig = async () => {
+  isSavingCfConfig.value = true
+  try {
+    const payload = {
+      ...cfConfigForm.value,
+      width: cfConfigForm.value.width ?? 0,
+      quality: cfConfigForm.value.quality ?? 0
+    }
+    await cfConfigApi.saveConfig(payload)
+    message.success('缩略图配置已保存')
+  } catch (error) {
+    console.error('保存缩略图配置失败:', error)
+    message.error('保存缩略图配置失败')
+  } finally {
+    isSavingCfConfig.value = false
+  }
+}
+
 onMounted(() => {
   fetchGalleries()
+  loadCfConfig()
 })
 </script>
 

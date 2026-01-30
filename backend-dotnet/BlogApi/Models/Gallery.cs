@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations.Schema;
+
 namespace BlogApi.Models
 {
     public class Gallery
@@ -5,6 +7,8 @@ namespace BlogApi.Models
         public int Id { get; set; }
 
         public string ImageUrl { get; set; } = string.Empty;
+        [NotMapped]
+        public string? ThumbnailUrl { get; set; }
         public int? ImageWidth { get; set; }
         public int? ImageHeight { get; set; }
         public int SortOrder { get; set; } = 0;

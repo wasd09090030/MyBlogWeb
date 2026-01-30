@@ -16,6 +16,7 @@ namespace BlogApi.Data
         public DbSet<Like> Likes { get; set; }
         public DbSet<Gallery> Galleries { get; set; }
         public DbSet<ImagebedConfig> ImagebedConfigs { get; set; }
+        public DbSet<CfImageConfig> CfImageConfigs { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -109,6 +110,25 @@ namespace BlogApi.Data
                 entity.Property(e => e.Domain).IsRequired();
                 entity.Property(e => e.ApiToken).IsRequired();
                 entity.Property(e => e.UploadFolder);
+                entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+                entity.Property(e => e.UpdatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+            });
+
+            // CfImageConfig configuration
+            modelBuilder.Entity<CfImageConfig>(entity =>
+            {
+                entity.ToTable("cf_image_configs");
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.IsEnabled).HasDefaultValue(true);
+                entity.Property(e => e.ZoneDomain);
+                entity.Property(e => e.UseHttps).HasDefaultValue(true);
+                entity.Property(e => e.Fit).HasDefaultValue("scale-down");
+                entity.Property(e => e.Width).HasDefaultValue(300);
+                entity.Property(e => e.Quality).HasDefaultValue(50);
+                entity.Property(e => e.Format).HasDefaultValue("webp");
+                entity.Property(e => e.SignatureParam).HasDefaultValue("sig");
+                entity.Property(e => e.SignatureToken);
+                entity.Property(e => e.SignatureSecret);
                 entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
                 entity.Property(e => e.UpdatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
             });
