@@ -1,25 +1,14 @@
 <template>
   <section class="waterfall-section" ref="sectionRef">
     <!-- 标题区域 -->
-    <Motion
-      class="section-header"
-      :initial="{ opacity: 0, y: 30 }"
-      :in-view="{ opacity: 1, y: 0 }"
-      :transition="{ duration: 0.6 }"
-    >
-
-    </Motion>
+    <div class="section-header fade-up"></div>
     
     <div class="waterfall-container" ref="containerRef" :style="gridStyle">
-      <Motion
+      <div
         v-for="(item, index) in layoutItems"
         :key="`${item.id ?? 'img'}-${index}`"
-        class="waterfall-item"
+        class="waterfall-item fade-scale"
         :style="item.style"
-        :initial="{ opacity: 0, scale: 0.9 }"
-        :in-view="{ opacity: 1, scale: 1 }"
-        :transition="{ duration: 0.3 }"
-        :tap="{ scale: 0.98 }"
         @click="$emit('image-click', item)"
       >
         <div class="item-inner">
@@ -30,38 +19,24 @@
             loading="lazy"
           />
         </div>
-      </Motion>
+      </div>
     </div>
 
     <!-- 无限滚动触发器 -->
     <div ref="infiniteScrollTrigger" class="infinite-scroll-trigger">
-      <Motion
-        v-if="isLoadingMore"
-        class="loading-indicator"
-        :initial="{ opacity: 0, scale: 0.8 }"
-        :animate="{ opacity: 1, scale: 1 }"
-        :transition="{ duration: 0.3 }"
-      >
+      <div v-if="isLoadingMore" class="loading-indicator fade-in">
         <div class="loading-spinner"></div>
         <span>加载更多图片...</span>
-      </Motion>
-      <Motion
-        v-else-if="!hasMore && displayedCount > 0"
-        class="end-message"
-        :initial="{ opacity: 0 }"
-        :animate="{ opacity: 1 }"
-        :transition="{ duration: 0.5 }"
-      >
+      </div>
+      <div v-else-if="!hasMore && displayedCount > 0" class="end-message fade-in">
         <Icon name="check-circle" size="md" />
         <span>已加载全部 {{ displayedCount }} 张图片</span>
-      </Motion>
+      </div>
     </div>
   </section>
 </template>
 
 <script setup>
-import { Motion } from 'motion-v'
-
 const props = defineProps({
   images: {
     type: Array,
@@ -331,6 +306,41 @@ onUnmounted(() => {
   margin-bottom: 2rem;
 }
 
+.fade-up {
+  animation: fade-up 0.5s ease both;
+}
+
+.fade-scale {
+  animation: fade-scale 0.4s ease both;
+}
+
+.fade-in {
+  animation: fade-in 0.4s ease both;
+}
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fade-scale {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fade-up,
+  .fade-scale,
+  .fade-in {
+    animation: none;
+  }
+}
+
 .section-title {
   font-size: 1.5rem;
   font-weight: 600;
@@ -371,7 +381,11 @@ onUnmounted(() => {
   cursor: pointer;
   transform-origin: center;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-  transition: box-shadow 0.4s ease;
+  transition: box-shadow 0.4s ease, transform 0.2s ease;
+}
+
+.waterfall-item:active {
+  transform: scale(0.98);
 }
 
 .item-inner {

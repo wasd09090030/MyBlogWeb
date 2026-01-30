@@ -16,7 +16,6 @@ export default defineNuxtConfig({
   // 模块配置
   modules: [
     '@pinia/nuxt',
-    'motion-v/nuxt',
     '@nuxt/icon', // Nuxt Icon 模块
     '@nuxt/fonts', // Nuxt Fonts 模块
     '@bg-dev/nuxt-naiveui', // Naive UI 模块
@@ -162,7 +161,6 @@ export default defineNuxtConfig({
         'keen-slider',
         'naive-ui',
         'katex',
-        'motion-v',
         '@vueuse/core',
         'mermaid',
         'remark-math',
@@ -367,7 +365,7 @@ export default defineNuxtConfig({
     '/gallery': {
       ssr: true
     },
-    '/about': {
+      '/about': {
       ssr: true
     }
   },

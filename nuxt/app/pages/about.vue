@@ -1,144 +1,108 @@
 <template>
   <section class="about-page">
     <!-- Hero Section -->
-    <Motion
-      class="about-hero"
-      :initial="{ opacity: 0, y: 50 }"
-      :animate="{ opacity: 1, y: 0 }"
-      :transition="{ duration: 0.8, type: 'spring' }"
-    >
+    <div class="about-hero">
       <div class="hero-content">
         <div class="hero-header">
-          <Motion
-            class="hero-role-badge"
-            :initial="{ opacity: 0, y: 20 }"
-            :animate="{ opacity: 1, y: 0 }"
-            :transition="{ delay: 0.1 }"
+          <div
+            class="hero-role-badge fade-up"
+            :style="{ animationDelay: '0.1s' }"
           >
             <Icon name="code-slash" size="sm" /> {{ ownerProfile.role }}
-          </Motion>
+          </div>
           
           <h1 class="hero-title">
-            <Motion
-              tag="span"
-              class="d-block text-muted fs-4 fw-normal mb-2"
-              :initial="{ opacity: 0, x: -20 }"
-              :animate="{ opacity: 1, x: 0 }"
-              :transition="{ delay: 0.2 }"
+            <span
+              class="d-block text-muted fs-4 fw-normal mb-2 fade-up"
+              :style="{ animationDelay: '0.2s' }"
             >
               Hi, I'm
-            </Motion>
-            <Motion
-              tag="span"
-              :initial="{ opacity: 0, y: 20 }"
-              :animate="{ opacity: 1, y: 0 }"
-              :transition="{ delay: 0.3 }"
-            >
+            </span>
+            <span class="fade-up" :style="{ animationDelay: '0.3s' }">
               {{ ownerProfile.name }}
-            </Motion>
+            </span>
           </h1>
           
-          <Motion
-            tag="p"
-            class="hero-desc"
-            :initial="{ opacity: 0 }"
-            :animate="{ opacity: 1 }"
-            :transition="{ delay: 0.4 }"
-          >
+          <p class="hero-desc fade-up" :style="{ animationDelay: '0.4s' }">
             {{ ownerProfile.description }}
-          </Motion>
+          </p>
 
           <div class="hero-tags" style="margin-top: 1.5rem; margin-bottom: 1rem; display: flex; flex-wrap: wrap; gap: 0.6rem;">
-            <Motion
+            <span
               v-for="(tag, index) in ownerProfile.tags"
               :key="tag"
-              tag="span"
-              :initial="{ opacity: 0, scale: 0.9 }"
-              :animate="{ opacity: 1, scale: 1 }"
-              :transition="{ delay: 0.5 + index * 0.05 }"
-              :hover="{ scale: 1.05, backgroundColor: 'rgba(0,0,0,0.05)' }"
+              class="hero-tag fade-up"
+              :style="{ animationDelay: `${0.5 + index * 0.05}s` }"
               style="padding: 0.35rem 0.85rem; background: rgba(255,255,255,0.5); border: 1px solid rgba(0,0,0,0.1); border-radius: 20px; font-size: 0.85rem; color: #666; cursor: default;"
             >
               # {{ tag }}
-            </Motion>
+            </span>
           </div>
         </div>
 
         <div class="hero-stats-row">
-          <Motion
+          <div
             v-for="(stat, index) in heroStats"
             :key="stat.label"
-            class="hero-stat"
-            :initial="{ opacity: 0, y: 20 }"
-            :animate="{ opacity: 1, y: 0 }"
-            :transition="{ delay: 0.5 + index * 0.1 }"
+            class="hero-stat fade-up"
+            :style="{ animationDelay: `${0.5 + index * 0.1}s` }"
           >
             <span class="stat-value">{{ stat.value }}</span>
             <span class="stat-label">{{ stat.label }}</span>
-          </Motion>
+          </div>
         </div>
 
         <div class="hero-actions">
-          <Motion
-            tag="button"
-            class="btn-primary"
+          <button
+            class="btn-primary fade-scale"
             @click="goToArticles"
-            :initial="{ opacity: 0, scale: 0.9 }"
-            :animate="{ opacity: 1, scale: 1 }"
-            :transition="{ delay: 0.8 }"
-            :hover="{ scale: 1.05 }"
-            :tap="{ scale: 0.95 }"
+            :style="{ animationDelay: '0.8s' }"
           >
             <Icon name="lightning-charge-fill" size="sm" :solid="true" class="me-2" />最新作品
-          </Motion>
-          <Motion
-            tag="a"
-            class="btn-outline"
+          </button>
+          <a
+            class="btn-outline fade-scale"
             href="https://github.com/wasd09090030"
             target="_blank"
             rel="noopener"
-            :initial="{ opacity: 0, scale: 0.9 }"
-            :animate="{ opacity: 1, scale: 1 }"
-            :transition="{ delay: 0.9 }"
-            :hover="{ scale: 1.05 }"
-            :tap="{ scale: 0.95 }"
+            :style="{ animationDelay: '0.9s' }"
           >
             <Icon name="github" size="sm" class="me-2" />GitHub
-          </Motion>
+          </a>
         </div>
       </div>
 
       <div class="hero-visual">
         <div class="profile-card-wrapper">
-          <Motion
-            class="profile-image-card"
-            :initial="{ rotate: -5, opacity: 0, scale: 0.9 }"
-            :animate="{ rotate: -3, opacity: 1, scale: 1 }"
-            :transition="{ delay: 0.3, type: 'spring', duration: 1 }"
-            :hover="{ rotate: 0, scale: 1.02 }"
+          <div
+            class="profile-image-card fade-scale-rotate"
+            :style="{ animationDelay: '0.3s' }"
           >
-            <img src="https://cfimg.wasd09090030.top/file/websource/1769253665220_Host.webp" alt="Profile" class="profile-img" />
-          </Motion>
+            <img
+              src="https://cfimg.wasd09090030.top/file/websource/1769253665220_Host.webp"
+              alt="Profile"
+              class="profile-img"
+              width="320"
+              height="400"
+              loading="eager"
+              decoding="async"
+              fetchpriority="high"
+            />
+          </div>
           
-          <Motion
-            class="floating-badge badge-1"
-            :initial="{ opacity: 0, x: -30 }"
-            :animate="{ opacity: 1, x: 0 }"
-            :transition="{ delay: 0.6, type: 'spring' }"
-            :hover="{ scale: 1.1, rotate: -5 }"
+          <div
+            class="floating-badge badge-1 fade-in"
+            :style="{ animationDelay: '0.6s' }"
           >
             <Icon name="code-square" size="sm" /> Fullstack
-          </Motion>
+          </div>
           
-          <Motion
-            class="floating-badge badge-2"
-            :initial="{ opacity: 0, x: 30 }"
-            :animate="{ opacity: 1, x: 0 }"
-            :transition="{ delay: 0.7, type: 'spring' }"
-            :hover="{ scale: 1.1, rotate: 5 }"
+          <div
+            class="floating-badge badge-2 fade-in"
+            :style="{ animationDelay: '0.7s' }"
           >
             <Icon name="controller" size="sm" /> Gamer
-          </Motion>
+          </div>
         </div>
         
         <div class="visual-decoration">
@@ -146,29 +110,26 @@
           <div class="circle-2"></div>
         </div>
       </div>
-    </Motion>
+    </div>
 
     <!-- Highlights Grid -->
-    <div class="highlights-section">
-      <Motion
+    <div class="highlights-section" v-once>
+      <div
         v-for="(card, index) in highlightCards"
         :key="card.title"
-        class="highlight-card"
-        :initial="{ opacity: 0, y: 30 }"
-        :in-view="{ opacity: 1, y: 0 }"
-        :transition="{ delay: index * 0.1 }"
-        :hover="{ y: -5, boxShadow: '0 20px 40px -10px rgba(0,0,0,0.1)' }"
+        class="highlight-card fade-up"
+        :style="{ animationDelay: `${index * 0.08}s` }"
       >
         <div class="card-icon" :style="{ background: card.accent }">
           <Icon :name="card.icon" size="lg" />
         </div>
         <h3>{{ card.title }}</h3>
         <p>{{ card.description }}</p>
-      </Motion>
+      </div>
     </div>
 
     <!-- Projects Section -->
-    <section class="projects-section">
+    <section class="projects-section" v-once>
       <div class="section-header">
         <span class="section-subtitle">PORTFOLIO</span>
         <h2 class="section-title">精选作品</h2>
@@ -176,15 +137,12 @@
       </div>
 
       <div class="projects-grid">
-        <Motion
+        <div
           v-for="(project, index) in projects"
           :key="project.title"
-          class="project-card"
+          class="project-card fade-scale"
           :class="project.accent"
-          :initial="{ opacity: 0, scale: 0.9 }"
-          :in-view="{ opacity: 1, scale: 1 }"
-          :transition="{ delay: index * 0.1 }"
-          :hover="{ y: -8 }"
+          :style="{ animationDelay: `${index * 0.08}s` }"
         >
           <div class="project-status">{{ project.status }}</div>
           <div class="project-content">
@@ -207,12 +165,12 @@
               </a>
             </div>
           </div>
-        </Motion>
+        </div>
       </div>
     </section>
 
     <!-- Tech Stack Section -->
-    <section class="tech-section">
+    <section class="tech-section" v-once>
       <div class="section-header">
         <span class="section-subtitle">TOOLBOX</span>
         <h2 class="section-title">技术栈</h2>
@@ -220,14 +178,11 @@
       </div>
 
       <div class="tech-grid">
-        <Motion
+        <div
           v-for="(stack, index) in techStacks"
           :key="stack.title"
-          class="tech-card"
-          :initial="{ opacity: 0, x: index % 2 === 0 ? -30 : 30 }"
-          :in-view="{ opacity: 1, x: 0 }"
-          :transition="{ delay: index * 0.1 }"
-          :hover="{ scale: 1.02 }"
+          class="tech-card fade-up"
+          :style="{ animationDelay: `${index * 0.08}s` }"
         >
           <div class="tech-header">
             <Icon :name="stack.icon" size="lg" />
@@ -238,19 +193,22 @@
               {{ item }}
             </span>
           </div>
-        </Motion>
+        </div>
       </div>
     </section>
   </section>
 </template>
 
 <script setup>
-import { Motion } from 'motion-v'
 import '~/assets/css/components/AboutPage.styles.css'
 
 useHead({
   title: 'WyrmKk - 关于我',
-  meta: [{ name: 'description', content: '开发者个人主页，展示项目与技术栈' }]
+  meta: [{ name: 'description', content: '开发者个人主页，展示项目与技术栈' }],
+  link: [
+    { rel: 'preconnect', href: 'https://cfimg.wasd09090030.top', crossorigin: '' },
+    { rel: 'dns-prefetch', href: 'https://cfimg.wasd09090030.top' }
+  ]
 })
 
 const router = useRouter()

@@ -4,26 +4,16 @@
     <div class="page-hero">
       <div class="container-fluid">
         <div class="tags-container">
-          <Motion
-            v-for="tag in availableTags"
+          <button
+            v-for="(tag, index) in availableTags"
             :key="tag"
-            as="button"
-            class="filter-chip"
+            class="filter-chip chip-animate"
             :class="{ active: selectedTag === tag }"
-            :initial="{ opacity: 0, scale: 0.9 }"
-            :animate="{ opacity: 1, scale: 1 }"
-            :transition="{ 
-              type: 'spring', 
-              stiffness: 400, 
-              damping: 25,
-              mass: 0.8
-            }"
-            :while-hover="{ scale: 1.05 }"
-            :while-tap="{ scale: 0.95 }"
+            :style="{ animationDelay: `${index * 0.03}s` }"
             @click="selectTag(tag)"
           >
             {{ tag }}
-          </Motion>
+          </button>
         </div>
       </div>
     </div>
@@ -120,7 +110,6 @@
 </template>
 
 <script setup>
-import { Motion } from 'motion-v'
 import { useArticles } from '~/composables/useArticles'
 
 definePageMeta({
@@ -327,6 +316,7 @@ defineExpose({ refreshData: fetchArticles })
   color: color-mix(in srgb, var(--text-secondary), var(--accent-primary) 20%);
   border-color: transparent;
   box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, color 0.2s ease;
 }
 
 .dark-theme .filter-chip {
@@ -338,6 +328,7 @@ defineExpose({ refreshData: fetchArticles })
   background: white;
   color: var(--accent-primary);
   box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  transform: scale(1.05);
 }
 
 .dark-theme .filter-chip:hover {
@@ -351,6 +342,25 @@ defineExpose({ refreshData: fetchArticles })
   box-shadow: 0 4px 12px color-mix(in srgb, var(--accent-primary), transparent 60%);
   border-color: transparent;
   font-weight: 600;
+}
+
+.filter-chip:active {
+  transform: scale(0.97);
+}
+
+.chip-animate {
+  animation: chip-pop 0.4s ease both;
+}
+
+@keyframes chip-pop {
+  from { opacity: 0; transform: scale(0.92); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chip-animate {
+    animation: none;
+  }
 }
 
 .btn-reset {
