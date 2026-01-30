@@ -48,6 +48,21 @@ namespace BlogApi.Models
         public string SignatureParam { get; set; } = "sig";
 
         /// <summary>
+        /// 是否使用 Worker 生成缩略图
+        /// </summary>
+        public bool UseWorker { get; set; } = false;
+
+        /// <summary>
+        /// Worker 基础地址（如 https://imgworker.example.com）
+        /// </summary>
+        public string? WorkerBaseUrl { get; set; }
+
+        /// <summary>
+        /// 签名过期时间（秒）
+        /// </summary>
+        public int TokenTtlSeconds { get; set; } = 3600;
+
+        /// <summary>
         /// 静态签名令牌（规则校验用）
         /// </summary>
         public string? SignatureToken { get; set; }

@@ -53,6 +53,9 @@
               <n-form-item label="启用缩略图">
                 <n-switch v-model:value="cfConfigForm.isEnabled" />
               </n-form-item>
+              <n-form-item label="使用 Worker">
+                <n-switch v-model:value="cfConfigForm.useWorker" />
+              </n-form-item>
               <n-form-item label="强制 HTTPS">
                 <n-switch v-model:value="cfConfigForm.useHttps" />
               </n-form-item>
@@ -61,6 +64,15 @@
                   v-model:value="cfConfigForm.zoneDomain"
                   placeholder="imgbed.test.test 或 https://imgbed.test.test"
                 />
+              </n-form-item>
+              <n-form-item v-if="cfConfigForm.useWorker" label="Worker 域名">
+                <n-input
+                  v-model:value="cfConfigForm.workerBaseUrl"
+                  placeholder="https://imgworker.wasd09090030.top"
+                />
+              </n-form-item>
+              <n-form-item v-if="cfConfigForm.useWorker" label="签名有效期(秒)">
+                <n-input-number v-model:value="cfConfigForm.tokenTtlSeconds" :min="60" />
               </n-form-item>
               <n-form-item label="缩放模式">
                 <n-select
@@ -99,7 +111,7 @@
             </div>
           </n-form>
           <p class="text-xs text-gray-500 mt-3">
-            提示：若启用 WAF 校验，请填写“签名 Token”或“签名 Secret”，并确保规则使用对应的参数名。
+            提示：使用 Worker 时必须配置“签名 Secret”并设置有效期；仅用 Token 只用于 WAF 规则匹配，不具备验签安全性。
           </p>
         </n-spin>
       </n-card>
@@ -344,6 +356,9 @@ const defaultCfConfig = {
   quality: 50,
   format: 'webp',
   signatureParam: 'sig',
+  useWorker: false,
+  workerBaseUrl: '',
+  tokenTtlSeconds: 3600,
   signatureToken: '',
   signatureSecret: ''
 }
@@ -605,7 +620,8 @@ const saveCfConfig = async () => {
     const payload = {
       ...cfConfigForm.value,
       width: cfConfigForm.value.width ?? 0,
-      quality: cfConfigForm.value.quality ?? 0
+      quality: cfConfigForm.value.quality ?? 0,
+      tokenTtlSeconds: cfConfigForm.value.tokenTtlSeconds ?? 3600
     }
     await cfConfigApi.saveConfig(payload)
     message.success('缩略图配置已保存')

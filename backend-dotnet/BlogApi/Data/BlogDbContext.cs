@@ -127,6 +127,9 @@ namespace BlogApi.Data
                 entity.Property(e => e.Quality).HasDefaultValue(50);
                 entity.Property(e => e.Format).HasDefaultValue("webp");
                 entity.Property(e => e.SignatureParam).HasDefaultValue("sig");
+                entity.Property(e => e.UseWorker).HasDefaultValue(false);
+                entity.Property(e => e.WorkerBaseUrl);
+                entity.Property(e => e.TokenTtlSeconds).HasDefaultValue(3600);
                 entity.Property(e => e.SignatureToken);
                 entity.Property(e => e.SignatureSecret);
                 entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");

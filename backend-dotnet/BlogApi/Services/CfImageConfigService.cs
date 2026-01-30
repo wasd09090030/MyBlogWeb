@@ -46,6 +46,9 @@ namespace BlogApi.Services
             config.Quality = dto.Quality < 0 ? 50 : dto.Quality;
             config.Format = string.IsNullOrWhiteSpace(dto.Format) ? "webp" : dto.Format.Trim();
             config.SignatureParam = string.IsNullOrWhiteSpace(dto.SignatureParam) ? "sig" : dto.SignatureParam.Trim();
+            config.UseWorker = dto.UseWorker;
+            config.WorkerBaseUrl = string.IsNullOrWhiteSpace(dto.WorkerBaseUrl) ? null : dto.WorkerBaseUrl.Trim();
+            config.TokenTtlSeconds = dto.TokenTtlSeconds <= 0 ? 3600 : dto.TokenTtlSeconds;
             config.SignatureToken = string.IsNullOrWhiteSpace(dto.SignatureToken) ? null : dto.SignatureToken.Trim();
             config.SignatureSecret = string.IsNullOrWhiteSpace(dto.SignatureSecret) ? null : dto.SignatureSecret.Trim();
             config.UpdatedAt = DateTime.UtcNow;

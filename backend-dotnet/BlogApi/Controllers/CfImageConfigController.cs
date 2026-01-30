@@ -39,6 +39,9 @@ namespace BlogApi.Controllers
                 Quality = config.Quality,
                 Format = config.Format,
                 SignatureParam = config.SignatureParam,
+                UseWorker = config.UseWorker,
+                WorkerBaseUrl = config.WorkerBaseUrl,
+                TokenTtlSeconds = config.TokenTtlSeconds,
                 SignatureToken = config.SignatureToken,
                 SignatureSecret = config.SignatureSecret
             });
@@ -60,6 +63,35 @@ namespace BlogApi.Controllers
                 return BadRequest(new { error = "质量范围应为 0-100，0 表示使用默认值" });
             }
 
+            if (dto.UseWorker)
+            {
+                if (string.IsNullOrWhiteSpace(dto.WorkerBaseUrl) ||
+                    !Uri.TryCreate(dto.WorkerBaseUrl, UriKind.Absolute, out _))
+                {
+                    return BadRequest(new { error = "启用 Worker 时必须提供有效的 Worker 基础地址" });
+                }
+
+                if (string.IsNullOrWhiteSpace(dto.SignatureSecret))
+                {
+                    return BadRequest(new { error = "启用 Worker 时必须配置签名密钥" });
+                }
+
+                if (dto.Width <= 0)
+                {
+                    return BadRequest(new { error = "启用 Worker 时缩略图宽度必须大于 0" });
+                }
+
+                if (dto.Quality <= 0 || dto.Quality > 100)
+                {
+                    return BadRequest(new { error = "启用 Worker 时图片质量范围应为 1-100" });
+                }
+            }
+
+            if (dto.TokenTtlSeconds is > 0 and < 60)
+            {
+                return BadRequest(new { error = "签名有效期建议不少于 60 秒" });
+            }
+
             var config = await _cfImageConfigService.SaveConfigAsync(dto);
 
             return Ok(new CfImageConfigDto
@@ -72,6 +104,9 @@ namespace BlogApi.Controllers
                 Quality = config.Quality,
                 Format = config.Format,
                 SignatureParam = config.SignatureParam,
+                UseWorker = config.UseWorker,
+                WorkerBaseUrl = config.WorkerBaseUrl,
+                TokenTtlSeconds = config.TokenTtlSeconds,
                 SignatureToken = config.SignatureToken,
                 SignatureSecret = config.SignatureSecret
             });

@@ -13,6 +13,9 @@ namespace BlogApi.DTOs
         public int Quality { get; set; } = 50;
         public string Format { get; set; } = "webp";
         public string SignatureParam { get; set; } = "sig";
+        public bool UseWorker { get; set; } = false;
+        public string? WorkerBaseUrl { get; set; }
+        public int TokenTtlSeconds { get; set; } = 3600;
         public string? SignatureToken { get; set; }
         public string? SignatureSecret { get; set; }
     }

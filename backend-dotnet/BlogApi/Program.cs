@@ -126,6 +126,9 @@ CREATE TABLE IF NOT EXISTS cf_image_configs (
     Quality INTEGER NOT NULL DEFAULT 50,
     Format TEXT NOT NULL DEFAULT 'webp',
     SignatureParam TEXT NOT NULL DEFAULT 'sig',
+    UseWorker INTEGER NOT NULL DEFAULT 0,
+    WorkerBaseUrl TEXT NULL,
+    TokenTtlSeconds INTEGER NOT NULL DEFAULT 3600,
     SignatureToken TEXT NULL,
     SignatureSecret TEXT NULL,
     CreatedAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -133,4 +136,20 @@ CREATE TABLE IF NOT EXISTS cf_image_configs (
 );";
 
     dbContext.Database.ExecuteSqlRaw(sql);
+
+    TryAddColumn(dbContext, "ALTER TABLE cf_image_configs ADD COLUMN UseWorker INTEGER NOT NULL DEFAULT 0;");
+    TryAddColumn(dbContext, "ALTER TABLE cf_image_configs ADD COLUMN WorkerBaseUrl TEXT NULL;");
+    TryAddColumn(dbContext, "ALTER TABLE cf_image_configs ADD COLUMN TokenTtlSeconds INTEGER NOT NULL DEFAULT 3600;");
+}
+
+static void TryAddColumn(BlogDbContext dbContext, string sql)
+{
+    try
+    {
+        dbContext.Database.ExecuteSqlRaw(sql);
+    }
+    catch
+    {
+        // Ignore if the column already exists.
+    }
 }

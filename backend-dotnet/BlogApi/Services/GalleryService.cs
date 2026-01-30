@@ -99,6 +99,17 @@ namespace BlogApi.Services
             if (config == null || !config.IsEnabled) return imageUrl;
             if (!Uri.TryCreate(imageUrl, UriKind.Absolute, out var sourceUri)) return imageUrl;
 
+            if (config.UseWorker)
+            {
+                var workerUrl = BuildWorkerThumbnailUrl(sourceUri, config);
+                return string.IsNullOrWhiteSpace(workerUrl) ? imageUrl : workerUrl;
+            }
+
+            return BuildCdnThumbnailUrl(sourceUri, imageUrl, config);
+        }
+
+        private string? BuildCdnThumbnailUrl(Uri sourceUri, string imageUrl, CfImageConfig config)
+        {
             string? baseHost = null;
             string? zoneScheme = null;
             if (!string.IsNullOrWhiteSpace(config.ZoneDomain))
@@ -139,15 +150,48 @@ namespace BlogApi.Services
             return baseUrl;
         }
 
+        private string? BuildWorkerThumbnailUrl(Uri sourceUri, CfImageConfig config)
+        {
+            if (string.IsNullOrWhiteSpace(config.WorkerBaseUrl)) return null;
+            if (string.IsNullOrWhiteSpace(config.SignatureSecret)) return null;
+
+            var baseUrl = config.WorkerBaseUrl.Trim().TrimEnd('/');
+
+            var path = sourceUri.AbsolutePath;
+            if (path.StartsWith("/file/", StringComparison.OrdinalIgnoreCase))
+            {
+                path = path.Substring("/file/".Length);
+            }
+            else
+            {
+                path = path.TrimStart('/');
+            }
+
+            if (string.IsNullOrWhiteSpace(path)) return null;
+
+            var width = config.Width > 0 ? config.Width : 300;
+            var quality = config.Quality > 0 ? config.Quality : 50;
+            var format = string.IsNullOrWhiteSpace(config.Format) ? "webp" : config.Format;
+            var fit = string.IsNullOrWhiteSpace(config.Fit) ? "scale-down" : config.Fit;
+            var ttl = config.TokenTtlSeconds > 0 ? config.TokenTtlSeconds : 3600;
+            var exp = DateTimeOffset.UtcNow.ToUnixTimeSeconds() + ttl;
+
+            var data = $"{path}|{width}|{quality}|{format}|{fit}|{exp}";
+            var sig = BuildHmacSignature(data, config.SignatureSecret);
+            if (string.IsNullOrWhiteSpace(sig)) return null;
+
+            var param = string.IsNullOrWhiteSpace(config.SignatureParam) ? "sig" : config.SignatureParam.Trim();
+
+            return $"{baseUrl}/thumb/{path}?w={width}&q={quality}&fmt={format}&fit={fit}&exp={exp}&{param}={sig}";
+        }
+
         private string? BuildSignature(string optionString, string imageUrl, CfImageConfig config)
         {
             if (!string.IsNullOrWhiteSpace(config.SignatureSecret))
             {
                 var param = string.IsNullOrWhiteSpace(config.SignatureParam) ? "sig" : config.SignatureParam.Trim();
                 var data = $"{optionString}|{imageUrl}";
-                using var hmac = new System.Security.Cryptography.HMACSHA256(System.Text.Encoding.UTF8.GetBytes(config.SignatureSecret));
-                var hash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(data));
-                var sig = Convert.ToHexString(hash).ToLowerInvariant();
+                var sig = BuildHmacSignature(data, config.SignatureSecret);
                 return $"{param}={sig}";
             }
 
@@ -158,6 +202,13 @@ namespace BlogApi.Services
             }
 
             return null;
+        }
+
+        private string? BuildHmacSignature(string data, string secret)
+        {
+            using var hmac = new System.Security.Cryptography.HMACSHA256(System.Text.Encoding.UTF8.GetBytes(secret));
+            var hash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(data));
+            return Convert.ToHexString(hash).ToLowerInvariant();
         }
 
         public async Task<Gallery?> UpdateAsync(int id, UpdateGalleryDto dto)
