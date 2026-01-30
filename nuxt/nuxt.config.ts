@@ -7,11 +7,7 @@ export default defineNuxtConfig({
     '~/assets/css/theme-variables.css',
     '~/assets/css/tailwind.css', // Tailwind CSS 入口文件
     'katex/dist/katex.min.css', // KaTeX 数学公式样式
-    'swiper/css',
-    'swiper/css/navigation',
-    'swiper/css/pagination',
-    'swiper/css/effect-coverflow',
-    'swiper/css/effect-cube',
+    'keen-slider/keen-slider.min.css',
     '~/assets/css/components/prose-custom.css', // 自定义 prose 样式
     '~/assets/css/layout.css', // 自定义布局工具类
     '~/assets/css/app.css',
@@ -154,7 +150,6 @@ export default defineNuxtConfig({
 
   // 依赖配置
   build: {
-    transpile: ['swiper'],
     // 优化构建分析
     analyze: false
   },
@@ -164,8 +159,7 @@ export default defineNuxtConfig({
     optimizeDeps: {
       include: [
         'vue',
-        'swiper',
-        'swiper/bundle',
+        'keen-slider',
         'naive-ui',
         'katex',
         'motion-v',
@@ -203,9 +197,6 @@ export default defineNuxtConfig({
             // 仅分割不会导致循环依赖的大型库
             if (id.includes('node_modules/mermaid')) {
               return 'vendor-markdown';
-            }
-            if (id.includes('node_modules/swiper')) {
-              return 'vendor-swiper';
             }
             // Vue/Naive UI 让 Nuxt 自动处理，避免初始化顺序问题
           }

@@ -132,23 +132,21 @@
 </template>
 
 <script setup>
+import FadeSlideshow from '../components/gallery/FadeSlideshow.vue'
+import AccordionGallery from '../components/gallery/AccordionGallery.vue'
+import CoverflowGallery from '../components/gallery/CoverflowGallery.vue'
+import MasonryWaterfall from '../components/gallery/MasonryWaterfall.vue'
+
 // 设置页面元数据
 useHead({
   title: 'WyrmKk - 图片画廊',
   meta: [
     {
       name: 'description',
-      content: '使用 SwiperJS 构建的浏览精美的图片画廊'
+      content: '高性能、支持 SSR 的图片画廊'
     }
   ]
 })
-
-// 导入Swiper CSS
-import 'swiper/css'
-import 'swiper/css/navigation'
-import 'swiper/css/pagination'
-import 'swiper/css/effect-coverflow'
-import 'swiper/css/effect-fade'
 
 // 响应式数据
 const galleries = ref([])
@@ -250,9 +248,9 @@ const preloadAllImages = async () => {
     // 等待 Vue 更新 DOM 和过渡动画开始
     await nextTick()
     
-    // 延迟初始化 Swiper，等待画廊内容完全渲染
+    // 延迟初始化 Slider，等待画廊内容完全渲染
     setTimeout(() => {
-      initSwipers()
+      initSliders()
     }, 100)
 
   } catch (error) {
@@ -261,7 +259,7 @@ const preloadAllImages = async () => {
     isInitialLoading.value = false
     await nextTick()
     setTimeout(() => {
-      initSwipers()
+      initSliders()
     }, 100)
   }
 }
@@ -307,8 +305,8 @@ const getGallerySlice = (start, end) => {
   return result
 }
 
-// 初始化所有子组件的 Swiper
-const initSwipers = async () => {
+// 初始化所有子组件的 Slider
+const initSliders = async () => {
   await nextTick()
 
   if (galleries.value.length > 0 && !isInitialLoading.value) {
@@ -317,20 +315,20 @@ const initSwipers = async () => {
       setTimeout(async () => {
         // 按顺序初始化，先初始化主要的幻灯片
         if (fadeSlideshowRef.value) {
-          await fadeSlideshowRef.value.initSwiper()
+          await fadeSlideshowRef.value.initSlider()
         }
         
-        // 稍后初始化其他 Swiper
+        // 稍后初始化其他 Slider
         setTimeout(async () => {
           if (accordionGalleryRef.value) {
-            await accordionGalleryRef.value.initSwiper()
+            await accordionGalleryRef.value.initSlider()
           }
           if (coverflowGalleryRef.value) {
-            await coverflowGalleryRef.value.initSwiper()
+            await coverflowGalleryRef.value.initSlider()
           }
           // 初始化瀑布流
           if (masonryWaterfallRef.value) {
-            await masonryWaterfallRef.value.initSwiper()
+            await masonryWaterfallRef.value.initLayout()
           }
         }, 200)
       }, 150)
@@ -447,19 +445,19 @@ const goBack = () => {
   navigateTo('/')
 }
 
-// 销毁所有子组件的 Swiper 实例
-const destroySwipers = () => {
+// 销毁所有子组件的 Slider 实例
+const destroySliders = () => {
   if (fadeSlideshowRef.value) {
-    fadeSlideshowRef.value.destroySwiper()
+    fadeSlideshowRef.value.destroySlider()
   }
   if (accordionGalleryRef.value) {
-    accordionGalleryRef.value.destroySwiper()
+    accordionGalleryRef.value.destroySlider()
   }
   if (coverflowGalleryRef.value) {
-    coverflowGalleryRef.value.destroySwiper()
+    coverflowGalleryRef.value.destroySlider()
   }
   if (masonryWaterfallRef.value) {
-    masonryWaterfallRef.value.destroySwiper()
+    masonryWaterfallRef.value.destroyLayout()
   }
 }
 
@@ -479,7 +477,7 @@ onMounted(async () => {
 })
 
 onUnmounted(() => {
-  destroySwipers()
+  destroySliders()
   // 恢复body滚动条 - 使用多种方式确保恢复
   document.body.style.overflow = window.__galleryOriginalOverflow || ''
   if (!window.__galleryOriginalOverflow) {

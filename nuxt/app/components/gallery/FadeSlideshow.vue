@@ -1,25 +1,23 @@
 <template>
   <section class="fade-section">
-    <div class="fade-gallery" ref="containerRef">
-      <div class="swiper-wrapper">
+    <div class="fade-gallery keen-slider" ref="containerRef">
+      <div
+        v-for="(gallery, index) in images"
+        :key="`loop-${gallery.id}-${index}`"
+        class="keen-slider__slide fade-slide"
+      >
         <div
-          v-for="(gallery, index) in images"
-          :key="`loop-${gallery.id}-${index}`"
-          class="swiper-slide fade-slide"
+          class="fade-item"
+          @click="$emit('image-click', gallery)"
         >
-          <div
-            class="fade-item"
-            @click="$emit('image-click', gallery)"
-          >
-            <img
-              :src="gallery.imageUrl"
-              alt="画廊图片"
-              class="fade-image"
-            />
-            <div class="fade-overlay">
-              <div class="fade-content">
-                <!-- 可扩展的内容区域 -->
-              </div>
+          <img
+            :src="gallery.imageUrl"
+            alt="画廊图片"
+            class="fade-image"
+          />
+          <div class="fade-overlay">
+            <div class="fade-content">
+              <!-- 可扩展的内容区域 -->
             </div>
           </div>
         </div>
@@ -41,81 +39,145 @@ const emit = defineEmits(['image-click'])
 // DOM 引用
 const containerRef = ref(null)
 
-// Swiper 实例
-const swiperInstance = ref(null)
+// Keen Slider 实例
+const sliderInstance = ref(null)
 
-// Swiper 模块
-let Swiper, Autoplay, EffectFade
+// Keen Slider 模块
+let KeenSlider
 
-// 动态加载 Swiper
-const loadSwiper = async () => {
+// 动态加载 Keen Slider
+const loadKeenSlider = async () => {
   try {
-    const swiperModule = await import('swiper')
-    const modulesModule = await import('swiper/modules')
-
-    Swiper = swiperModule.Swiper
-    Autoplay = modulesModule.Autoplay
-    EffectFade = modulesModule.EffectFade
-
+    if (!KeenSlider) {
+      const keenModule = await import('keen-slider')
+      KeenSlider = keenModule.default
+    }
     return true
   } catch (err) {
-    console.error('Failed to load Swiper:', err)
+    console.error('Failed to load KeenSlider:', err)
     return false
   }
 }
 
-// 初始化 Swiper
-const initSwiper = async () => {
-  if (!containerRef.value) return
+const autoplayPlugin = (slider) => {
+  let timeout = null
+  let mouseOver = false
 
-  const loaded = await loadSwiper()
-  if (!loaded) return
-
-  await nextTick()
-
-  swiperInstance.value = new Swiper(containerRef.value, {
-    modules: [Autoplay, EffectFade],
-    effect: 'fade',
-    fadeEffect: {
-      crossFade: true
-    },
-    slidesPerView: 1,
-    spaceBetween: 0,
-    loop: true,
-    speed: 800,
-    autoplay: {
-      delay: 4000,
-      disableOnInteraction: false,
-      waitForTransition: true,
-    },
-    allowTouchMove: true,
-    watchSlidesProgress: true,
-    observer: true,
-    observeParents: true,
-    on: {
-      init: function() {
-        this.el.classList.add('swiper-initialized')
-      }
+  const clearNextTimeout = () => {
+    if (timeout) {
+      clearTimeout(timeout)
+      timeout = null
     }
+  }
+
+  const nextTimeout = () => {
+    clearNextTimeout()
+    if (mouseOver) return
+    timeout = setTimeout(() => {
+      slider.next()
+    }, 4000)
+  }
+
+  const handleMouseOver = () => {
+    mouseOver = true
+    clearNextTimeout()
+  }
+
+  const handleMouseOut = () => {
+    mouseOver = false
+    nextTimeout()
+  }
+
+  slider.on('created', () => {
+    slider.container.addEventListener('mouseover', handleMouseOver)
+    slider.container.addEventListener('mouseout', handleMouseOut)
+    nextTimeout()
+  })
+
+  slider.on('dragStarted', clearNextTimeout)
+  slider.on('animationEnded', nextTimeout)
+  slider.on('updated', nextTimeout)
+  slider.on('destroyed', () => {
+    clearNextTimeout()
+    slider.container.removeEventListener('mouseover', handleMouseOver)
+    slider.container.removeEventListener('mouseout', handleMouseOut)
   })
 }
 
-// 销毁 Swiper
-const destroySwiper = () => {
-  if (swiperInstance.value) {
-    swiperInstance.value.destroy(true, true)
-    swiperInstance.value = null
+const fadePlugin = (slider) => {
+  const setOpacity = () => {
+    const details = slider.track.details
+    details.slides.forEach((slide, index) => {
+      const opacity = slide.portion
+      const element = slider.slides[index]
+      if (!element) return
+      element.style.opacity = opacity
+      element.style.pointerEvents = opacity > 0.5 ? 'auto' : 'none'
+      element.style.zIndex = `${Math.round(opacity * 100)}`
+    })
+  }
+
+  slider.on('created', () => {
+    slider.container.style.position = 'relative'
+    slider.container.style.overflow = 'hidden'
+    slider.slides.forEach((slide) => {
+      slide.style.position = 'absolute'
+      slide.style.top = '0'
+      slide.style.left = '0'
+      slide.style.width = '100%'
+      slide.style.height = '100%'
+    })
+    slider.container.classList.add('is-ready')
+    setOpacity()
+  })
+
+  slider.on('detailsChanged', setOpacity)
+  slider.on('updated', setOpacity)
+}
+
+// 初始化 Keen Slider
+const initSlider = async () => {
+  if (!containerRef.value || sliderInstance.value) return
+
+  const loaded = await loadKeenSlider()
+  if (!loaded || !KeenSlider) return
+
+  await nextTick()
+
+  sliderInstance.value = new KeenSlider(
+    containerRef.value,
+    {
+      loop: true,
+      drag: false,
+      renderMode: 'custom',
+      slides: {
+        perView: 1,
+        spacing: 0
+      },
+      defaultAnimation: {
+        duration: 800
+      }
+    },
+    [fadePlugin, autoplayPlugin]
+  )
+}
+
+// 销毁 Keen Slider
+const destroySlider = () => {
+  if (sliderInstance.value) {
+    sliderInstance.value.destroy()
+    sliderInstance.value = null
   }
 }
 
 // 暴露方法给父组件
 defineExpose({
-  initSwiper,
-  destroySwiper
+  initSlider,
+  destroySlider
 })
 
 onUnmounted(() => {
-  destroySwiper()
+  destroySlider()
 })
 </script>
 
@@ -136,11 +198,12 @@ onUnmounted(() => {
   height: 100%;
   width: 100%;
   margin: 0;
+  position: relative;
   opacity: 0;
   transition: opacity 0.5s ease-out;
 }
 
-.fade-gallery.swiper-initialized {
+.fade-gallery.is-ready {
   opacity: 1;
 }
 
@@ -149,14 +212,6 @@ onUnmounted(() => {
   width: 100%;
   opacity: 0;
   transition: opacity 0.5s ease-out;
-}
-
-.swiper-initialized .fade-slide {
-  opacity: 1;
-}
-
-.swiper-initialized .fade-slide:not(.swiper-slide-active) {
-  opacity: 0;
 }
 
 .fade-item {

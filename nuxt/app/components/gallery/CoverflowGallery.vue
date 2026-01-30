@@ -1,187 +1,330 @@
 <template>
-  <section class="coverflow-section mb-5">
-    <div class="coverflow-gallery" ref="containerRef">
-      <div class="swiper-wrapper">
-        <div
-          v-for="(gallery, index) in images"
-          :key="`coverflow-${gallery.id}-${index}`"
-          class="swiper-slide coverflow-slide"
+  <section class="gallery-section">
+    <div class="carousel-container" @mouseenter="pauseAutoplay" @mouseleave="resumeAutoplay">
+      <div class="carousel-stage">
+        <div 
+          v-for="(item, index) in internalImages" 
+          :key="item._uniqueKey"
+          class="carousel-item"
+          :class="{ active: index === activeIndex }"
+          :style="getItemStyle(index)"
+          @click="handleItemClick(index, item)"
         >
-          <div
-            class="coverflow-item"
-            @click="$emit('image-click', gallery)"
-          >
-            <img
-              :src="gallery.imageUrl"
-              alt="画廊图片"
-              class="coverflow-image"
-            />
-            <div class="coverflow-info">
-              <!-- 可扩展的信息区域 -->
-            </div>
+          <div class="item-content">
+            <img :src="item.imageUrl" class="carousel-image" loading="lazy" />
+            <div class="item-overlay"></div>
           </div>
         </div>
+      </div>
+      
+      <!-- Optional Controls -->
+      <div class="controls" v-if="internalImages.length > 1">
+        <button class="nav-btn prev" @click.stop="prev">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+        </button>
+        <button class="nav-btn next" @click.stop="next">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </button>
       </div>
     </div>
   </section>
 </template>
 
 <script setup>
+import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
+
 const props = defineProps({
   images: {
     type: Array,
     default: () => []
+  },
+  autoplayInterval: {
+    type: Number,
+    default: 3000
   }
 })
 
 const emit = defineEmits(['image-click'])
 
-// DOM 引用
-const containerRef = ref(null)
+const activeIndex = ref(0)
+const autoplayTimer = ref(null)
 
-// Swiper 实例
-const swiperInstance = ref(null)
-
-// Swiper 模块
-let Swiper, EffectCoverflow
-
-// 动态加载 Swiper
-const loadSwiper = async () => {
-  try {
-    const swiperModule = await import('swiper')
-    const modulesModule = await import('swiper/modules')
-
-    Swiper = swiperModule.Swiper
-    EffectCoverflow = modulesModule.EffectCoverflow
-
-    return true
-  } catch (err) {
-    console.error('Failed to load Swiper:', err)
-    return false
+// 构造内部循环数组：确保数量足够以实现无缝无限滚动
+// 至少需要 10 个元素来保证视口外的元素跳转不可见（避免"飞过"屏幕）
+const internalImages = computed(() => {
+  const original = props.images
+  if (!original || original.length === 0) return []
+  
+  const minLength = 15
+  let result = [...original]
+  
+  // 复制数组直到满足最小长度
+  while (result.length < minLength) {
+    result = [...result, ...original]
   }
-}
+  
+  // 添加唯一 Key 以便 v-for 渲染
+  return result.map((img, i) => ({
+    ...img,
+    _uniqueKey: `clone-${i}-${img.id || Math.random()}`
+  }))
+})
 
-// 初始化 Swiper
-const initSwiper = async () => {
-  if (!containerRef.value) return
-
-  const loaded = await loadSwiper()
-  if (!loaded) return
-
-  await nextTick()
-
-  swiperInstance.value = new Swiper(containerRef.value, {
-    modules: [EffectCoverflow],
-    effect: 'coverflow',
-    grabCursor: true,
-    centeredSlides: true,
-    slidesPerView: 3,
-    loop: true,
-    speed: 600,
-    coverflowEffect: {
-      rotate: 30,
-      stretch: 0,
-      depth: 100,
-      modifier: 1,
-      slideShadows: true,
-    },
-    breakpoints: {
-      320: {
-        slidesPerView: 1,
-      },
-      768: {
-        slidesPerView: 2,
-      },
-      1024: {
-        slidesPerView: 3,
-      }
-    }
-  })
-}
-
-// 销毁 Swiper
-const destroySwiper = () => {
-  if (swiperInstance.value) {
-    swiperInstance.value.destroy(true, true)
-    swiperInstance.value = null
+// 初始化
+onMounted(() => {
+  if (internalImages.value.length > 0) {
+    // 从中间开始，方便向左向右都有缓冲区
+    activeIndex.value = Math.floor(internalImages.value.length / 2)
   }
-}
-
-// 暴露方法给父组件
-defineExpose({
-  initSwiper,
-  destroySwiper
+  startAutoplay()
 })
 
 onUnmounted(() => {
-  destroySwiper()
+  stopAutoplay()
 })
+
+const startAutoplay = () => {
+  stopAutoplay()
+  if (internalImages.value.length <= 1) return
+  autoplayTimer.value = setInterval(() => {
+    next()
+  }, props.autoplayInterval)
+}
+
+const stopAutoplay = () => {
+  if (autoplayTimer.value) {
+    clearInterval(autoplayTimer.value)
+    autoplayTimer.value = null
+  }
+}
+
+const pauseAutoplay = () => {
+  stopAutoplay()
+}
+
+const resumeAutoplay = () => {
+  startAutoplay()
+}
+
+const next = () => {
+  activeIndex.value = (activeIndex.value + 1) % internalImages.value.length
+}
+
+const prev = () => {
+  const len = internalImages.value.length
+  activeIndex.value = (activeIndex.value - 1 + len) % len
+}
+
+const handleItemClick = (index, item) => {
+  if (index === activeIndex.value) {
+    emit('image-click', item)
+  } else {
+    // 计算最短路径跳转
+    const len = internalImages.value.length
+    let diff = index - activeIndex.value
+    if (diff > len / 2) diff -= len
+    else if (diff < -len / 2) diff += len
+    
+    // 如果直接设置 index，可能会导致"长途跋涉"的动画
+    // 这里简单设置，因为通常点击的是可见区域的图片 (-2 到 2)
+    activeIndex.value = index
+  }
+}
+
+// 核心：计算每个卡片的 3D 样式
+const getItemStyle = (index) => {
+  const len = internalImages.value.length
+  if (len === 0) return {}
+
+  // 计算循环偏移量 (Circular Offset)
+  let offset = index - activeIndex.value
+  // 修正偏移量以实现最短路径循环
+  if (offset > len / 2) offset -= len
+  else if (offset < -len / 2) offset += len
+  
+  const absOffset = Math.abs(offset)
+  
+  // 只显示 0 1 2 1 0 模式 (即 absOffset <= 2)
+  if (absOffset > 2) {
+    return { 
+      opacity: 0,
+      pointerEvents: 'none',
+      visibility: 'hidden', // 使用 visibility hidden 保持布局但不可见 (absolute定位下其实不影响布局)
+      transform: 'translate(-50%, -50%) scale(0)' // 缩到最小防止干扰
+    }
+  }
+
+  // 配置参数
+  const xSpacing = 75// 60% 间距
+  const zDepthStep = 120 // Z轴深度递减
+  const scaleStep = 0.1 // 缩放递减
+
+  let translateX = offset * xSpacing
+  let translateZ = -absOffset * zDepthStep
+  let scale = 1 - (absOffset * scaleStep)
+  let zIndex = 100 - absOffset
+  let opacity = 1 // 保持可见区域不透明，或者轻微透明
+
+  // 中心特殊处理
+  if (offset === 0) {
+    scale = 1.1
+    translateZ = 100
+    zIndex = 1000
+    opacity = 1
+  } else {
+    // 两侧稍微变暗一点点，增加层次感
+    opacity = 0.9
+  }
+
+  return {
+    transform: `
+      translateX(${translateX}%) 
+      translateZ(${translateZ}px) 
+      rotateY(0deg) 
+      scale(${scale})
+    `,
+    zIndex: zIndex,
+    opacity: opacity,
+    visibility: 'visible'
+  }
+}
 </script>
 
 <style scoped>
-/* 3D覆盖流专用容器样式 */
-.coverflow-section {
-  margin-bottom: 4rem;
-  padding: 2rem;
+.gallery-section {
+  height: 80vh;
+  width: 100%;
+  padding: 10px 0;
+  overflow: hidden;
+  perspective: 1200px;
   background: transparent;
 }
 
-/* 3D 覆盖流样式 */
-.coverflow-gallery {
-  height: 75vh;
-  padding: 50px 0;
-  margin: 0 auto;
-  max-width: 100%;
-  position: relative;
-}
-
-.coverflow-slide {
-  background: transparent;
-}
-
-.coverflow-item {
+.carousel-container {
   position: relative;
   width: 100%;
-  height: calc(75vh - 100px);
-  border-radius: 15px;
-  overflow: hidden;
-  cursor: pointer;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
-.coverflow-image {
+.carousel-stage {
+  position: relative;
+  width: 100%;
+  height: 80%;
+  transform-style: preserve-3d;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.carousel-item {
+  position: absolute;
+  width: 400px;
+  height: 100%;
+  /* 优化过渡效果：transform 负责位置移动，opacity 负责显隐 */
+  transition: transform 0.5s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.5s ease, z-index 0s;
+  cursor: pointer;
+  border-radius: 15px;
+  background: #f0f0f0;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  /* 默认居中 */
+  left: 0;
+  right: 0;
+  margin: 0 auto; 
+  /* 这一步很关键：translateX百分比是相对于自身宽度的。
+     如果不居中，translate % 会基于父容器或者当前位置。
+     Absolute + margin: 0 auto + left/right: 0 让元素初始水平居中。
+  */
+}
+
+.item-content {
+  width: 100%;
+  height: 100%;
+  border-radius: 15px;
+  overflow: hidden;
+  position: relative;
+}
+
+.carousel-image {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: 15px;
-  aspect-ratio: 2/3;
+  display: block;
+  user-select: none;
 }
 
-.coverflow-info {
+.item-overlay {
   position: absolute;
-  bottom: 0;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.5), transparent);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.carousel-item:not(.active) .item-overlay {
+  opacity: 1;
+  background: rgba(0, 0, 0, 0.15); /* 两侧压暗 */
+}
+
+.carousel-item.active .item-overlay {
+  opacity: 0;
+}
+
+/* 导航按钮 */
+.controls {
+  position: absolute;
+  bottom: 20px;
   left: 0;
   right: 0;
-  background: linear-gradient(transparent, rgba(0,0,0,0.8));
-  color: white;
-  padding: 1rem;
-  text-align: center;
-  border-radius: 0 0 15px 15px;
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  z-index: 2000;
+  pointer-events: none; 
 }
 
-/* 响应式设计 */
+.nav-btn {
+  pointer-events: auto;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.8);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  transition: all 0.3s ease;
+  color: #333;
+}
+
+.nav-btn:hover {
+  background: white;
+  transform: scale(1.1);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+}
+
+/* 响应式调整 */
 @media (max-width: 768px) {
-  .coverflow-section {
-    margin-bottom: 2rem;
-    padding: 1rem;
+  .carousel-item {
+    width: 220px;
+    height: 320px;
   }
-
-  .coverflow-gallery {
+  
+  .gallery-section {
     padding: 20px 0;
-    height: 45vh;
   }
+  
+  .carousel-container {
+    height: 360px;
+  }
+}
 
-  .coverflow-item {
-    height: calc(45vh - 40px);
-  }
+:global(.dark-theme) .nav-btn {
+  background: rgba(50, 50, 50, 0.8);
+  color: #fff;
 }
 </style>

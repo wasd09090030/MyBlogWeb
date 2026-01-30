@@ -315,32 +315,6 @@
   }
 }
 
-/* Swiper 自定义样式 */
-:deep(.swiper-pagination-bullet) {
-  background: #667eea;
-  opacity: 0.7;
-}
-
-:deep(.swiper-pagination-bullet-active) {
-  background: #667eea;
-  opacity: 1;
-}
-
-:deep(.swiper-button-next),
-:deep(.swiper-button-prev) {
-  color: #667eea;
-  background: rgba(255, 255, 255, 0.9);
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
-}
-
-:deep(.swiper-button-next::after),
-:deep(.swiper-button-prev::after) {
-  font-size: 16px;
-  font-weight: 600;
-}
-
 /* 暗色主题适配 */
 :global(.dark-theme) .gallery-fullscreen {
   background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
