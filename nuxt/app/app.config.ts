@@ -77,6 +77,7 @@ export default defineAppConfig({
       'arrows-fullscreen': 'heroicons:arrows-pointing-out',
       'cloud-upload': 'heroicons:cloud-arrow-up',
       'cloud-arrow-up': 'heroicons:cloud-arrow-up',
+      'sparkles': 'heroicons:sparkles',
       
       // 交互相关
       'heart': 'heroicons:heart',

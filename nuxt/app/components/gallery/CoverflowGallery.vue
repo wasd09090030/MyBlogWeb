@@ -1,6 +1,16 @@
 <template>
   <section class="gallery-section">
-    <div class="carousel-container" @mouseenter="pauseAutoplay" @mouseleave="resumeAutoplay">
+    <div 
+      class="carousel-container" 
+      @mouseenter="pauseAutoplay" 
+      @mouseleave="handleMouseLeave"
+      @mousedown="startDrag"
+      @touchstart="startDrag"
+      @mousemove="onDrag"
+      @touchmove="onDrag"
+      @mouseup="endDrag"
+      @touchend="endDrag"
+    >
       <div class="carousel-stage">
         <div 
           v-for="(item, index) in internalImages" 
@@ -15,16 +25,6 @@
             <div class="item-overlay"></div>
           </div>
         </div>
-      </div>
-      
-      <!-- Optional Controls -->
-      <div class="controls" v-if="internalImages.length > 1">
-        <button class="nav-btn prev" @click.stop="prev">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
-        </button>
-        <button class="nav-btn next" @click.stop="next">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
-        </button>
       </div>
     </div>
   </section>
@@ -48,6 +48,10 @@ const emit = defineEmits(['image-click'])
 
 const activeIndex = ref(0)
 const autoplayTimer = ref(null)
+const isDragging = ref(false)
+const startX = ref(0)
+const currentX = ref(0)
+const isClickValid = ref(true)
 
 // 构造内部循环数组：确保数量足够以实现无缝无限滚动
 // 至少需要 10 个元素来保证视口外的元素跳转不可见（避免"飞过"屏幕）
@@ -106,6 +110,58 @@ const resumeAutoplay = () => {
   startAutoplay()
 }
 
+const getClientX = (e) => {
+  if (e.type.startsWith('touch')) {
+    // touchend has no touches, use changedTouches
+    return e.touches[0] ? e.touches[0].clientX : e.changedTouches[0].clientX
+  }
+  return e.clientX
+}
+
+const startDrag = (e) => {
+  isDragging.value = true
+  isClickValid.value = true
+  startX.value = getClientX(e)
+  currentX.value = startX.value
+  pauseAutoplay()
+}
+
+const onDrag = (e) => {
+  if (!isDragging.value) return
+  currentX.value = getClientX(e)
+  
+  // check for drag distance to invalidate click
+  if (Math.abs(currentX.value - startX.value) > 5) {
+    isClickValid.value = false
+  }
+}
+
+const endDrag = () => {
+  if (!isDragging.value) return
+  isDragging.value = false
+  
+  const diff = currentX.value - startX.value
+  const threshold = 50 // swipe threshold
+  
+  if (Math.abs(diff) > threshold) {
+    if (diff > 0) {
+      prev()
+    } else {
+      next()
+    }
+  }
+  
+  resumeAutoplay()
+}
+
+const handleMouseLeave = () => {
+  if (isDragging.value) {
+    endDrag()
+  } else {
+    resumeAutoplay()
+  }
+}
+
 const next = () => {
   activeIndex.value = (activeIndex.value + 1) % internalImages.value.length
 }
@@ -116,6 +172,8 @@ const prev = () => {
 }
 
 const handleItemClick = (index, item) => {
+  if (!isClickValid.value) return
+  
   if (index === activeIndex.value) {
     emit('image-click', item)
   } else {
@@ -207,6 +265,8 @@ const getItemStyle = (index) => {
   display: flex;
   justify-content: center;
   align-items: center;
+  touch-action: pan-y; /* Allow vertical scroll, handle horizontal in JS */
+  user-select: none;
 }
 
 .carousel-stage {
@@ -272,41 +332,6 @@ const getItemStyle = (index) => {
   opacity: 0;
 }
 
-/* 导航按钮 */
-.controls {
-  position: absolute;
-  bottom: 20px;
-  left: 0;
-  right: 0;
-  display: flex;
-  justify-content: center;
-  gap: 20px;
-  z-index: 2000;
-  pointer-events: none; 
-}
-
-.nav-btn {
-  pointer-events: auto;
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.8);
-  border: none;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  transition: all 0.3s ease;
-  color: #333;
-}
-
-.nav-btn:hover {
-  background: white;
-  transform: scale(1.1);
-  box-shadow: 0 6px 16px rgba(0,0,0,0.2);
-}
-
 /* 响应式调整 */
 @media (max-width: 768px) {
   .carousel-item {
@@ -323,8 +348,4 @@ const getItemStyle = (index) => {
   }
 }
 
-:global(.dark-theme) .nav-btn {
-  background: rgba(50, 50, 50, 0.8);
-  color: #fff;
-}
 </style>

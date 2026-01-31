@@ -148,7 +148,7 @@ const initSlider = async () => {
     containerRef.value,
     {
       loop: true,
-      drag: false,
+      drag: true,
       renderMode: 'custom',
       slides: {
         perView: 1,
@@ -201,10 +201,16 @@ onUnmounted(() => {
   position: relative;
   opacity: 0;
   transition: opacity 0.5s ease-out;
+  cursor: grab;
+  touch-action: pan-y;
 }
 
 .fade-gallery.is-ready {
   opacity: 1;
+}
+
+.fade-gallery:active {
+  cursor: grabbing;
 }
 
 .fade-slide {

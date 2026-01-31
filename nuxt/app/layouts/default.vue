@@ -4,10 +4,10 @@
       <div id="app" :class="['min-vh-100', isDarkMode ? 'dark-theme' : 'light-theme']">
         <!-- 根据主题切换动画效果 -->
         <Teleport to="body">
-                  <SakuraFalling v-if="!isDarkMode" />
-        <StarryNight v-else />
+          <SakuraFalling v-if="showBackgroundAnimation && !isDarkMode" />
+          <StarryNight v-else-if="showBackgroundAnimation" />
         </Teleport>
-        <header class="app-navbar" :class="{ 'navbar-hidden': isNavbarHidden, 'navbar-scrolled': hasScrolled }">
+        <header v-if="!isGalleryRoute" class="app-navbar" :class="{ 'navbar-hidden': isNavbarHidden, 'navbar-scrolled': hasScrolled }">
           <div class="navbar-container">
             <NuxtLink to="/" class="navbar-brand">
               <img src="https://cfimg.wasd09090030.top/file/websource/1769254183482_logo.webp" alt="Logo" class="navbar-logo" />
@@ -54,7 +54,7 @@
             </div>
           </div>
         </header>
-        <n-drawer v-model:show="showMobileMenu" :width="280" placement="left">
+        <n-drawer v-if="!isGalleryRoute" v-model:show="showMobileMenu" :width="280" placement="left">
           <n-drawer-content title="导航菜单" closable>
             <n-menu :options="mobileMenuOptions" @update:value="handleMobileMenuSelect" />
             <template #footer>
@@ -116,6 +116,35 @@
             </div>
           </div>
         </footer>
+        <div class="floating-action-buttons" aria-label="Quick actions">
+          <button
+            v-if="!isHomeRoute"
+            type="button"
+            class="fab-btn"
+            @click="goHome"
+            aria-label="回主页"
+          >
+            <Icon name="house" size="16" />
+          </button>
+          <button
+            type="button"
+            class="fab-btn"
+            @click="scrollToTop"
+            aria-label="回到顶部"
+          >
+            <Icon name="arrow-up" size="16" />
+          </button>
+          <button
+            type="button"
+            class="fab-btn"
+            :class="{ 'is-muted': !showBackgroundAnimation }"
+            @click="toggleBackgroundAnimation"
+            :aria-pressed="!showBackgroundAnimation"
+            aria-label="背景动画开关"
+          >
+            <Icon name="sparkles" size="16" />
+          </button>
+        </div>
       </div>
     </n-message-provider>
   </n-config-provider>
@@ -137,6 +166,7 @@ const isNavbarHidden = ref(false)
 const hasScrolled = ref(false)
 const lastScrollY = ref(0)
 const scrollThreshold = 60 // 滚动超过此值才触发隐藏
+const showBackgroundAnimation = ref(true)
 
 const handleScroll = () => {
   const currentScrollY = window.scrollY
@@ -231,7 +261,27 @@ const handleMobileMenuSelect = (key) => {
   }
 }
 
+const goHome = () => {
+  router.push('/')
+}
+
+const scrollToTop = () => {
+  if (process.client) {
+    const galleryContainer = document.querySelector('.gallery-fullscreen')
+    if (galleryContainer && typeof galleryContainer.scrollTo === 'function') {
+      galleryContainer.scrollTo({ top: 0, behavior: 'smooth' })
+      return
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+}
+
+const toggleBackgroundAnimation = () => {
+  showBackgroundAnimation.value = !showBackgroundAnimation.value
+}
+
 const shouldShowWelcomeSection = computed(() => route.path === '/' && !route.query.search && !route.query.category)
+const isHomeRoute = computed(() => route.path === '/')
 const isGalleryRoute = computed(() => route.path === '/gallery')
 const isArticleDetailRoute = computed(() => route.path.startsWith('/article/'))
 const isAboutRoute = computed(() => route.path === '/about')

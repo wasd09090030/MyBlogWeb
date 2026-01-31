@@ -7,8 +7,9 @@
       <div
         v-for="(item, index) in layoutItems"
         :key="`${item.id ?? 'img'}-${index}`"
-        class="waterfall-item fade-scale"
+        class="waterfall-item"
         :style="item.style"
+        :ref="(el) => observeItem(el)"
         @click="$emit('image-click', item)"
       >
         <div class="item-inner">
@@ -63,6 +64,7 @@ const emit = defineEmits(['image-click', 'load-more'])
 const containerRef = ref(null)
 const sectionRef = ref(null)
 const infiniteScrollTrigger = ref(null)
+const itemObserver = ref(null)
 
 // 布局参数
 const gridGap = 16
@@ -226,6 +228,12 @@ const updateContainerWidth = () => {
   }
 }
 
+const observeItem = (el) => {
+  if (el && itemObserver.value) {
+    itemObserver.value.observe(el)
+  }
+}
+
 // 响应式调整网格列数
 const updateGridColumns = () => {
   const width = window.innerWidth
@@ -278,6 +286,20 @@ onMounted(() => {
   window.addEventListener('resize', updateGridColumns)
   window.addEventListener('resize', updateContainerWidth)
   
+  // 初始化 item observer
+  itemObserver.value = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('is-visible')
+        itemObserver.value.unobserve(entry.target)
+      }
+    })
+  }, {
+    root: null,
+    threshold: 0.15,
+    rootMargin: '0px 0px 50px 0px'
+  })
+
   // 延迟设置无限滚动，确保DOM已渲染
   nextTick(() => {
     setupInfiniteScroll()
@@ -289,6 +311,10 @@ onUnmounted(() => {
   window.removeEventListener('resize', updateGridColumns)
   window.removeEventListener('resize', updateContainerWidth)
   destroyLayout()
+  if (itemObserver.value) {
+    itemObserver.value.disconnect()
+    itemObserver.value = null
+  }
 })
 </script>
 
@@ -307,11 +333,7 @@ onUnmounted(() => {
 }
 
 .fade-up {
-  animation: fade-up 0.5s ease both;
-}
-
-.fade-scale {
-  animation: fade-scale 0.4s ease both;
+  animation: fade-up 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
 .fade-in {
@@ -323,11 +345,6 @@ onUnmounted(() => {
   to { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes fade-scale {
-  from { opacity: 0; transform: scale(0.96); }
-  to { opacity: 1; transform: scale(1); }
-}
-
 @keyframes fade-in {
   from { opacity: 0; }
   to { opacity: 1; }
@@ -335,7 +352,6 @@ onUnmounted(() => {
 
 @media (prefers-reduced-motion: reduce) {
   .fade-up,
-  .fade-scale,
   .fade-in {
     animation: none;
   }
@@ -376,16 +392,37 @@ onUnmounted(() => {
 
 .waterfall-item {
   position: relative;
-  border-radius: 16px;
+  border-radius: 20px;
   overflow: hidden;
   cursor: pointer;
   transform-origin: center;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-  transition: box-shadow 0.4s ease, transform 0.2s ease;
+  background: #fff;
+  /* 初始隐藏状态：向下偏移并透明 */
+  opacity: 0;
+  transform: translateY(60px) scale(0.95);
+  /* 复合过渡效果 */
+  transition: 
+    opacity 0.8s cubic-bezier(0.2, 0.8, 0.2, 1),
+    transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 0.4s ease;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+  will-change: transform, opacity;
+}
+
+.waterfall-item.is-visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.waterfall-item:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
+  z-index: 2;
 }
 
 .waterfall-item:active {
   transform: scale(0.98);
+  transition-duration: 0.1s;
 }
 
 .item-inner {
@@ -398,8 +435,12 @@ onUnmounted(() => {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+  transition: transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1),
               filter 0.4s ease;
+}
+
+.waterfall-item:hover .waterfall-image {
+  transform: scale(1.12);
 }
 
 /* 无限滚动触发器样式 */
@@ -504,11 +545,12 @@ onUnmounted(() => {
 }
 
 :global(.dark-theme) .waterfall-item {
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  background: #2d3748;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
 }
 
 :global(.dark-theme) .waterfall-item:hover {
-  box-shadow: 0 20px 40px rgba(167, 139, 250, 0.25);
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
 }
 
 :global(.dark-theme) .item-overlay {

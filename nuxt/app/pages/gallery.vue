@@ -33,13 +33,24 @@
     <!-- 有内容时显示所有画廊 -->
     <Transition name="gallery-fade" @after-enter="onGalleryVisible">
       <div v-if="!isInitialLoading && !loading && !error && galleries.length > 0" class="gallery-content" :class="{ 'gallery-ready': isGalleryReady }">
-        
-        <!-- 淡入淡出幻灯片效果 -->
-        <FadeSlideshow
-          ref="fadeSlideshowRef"
-          :images="getGallerySlice(0, 5)"
-          @image-click="openFullscreen"
-        />
+
+        <div class="gallery-top">
+          <div class="gallery-options" role="tablist" aria-label="Gallery categories">
+            <button class="gallery-option is-active" type="button" role="tab" aria-selected="true">
+              Awesome artwork
+            </button>
+            <button class="gallery-option" type="button" role="tab" aria-selected="false">
+              game screenshot
+            </button>
+          </div>
+
+          <!-- 淡入淡出幻灯片效果 -->
+          <FadeSlideshow
+            ref="fadeSlideshowRef"
+            :images="getGallerySlice(0, 5)"
+            @image-click="openFullscreen"
+          />
+        </div>
 
         <!-- 手风琴和3D覆盖流展示 -->
         <div class="gallery-sections">

@@ -92,7 +92,6 @@ using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<BlogDbContext>();
     dbContext.Database.EnsureCreated();
-    EnsureCfImageConfigTable(dbContext);
 }
 
 // Configure the HTTP request pipeline
@@ -113,34 +112,6 @@ app.MapControllers();
 
 app.Run();
 
-static void EnsureCfImageConfigTable(BlogDbContext dbContext)
-{
-    const string sql = @"
-CREATE TABLE IF NOT EXISTS cf_image_configs (
-    Id INTEGER PRIMARY KEY AUTOINCREMENT,
-    IsEnabled INTEGER NOT NULL DEFAULT 1,
-    ZoneDomain TEXT NULL,
-    UseHttps INTEGER NOT NULL DEFAULT 1,
-    Fit TEXT NOT NULL DEFAULT 'scale-down',
-    Width INTEGER NOT NULL DEFAULT 300,
-    Quality INTEGER NOT NULL DEFAULT 50,
-    Format TEXT NOT NULL DEFAULT 'webp',
-    SignatureParam TEXT NOT NULL DEFAULT 'sig',
-    UseWorker INTEGER NOT NULL DEFAULT 0,
-    WorkerBaseUrl TEXT NULL,
-    TokenTtlSeconds INTEGER NOT NULL DEFAULT 3600,
-    SignatureToken TEXT NULL,
-    SignatureSecret TEXT NULL,
-    CreatedAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    UpdatedAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-);";
-
-    dbContext.Database.ExecuteSqlRaw(sql);
-
-    TryAddColumn(dbContext, "ALTER TABLE cf_image_configs ADD COLUMN UseWorker INTEGER NOT NULL DEFAULT 0;");
-    TryAddColumn(dbContext, "ALTER TABLE cf_image_configs ADD COLUMN WorkerBaseUrl TEXT NULL;");
-    TryAddColumn(dbContext, "ALTER TABLE cf_image_configs ADD COLUMN TokenTtlSeconds INTEGER NOT NULL DEFAULT 3600;");
-}
 
 static void TryAddColumn(BlogDbContext dbContext, string sql)
 {
