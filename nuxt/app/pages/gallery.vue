@@ -36,16 +36,31 @@
 
         <div class="gallery-top">
           <div class="gallery-options" role="tablist" aria-label="Gallery categories">
-            <button class="gallery-option is-active" type="button" role="tab" aria-selected="true">
+            <button
+              class="gallery-option"
+              :class="{ 'is-active': activeTag === 'artwork' }"
+              type="button"
+              role="tab"
+              :aria-selected="activeTag === 'artwork'"
+              @click="setActiveTag('artwork')"
+            >
               Awesome artwork
             </button>
-            <button class="gallery-option" type="button" role="tab" aria-selected="false">
+            <button
+              class="gallery-option"
+              :class="{ 'is-active': activeTag === 'game' }"
+              type="button"
+              role="tab"
+              :aria-selected="activeTag === 'game'"
+              @click="setActiveTag('game')"
+            >
               game screenshot
             </button>
           </div>
 
           <!-- 淡入淡出幻灯片效果 -->
           <FadeSlideshow
+            v-if="activeTag === 'artwork' && artworkGalleries.length > 0"
             ref="fadeSlideshowRef"
             :images="getGallerySlice(0, 5)"
             @image-click="openFullscreen"
@@ -53,7 +68,7 @@
         </div>
 
         <!-- 手风琴和3D覆盖流展示 -->
-        <div class="gallery-sections">
+        <div v-if="activeTag === 'artwork' && artworkGalleries.length > 0" class="gallery-sections">
           <!-- 手风琴横向展示 -->
           <AccordionGallery
             ref="accordionGalleryRef"
@@ -71,9 +86,16 @@
 
         <!-- 瀑布流画廊 -->
         <MasonryWaterfall
+          v-if="activeTag === 'artwork' && artworkGalleries.length > 0"
           ref="masonryWaterfallRef"
-          :images="getGallerySlice(0, galleries.length)"
+          :images="getGallerySlice(0, artworkGalleries.length)"
           :column-count="4"
+          @image-click="openFullscreen"
+        />
+
+        <GameGallerySection
+          v-if="activeTag === 'game'"
+          :images="gameGalleries"
           @image-click="openFullscreen"
         />
       </div>
@@ -147,6 +169,7 @@ import FadeSlideshow from '../components/gallery/FadeSlideshow.vue'
 import AccordionGallery from '../components/gallery/AccordionGallery.vue'
 import CoverflowGallery from '../components/gallery/CoverflowGallery.vue'
 import MasonryWaterfall from '../components/gallery/MasonryWaterfall.vue'
+import GameGallerySection from '../components/gallery/GameGallerySection.vue'
 
 // 设置页面元数据
 useHead({
@@ -165,6 +188,7 @@ const loading = ref(true)
 const error = ref(null)
 const showFullscreen = ref(false)
 const selectedImage = ref(null)
+const activeTag = ref('artwork')
 
 // 初始加载状态
 const isInitialLoading = ref(true)
@@ -196,6 +220,19 @@ const imageTransformStyle = computed(() => ({
 
 // API composable
 const { getGalleries } = useGallery()
+
+const normalizeTag = (tag) => {
+  if (!tag) return 'artwork'
+  return String(tag).trim().toLowerCase()
+}
+
+const artworkGalleries = computed(() => galleries.value.filter(gallery => normalizeTag(gallery.tag) === 'artwork'))
+const gameGalleries = computed(() => galleries.value.filter(gallery => normalizeTag(gallery.tag) === 'game'))
+
+const setActiveTag = (tag) => {
+  if (activeTag.value === tag) return
+  activeTag.value = tag
+}
 
 // 预加载图片
 const preloadImage = (src) => {
@@ -304,7 +341,7 @@ const fetchGalleries = async () => {
 
 // 获取指定范围的图片
 const getGallerySlice = (start, end) => {
-  const allGalleries = galleries.value
+  const allGalleries = artworkGalleries.value
   if (allGalleries.length === 0) return []
 
   // 如果图片不够，重复使用现有图片
@@ -320,7 +357,7 @@ const getGallerySlice = (start, end) => {
 const initSliders = async () => {
   await nextTick()
 
-  if (galleries.value.length > 0 && !isInitialLoading.value) {
+  if (activeTag.value === 'artwork' && artworkGalleries.value.length > 0 && !isInitialLoading.value) {
     // 使用 requestAnimationFrame 确保 DOM 完全渲染
     requestAnimationFrame(() => {
       setTimeout(async () => {
@@ -471,6 +508,16 @@ const destroySliders = () => {
     masonryWaterfallRef.value.destroyLayout()
   }
 }
+
+watch(activeTag, async (tag) => {
+  if (isInitialLoading.value || galleries.value.length === 0) return
+  if (tag === 'artwork') {
+    await nextTick()
+    initSliders()
+    return
+  }
+  destroySliders()
+})
 
 // 生命周期钩子
 onMounted(async () => {

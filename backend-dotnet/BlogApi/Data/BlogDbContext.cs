@@ -100,6 +100,7 @@ namespace BlogApi.Data
                 entity.Property(e => e.ImageHeight);
                 entity.Property(e => e.SortOrder).HasDefaultValue(0);
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
+                entity.Property(e => e.Tag).HasColumnName("tag").HasMaxLength(32).HasDefaultValue("artwork");
             });
 
             // ImagebedConfig configuration

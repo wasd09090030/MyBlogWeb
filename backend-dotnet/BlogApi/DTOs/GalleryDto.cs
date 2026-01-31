@@ -5,6 +5,7 @@ namespace BlogApi.DTOs
         public string ImageUrl { get; set; } = string.Empty;
         public int SortOrder { get; set; } = 0;
         public bool IsActive { get; set; } = true;
+        public string Tag { get; set; } = "artwork";
     }
 
     public class UpdateGalleryDto
@@ -12,6 +13,7 @@ namespace BlogApi.DTOs
         public string? ImageUrl { get; set; }
         public int? SortOrder { get; set; }
         public bool? IsActive { get; set; }
+        public string? Tag { get; set; }
     }
 
     public class GalleryDto
@@ -23,6 +25,7 @@ namespace BlogApi.DTOs
         public int? ImageHeight { get; set; }
         public int SortOrder { get; set; }
         public bool IsActive { get; set; }
+        public string Tag { get; set; } = "artwork";
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
     }
@@ -51,5 +54,6 @@ namespace BlogApi.DTOs
     {
         public List<string> ImageUrls { get; set; } = new List<string>();
         public bool IsActive { get; set; } = true;
+        public string Tag { get; set; } = "artwork";
     }
 }

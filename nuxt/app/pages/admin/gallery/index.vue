@@ -241,6 +241,21 @@
             </n-form-item>
           </div>
 
+          <n-form-item label="类型">
+            <div class="flex items-center gap-3">
+              <span class="text-sm text-gray-500">艺术作品</span>
+              <n-switch
+                v-model:value="galleryForm.tag"
+                checked-value="game"
+                unchecked-value="artwork"
+              >
+                <template #checked>游戏截屏</template>
+                <template #unchecked>艺术作品</template>
+              </n-switch>
+              <span class="text-sm text-gray-500">游戏截屏</span>
+            </div>
+          </n-form-item>
+
           <n-form-item>
             <n-checkbox v-model:checked="galleryForm.isActive">
               在前端显示此图片
@@ -289,6 +304,21 @@ https://example.com/image3.jpg"
             <n-checkbox v-model:checked="batchImportActive">
               导入后立即在前端显示
             </n-checkbox>
+          </n-form-item>
+
+          <n-form-item label="类型">
+            <div class="flex items-center gap-3">
+              <span class="text-sm text-gray-500">艺术作品</span>
+              <n-switch
+                v-model:value="batchImportTag"
+                checked-value="game"
+                unchecked-value="artwork"
+              >
+                <template #checked>游戏截屏</template>
+                <template #unchecked>艺术作品</template>
+              </n-switch>
+              <span class="text-sm text-gray-500">游戏截屏</span>
+            </div>
           </n-form-item>
 
           <n-alert v-if="batchPreviewUrls.length > 0" type="info">
@@ -346,6 +376,7 @@ const showBatchImportModal = ref(false)
 // 批量导入相关
 const batchImportUrls = ref('')
 const batchImportActive = ref(true)
+const batchImportTag = ref('artwork')
 
 const defaultCfConfig = {
   isEnabled: true,
@@ -385,7 +416,8 @@ const formatOptions = [
 const galleryForm = ref({
   id: null,
   imageUrl: '',
-  isActive: true
+  isActive: true,
+  tag: 'artwork'
 })
 
 // 计算批量导入的URL数组
@@ -426,7 +458,7 @@ const fetchGalleries = async () => {
 // 显示创建模态框
 const showCreateModal = () => {
   isEdit.value = false
-  galleryForm.value = { id: null, imageUrl: '', isActive: true }
+  galleryForm.value = { id: null, imageUrl: '', isActive: true, tag: 'artwork' }
   isValidPreview.value = true
   showGalleryModal.value = true
 }
@@ -437,7 +469,8 @@ const editGallery = (gallery) => {
   galleryForm.value = {
     id: gallery.id,
     imageUrl: gallery.imageUrl,
-    isActive: gallery.isActive
+    isActive: gallery.isActive,
+    tag: gallery.tag || 'artwork'
   }
   isValidPreview.value = true
   showGalleryModal.value = true
@@ -446,7 +479,7 @@ const editGallery = (gallery) => {
 // 关闭画廊模态框
 const closeGalleryModal = () => {
   showGalleryModal.value = false
-  galleryForm.value = { id: null, imageUrl: '', isActive: true }
+  galleryForm.value = { id: null, imageUrl: '', isActive: true, tag: 'artwork' }
 }
 
 // 保存画廊
@@ -460,7 +493,8 @@ const saveGallery = async () => {
   try {
     const payload = {
       imageUrl: galleryForm.value.imageUrl,
-      isActive: galleryForm.value.isActive
+      isActive: galleryForm.value.isActive,
+      tag: galleryForm.value.tag
     }
 
     if (isEdit.value) {
@@ -524,9 +558,14 @@ const handleBatchImport = async () => {
   
   isBatchImporting.value = true
   try {
-    await batchImport(batchPreviewUrls.value, batchImportActive.value)
+    await batchImport({
+      imageUrls: batchPreviewUrls.value,
+      isActive: batchImportActive.value,
+      tag: batchImportTag.value
+    })
     showBatchImportModal.value = false
     batchImportUrls.value = ''
+    batchImportTag.value = 'artwork'
     fetchGalleries()
     message.success(`成功导入 ${batchPreviewUrls.value.length} 张图片`)
   } catch (error) {

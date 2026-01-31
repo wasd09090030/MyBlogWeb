@@ -13,6 +13,7 @@ namespace BlogApi.Models
         public int? ImageHeight { get; set; }
         public int SortOrder { get; set; } = 0;
         public bool IsActive { get; set; } = true;
+        public string Tag { get; set; } = "artwork";
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
     }

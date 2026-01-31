@@ -63,6 +63,7 @@ namespace BlogApi.Services
                 ImageUrl = dto.ImageUrl.Trim(),
                 SortOrder = dto.SortOrder > 0 ? dto.SortOrder : maxSortOrder + 1,
                 IsActive = dto.IsActive,
+                Tag = string.IsNullOrWhiteSpace(dto.Tag) ? "artwork" : dto.Tag.Trim(),
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };
@@ -225,6 +226,10 @@ namespace BlogApi.Services
             }
             if (dto.SortOrder.HasValue) gallery.SortOrder = dto.SortOrder.Value;
             if (dto.IsActive.HasValue) gallery.IsActive = dto.IsActive.Value;
+            if (dto.Tag != null)
+            {
+                gallery.Tag = string.IsNullOrWhiteSpace(dto.Tag) ? "artwork" : dto.Tag.Trim();
+            }
 
             gallery.UpdatedAt = DateTime.UtcNow;
 
@@ -290,6 +295,7 @@ namespace BlogApi.Services
                     ImageUrl = trimmedUrl,
                     SortOrder = sortOrder++,
                     IsActive = dto.IsActive,
+                    Tag = string.IsNullOrWhiteSpace(dto.Tag) ? "artwork" : dto.Tag.Trim(),
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
                 };
