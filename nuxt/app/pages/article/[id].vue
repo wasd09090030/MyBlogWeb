@@ -145,6 +145,19 @@ const rawIdParam = computed(() => String(route.params.id || ''))
 const articleId = computed(() => rawIdParam.value.split('-')[0])
 const routeSlug = computed(() => rawIdParam.value.split('-').slice(1).join('-'))
 
+const getApiBase = () => {
+  const apiBase = config.public.apiBase
+  if (apiBase) {
+    if (process.server && apiBase.startsWith('/')) {
+      return `http://127.0.0.1:5000${apiBase}`
+    }
+    return apiBase
+  }
+  return process.env.NODE_ENV === 'production'
+    ? '/api'
+    : 'http://localhost:5000/api'
+}
+
 // SSR 预取文章数据
 const { data: article, pending, error } = await useAsyncData(
   `article-${route.params.id}`,
@@ -157,7 +170,7 @@ const { data: article, pending, error } = await useAsyncData(
       })
     }
     
-    const response = await $fetch(`${config.public.apiBase}/articles/${id}`)
+    const response = await $fetch(`${getApiBase()}/articles/${id}`)
     
     if (!response) {
       throw createError({

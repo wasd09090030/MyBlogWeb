@@ -168,6 +168,7 @@
                   v-model="articleForm.contentMarkdown"
                   :height="editorHeight"
                   @save="handleSave"
+                  @html-change="handleHtmlChange"
                 />
               </ClientOnly>
             </n-card>
@@ -203,6 +204,7 @@ const isGeneratingAi = ref(false)
 const articleForm = ref({
   title: '',
   slug: '',
+  content: '',
   contentMarkdown: '',
   coverImage: '',
   category: 'study',
@@ -257,6 +259,7 @@ const fetchArticle = async (id) => {
     articleForm.value = {
       title: article.title,
       slug: article.slug || '',
+      content: article.content || '',
       contentMarkdown: article.contentMarkdown || article.content,
       coverImage: article.coverImage || '',
       category: article.category || 'study',
@@ -296,6 +299,7 @@ const saveArticle = async () => {
     const payload = {
       title: articleForm.value.title,
       slug: articleForm.value.slug?.trim() || null,
+      content: articleForm.value.content || '',
       contentMarkdown: articleForm.value.contentMarkdown,
       coverImage: articleForm.value.coverImage || null,
       category: articleForm.value.category.toLowerCase(),
@@ -347,6 +351,7 @@ const generateAiSummary = async () => {
     })
     
     articleForm.value.aiSummary = response.summary
+    articleForm.value.slug = response.slug || ''
     message.success('AI 概要生成成功')
   } catch (error) {
     console.error('生成 AI 概要失败:', error)
@@ -373,9 +378,18 @@ const handleImageLoad = () => { isValidImageUrl.value = true }
 const handleImageError = () => { isValidImageUrl.value = false }
 
 // 编辑器保存事件
-const handleSave = (text) => {
+const handleSave = (text, html) => {
   articleForm.value.contentMarkdown = text
+  if (html) {
+    articleForm.value.content = html
+  }
   console.log('自动保存触发:', { textLength: text.length })
+}
+
+const handleHtmlChange = (html) => {
+  if (html) {
+    articleForm.value.content = html
+  }
 }
 
 // 返回

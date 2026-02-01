@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using BlogApi.Services;
+using BlogApi.Utils;
 
 namespace BlogApi.Controllers
 {
@@ -29,12 +30,21 @@ namespace BlogApi.Controllers
 
             try
             {
-                var summary = await _deepSeekService.GenerateSummaryAsync(
+                var result = await _deepSeekService.GenerateSummaryAsync(
                     request.Content, 
                     request.Title ?? "未命名文章"
                 );
 
-                return Ok(new { summary });
+                var slugCandidate = !string.IsNullOrWhiteSpace(result.Slug)
+                    ? result.Slug
+                    : request.Title ?? "article";
+                var slug = SlugHelper.Slugify(slugCandidate);
+                if (string.IsNullOrWhiteSpace(slug))
+                {
+                    slug = "article";
+                }
+
+                return Ok(new { summary = result.Summary, slug });
             }
             catch (InvalidOperationException ex)
             {

@@ -9,6 +9,7 @@
       language="zh-CN"
       @on-change="handleChange"
       @on-save="handleSave"
+      @on-html-changed="handleHtmlChanged"
       @on-upload-img="handleUploadImg"
       :scroll-auto="true"
       :auto-focus="true"
@@ -129,7 +130,7 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(['update:modelValue', 'save'])
+const emit = defineEmits(['update:modelValue', 'save', 'html-change'])
 
 // 本地状态，解决 v-model 不能直接用在 prop 上的问题
 const localValue = ref(props.modelValue)
@@ -167,8 +168,13 @@ const handleChange = (text) => {
   emit('update:modelValue', text)
 }
 
-const handleSave = (text, html) => {
+const handleSave = async (text, htmlPromise) => {
+  const html = await htmlPromise
   emit('save', text, html)
+}
+
+const handleHtmlChanged = (html) => {
+  emit('html-change', html)
 }
 
 const handleUploadImg = async (files, callback) => {

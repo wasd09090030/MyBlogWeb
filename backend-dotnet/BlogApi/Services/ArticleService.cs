@@ -3,6 +3,7 @@ using BlogApi.Data;
 using BlogApi.Models;
 using BlogApi.DTOs;
 using BlogApi.Utils;
+using Markdig;
 
 namespace BlogApi.Services
 {
@@ -17,11 +18,13 @@ namespace BlogApi.Services
 
         public async Task<Article> CreateAsync(CreateArticleDto dto)
         {
+            var htmlContent = ResolveHtmlContent(dto.Content, dto.ContentMarkdown);
+
             var article = new Article
             {
                 Title = dto.Title,
                 Slug = await GenerateUniqueSlugAsync(dto.Slug ?? dto.Title),
-                Content = dto.Content,
+                Content = htmlContent,
                 ContentMarkdown = dto.ContentMarkdown,
                 CoverImage = dto.CoverImage,
                 Category = dto.Category,
@@ -215,7 +218,14 @@ namespace BlogApi.Services
                 article.Slug = await GenerateUniqueSlugAsync(article.Title, article.Id);
             }
             if (dto.Content != null) article.Content = dto.Content;
-            if (dto.ContentMarkdown != null) article.ContentMarkdown = dto.ContentMarkdown;
+            if (dto.ContentMarkdown != null)
+            {
+                article.ContentMarkdown = dto.ContentMarkdown;
+                if (string.IsNullOrWhiteSpace(dto.Content))
+                {
+                    article.Content = ResolveHtmlContent(null, dto.ContentMarkdown);
+                }
+            }
             if (dto.CoverImage != null) article.CoverImage = dto.CoverImage;
             if (dto.Category.HasValue) article.Category = dto.Category.Value;
             if (dto.Tags != null) article.Tags = dto.Tags;
@@ -225,6 +235,21 @@ namespace BlogApi.Services
 
             await _context.SaveChangesAsync();
             return article;
+        }
+
+        private static string ResolveHtmlContent(string? content, string? markdown)
+        {
+            if (!string.IsNullOrWhiteSpace(content))
+            {
+                return content;
+            }
+
+            if (string.IsNullOrWhiteSpace(markdown))
+            {
+                return string.Empty;
+            }
+
+            return Markdown.ToHtml(markdown);
         }
 
         private async Task<string> GenerateUniqueSlugAsync(string? source, int? excludeId = null)

@@ -24,9 +24,9 @@ namespace BlogApi.Services
         }
 
         /// <summary>
-        /// 使用 DeepSeek API 生成文章概要
+        /// 使用 DeepSeek API 生成文章概要与 slug
         /// </summary>
-        public async Task<string> GenerateSummaryAsync(string content, string title)
+        public async Task<AiSummaryResult> GenerateSummaryAsync(string content, string title)
         {
             var apiKey = _configuration["DeepSeek:ApiKey"];
             var apiUrl = _configuration["DeepSeek:ApiUrl"] ?? "https://api.deepseek.com/v1/chat/completions";
@@ -49,15 +49,15 @@ namespace BlogApi.Services
                     new
                     {
                         role = "system",
-                        content = "你是一个专业的文章摘要生成助手。请根据提供的文章内容，生成一段简洁、准确的中文概要，概要长度控制在100-200字之间。概要应该包含文章的主要观点和核心内容，便于读者快速了解文章主旨。只输出概要内容，不要添加任何前缀或标题。"
+                        content = "你是一个专业的文章摘要生成助手。请根据提供的文章内容生成 JSON，仅包含 summary 和 slug 两个字段。summary 为 100-200 字中文概要，slug 为英文小写、使用短横线连接、避免空格与特殊字符。只输出 JSON，不要添加前缀或代码块。"
                     },
                     new
                     {
                         role = "user",
-                        content = $"请为以下文章生成概要：\n\n标题：{title}\n\n内容：\n{truncatedContent}"
+                        content = $"请为以下文章生成 JSON：\n\n标题：{title}\n\n内容：\n{truncatedContent}"
                     }
                 },
-                max_tokens = 500,
+                max_tokens = 600,
                 temperature = 0.7
             };
 
@@ -81,16 +81,23 @@ namespace BlogApi.Services
                 _logger.LogDebug($"DeepSeek API 响应: {responseContent}");
                 
                 var result = JsonSerializer.Deserialize<DeepSeekResponse>(responseContent, _jsonOptions);
-                var summary = result?.Choices?.FirstOrDefault()?.Message?.Content?.Trim();
+                var responseText = result?.Choices?.FirstOrDefault()?.Message?.Content?.Trim();
 
-                if (string.IsNullOrEmpty(summary))
+                if (string.IsNullOrEmpty(responseText))
                 {
                     _logger.LogWarning($"AI 返回内容解析失败，原始响应: {responseContent}");
                     throw new InvalidOperationException("AI 返回的概要为空");
                 }
 
-                _logger.LogInformation($"成功生成文章概要，长度: {summary.Length}");
-                return summary;
+                var aiResult = ParseAiResult(responseText);
+                if (string.IsNullOrWhiteSpace(aiResult.Summary))
+                {
+                    _logger.LogWarning($"AI 返回内容解析失败，原始响应: {responseContent}");
+                    throw new InvalidOperationException("AI 返回的概要为空");
+                }
+
+                _logger.LogInformation($"成功生成文章概要，长度: {aiResult.Summary.Length}");
+                return aiResult;
             }
             catch (HttpRequestException ex)
             {
@@ -103,6 +110,84 @@ namespace BlogApi.Services
                 throw;
             }
         }
+
+        private static AiSummaryResult ParseAiResult(string responseText)
+        {
+            var cleaned = StripCodeFence(responseText);
+            var jsonCandidate = ExtractJson(cleaned);
+
+            try
+            {
+                using var doc = JsonDocument.Parse(jsonCandidate);
+                var root = doc.RootElement;
+                var summary = root.TryGetProperty("summary", out var summaryElement)
+                    ? summaryElement.GetString()
+                    : null;
+                var slug = root.TryGetProperty("slug", out var slugElement)
+                    ? slugElement.GetString()
+                    : null;
+
+                if (!string.IsNullOrWhiteSpace(summary))
+                {
+                    return new AiSummaryResult
+                    {
+                        Summary = summary.Trim(),
+                        Slug = slug?.Trim()
+                    };
+                }
+            }
+            catch
+            {
+                // Ignore parse errors and fallback to raw text as summary.
+            }
+
+            return new AiSummaryResult
+            {
+                Summary = cleaned.Trim(),
+                Slug = null
+            };
+        }
+
+        private static string StripCodeFence(string input)
+        {
+            var trimmed = input.Trim();
+            if (!trimmed.StartsWith("```"))
+            {
+                return trimmed;
+            }
+
+            var firstLineBreak = trimmed.IndexOf('\n');
+            if (firstLineBreak >= 0)
+            {
+                trimmed = trimmed.Substring(firstLineBreak + 1);
+            }
+
+            var lastFence = trimmed.LastIndexOf("```", StringComparison.Ordinal);
+            if (lastFence >= 0)
+            {
+                trimmed = trimmed.Substring(0, lastFence);
+            }
+
+            return trimmed.Trim();
+        }
+
+        private static string ExtractJson(string input)
+        {
+            var firstBrace = input.IndexOf('{');
+            var lastBrace = input.LastIndexOf('}');
+            if (firstBrace >= 0 && lastBrace > firstBrace)
+            {
+                return input.Substring(firstBrace, lastBrace - firstBrace + 1);
+            }
+
+            return input.Trim();
+        }
+    }
+
+    public class AiSummaryResult
+    {
+        public string Summary { get; set; } = string.Empty;
+        public string? Slug { get; set; }
     }
 
     // DeepSeek API 响应模型
