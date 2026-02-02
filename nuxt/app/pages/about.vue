@@ -79,11 +79,11 @@
             :style="{ animationDelay: '0.3s' }"
           >
             <img
-              src="https://cfimg.wasd09090030.top/file/websource/1769253665220_Host.webp"
+              src="https://cfimg.wasd09090030.top/file/websource/1770014436617_host_compressed.webp"
               alt="Profile"
               class="profile-img"
-              width="320"
-              height="400"
+              width="300"
+              height="300"
               loading="eager"
               decoding="async"
               fetchpriority="high"

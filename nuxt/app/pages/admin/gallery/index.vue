@@ -125,19 +125,59 @@
         </div>
 
         <template v-else>
+          <!-- 过滤和排序控制栏 -->
+          <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
+            <n-tabs v-model:value="activeTab" type="segment" animated>
+              <n-tab-pane name="all" tab="全部">
+                <template #tab>
+                  <div class="flex items-center gap-2">
+                    <Icon name="squares-2x2" size="sm" />
+                    <span>全部 ({{ galleries.length }})</span>
+                  </div>
+                </template>
+              </n-tab-pane>
+              <n-tab-pane name="game" tab="游戏截图">
+                <template #tab>
+                  <div class="flex items-center gap-2">
+                    <Icon name="puzzle-piece" size="sm" />
+                    <span>游戏截图 ({{ gameCount }})</span>
+                  </div>
+                </template>
+              </n-tab-pane>
+              <n-tab-pane name="artwork" tab="艺术作品">
+                <template #tab>
+                  <div class="flex items-center gap-2">
+                    <Icon name="paint-brush" size="sm" />
+                    <span>艺术作品 ({{ artworkCount }})</span>
+                  </div>
+                </template>
+              </n-tab-pane>
+            </n-tabs>
+
+            <div class="flex items-center gap-2">
+              <span class="text-sm text-gray-500">排序方式:</span>
+              <n-select
+                v-model:value="sortBy"
+                :options="sortOptions"
+                style="width: 180px"
+                size="small"
+              />
+            </div>
+          </div>
+
           <n-alert type="info" class="mb-4">
             <template #icon>
               <Icon name="information-circle" size="md" />
             </template>
-            提示：拖动图片卡片可以调整排序，松开后自动保存
+            提示：拖动图片卡片可以调整排序，松开后自动保存（仅在"手动排序"模式下生效）
           </n-alert>
 
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             <div
-              v-for="gallery in galleries"
+              v-for="gallery in filteredAndSortedGalleries"
               :key="gallery.id"
               class="gallery-card"
-              draggable="true"
+              :draggable="sortBy === 'manual'"
               @dragstart="handleDragStart($event, gallery)"
               @dragover.prevent="handleDragOver($event)"
               @drop="handleDrop($event, gallery)"
@@ -147,8 +187,8 @@
                 :class="{ 'opacity-50': draggedGallery?.id === gallery.id }"
                 hoverable
               >
-                <!-- 拖动手柄 -->
-                <div class="drag-handle absolute top-2 left-2 z-10 cursor-move opacity-60 hover:opacity-100">
+                <!-- 拖动手柄（仅在手动排序模式下显示） -->
+                <div v-if="sortBy === 'manual'" class="drag-handle absolute top-2 left-2 z-10 cursor-move opacity-60 hover:opacity-100">
                   <Icon name="bars-3" size="md" class="text-white drop-shadow-lg" />
                 </div>
 
@@ -368,6 +408,10 @@ const isValidPreview = ref(true)
 const draggedGallery = ref(null)
 const dragOverGallery = ref(null)
 
+// 过滤和排序状态
+const activeTab = ref('all')
+const sortBy = ref('manual')
+
 // 模态框显示状态
 const showGalleryModal = ref(false)
 const showDeleteModal = ref(false)
@@ -413,12 +457,51 @@ const formatOptions = [
   { label: 'auto', value: 'auto' }
 ]
 
+const sortOptions = [
+  { label: '手动排序', value: 'manual' },
+  { label: '最新上传', value: 'newest' },
+  { label: '最早上传', value: 'oldest' }
+]
+
 const galleryForm = ref({
   id: null,
   imageUrl: '',
   isActive: true,
   tag: 'artwork'
 })
+// 统计数量
+const gameCount = computed(() => {
+  return galleries.value.filter(g => g.tag === 'game').length
+})
+
+const artworkCount = computed(() => {
+  return galleries.value.filter(g => g.tag === 'artwork').length
+})
+
+// 过滤和排序后的画廊列表
+const filteredAndSortedGalleries = computed(() => {
+  let filtered = [...galleries.value]
+  
+  // 根据标签过滤
+  if (activeTab.value === 'game') {
+    filtered = filtered.filter(g => g.tag === 'game')
+  } else if (activeTab.value === 'artwork') {
+    filtered = filtered.filter(g => g.tag === 'artwork')
+  }
+  
+  // 根据排序方式排序
+  if (sortBy.value === 'newest') {
+    filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+  } else if (sortBy.value === 'oldest') {
+    filtered.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
+  } else {
+    // 手动排序，按 sortOrder
+    filtered.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0))
+  }
+  
+  return filtered
+})
+
 
 // 计算批量导入的URL数组
 const batchPreviewUrls = computed(() => {
@@ -603,6 +686,10 @@ const handleDragOver = (event) => {
 
 const handleDrop = async (event, targetGallery) => {
   if (!draggedGallery.value || draggedGallery.value.id === targetGallery.id) return
+  if (sortBy.value !== 'manual') {
+    message.warning('请切换到"手动排序"模式才能拖拽调整顺序')
+    return
+  }
 
   const draggedIndex = galleries.value.findIndex(g => g.id === draggedGallery.value.id)
   const targetIndex = galleries.value.findIndex(g => g.id === targetGallery.id)

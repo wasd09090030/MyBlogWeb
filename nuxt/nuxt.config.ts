@@ -1,6 +1,8 @@
 export default defineNuxtConfig({
   compatibilityDate: '2026-01-09',
   devtools: { enabled: true },
+  // 通过 NUXT_SOURCEMAP=true 按需开启 sourcemap
+  sourcemap: process.env.NUXT_SOURCEMAP === 'true',
 
   // CSS配置 - 使用 Tailwind Typography
   css: [
@@ -150,7 +152,9 @@ export default defineNuxtConfig({
   // 依赖配置
   build: {
     // 优化构建分析
-    analyze: false
+    analyze: true,
+    // 提升构建性能
+    transpile: ['@vueuse/core', 'naive-ui']
   },
 
   // Vite配置 - 深度优化
@@ -204,8 +208,8 @@ export default defineNuxtConfig({
       chunkSizeWarningLimit: 1500,
       // 启用CSS代码分割
       cssCodeSplit: true,
-      // 生成sourcemap用于调试（生产环境可关闭）
-      sourcemap: false,
+      // 通过 NUXT_SOURCEMAP=true 按需开启 sourcemap
+      sourcemap: process.env.NUXT_SOURCEMAP === 'true',
       // 目标浏览器
       target: 'es2020'
     },
@@ -253,6 +257,8 @@ export default defineNuxtConfig({
   },
 
   robots: {
+    // 使用 public/robots.txt，避免第三方注入非标准指令导致校验报错
+    robotsTxt: false,
     disallow: process.env.NODE_ENV !== 'production'
       ? ['/']
       : ['/admin/**', '/api/**']
@@ -305,7 +311,7 @@ export default defineNuxtConfig({
   experimental: {
     // SSR 动态站点不需要 payload 提取（避免 404 警告）
     payloadExtraction: false,
-    renderJsonPayloads: true,
+    renderJsonPayloads: false,
     viewTransition: true,
     // 启用内联路由规则
     inlineRouteRules: true,
@@ -353,10 +359,9 @@ export default defineNuxtConfig({
         'cache-control': 'no-cache, no-store, must-revalidate'
       }
     },
-    // 首页 - 预渲染 + ISR
+    // 首页保持 SSR
     '/': {
-      prerender: true,
-      isr: 3600 // 60秒重新验证
+      ssr: true
     },
     // 其余页面保持 SSR
     '/article/**': {
@@ -388,7 +393,7 @@ export default defineNuxtConfig({
     // 仅预渲染首页，避免全站 crawl
     prerender: {
       crawlLinks: false,
-      routes: ['/'],
+      routes: [],
       // 忽略 payload.json 的 404 错误（SSR模式下正常）
       failOnError: false
     },

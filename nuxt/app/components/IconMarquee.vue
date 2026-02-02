@@ -59,7 +59,7 @@ const iconsColumn2 = [
   display: flex;
   gap: 15px;
   height: 100%;
-  max-height: 200px;
+  max-height: 400px;
   overflow: hidden;
   flex-shrink: 0;
 }

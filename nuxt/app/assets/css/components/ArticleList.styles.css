@@ -298,24 +298,23 @@
 
 /* 分类颜色 */
 .category-study {
-  background: linear-gradient(135deg, #007bff, #0056b3);
+  background: #4361ee;
 }
 
 .category-game {
-  background: linear-gradient(135deg, #28a745, #1e7e34);
+  background: #28a745;
 }
 
 .category-work {
-  background: linear-gradient(135deg, #ffc107, #e0a800);
-  color: #000 !important;
+  background: #ffba08;
 }
 
 .category-resource {
-  background: linear-gradient(135deg, #17a2b8, #138496);
+  background:#8ac926;
 }
 
 .category-other {
-  background: linear-gradient(135deg, #6c757d, #495057);
+  background: #6c757d;
 }
 
 /* 文章标题 */
@@ -367,7 +366,7 @@
   align-items: center;
   font-size: 0.82rem;
   font-weight: 500;
-  color: #6fa9ff;
+  color: #384ce3;
   /* 移除所有装饰性样式 */
   background: none;
   border: none;
