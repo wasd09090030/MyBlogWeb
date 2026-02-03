@@ -70,11 +70,13 @@
             </n-button>
           </header>
 
-          <!-- 文章内容 - Markdown 渲染 -->
+          <!-- 文章内容 - Markdown 渲染（优先使用 SSR 预解析的 AST）-->
           <div class="article-content">
             <MarkdownRenderer
               :markdown="article.contentMarkdown"
               :html="article.content"
+              :precomputed-ast="article._mdcAst"
+              :precomputed-toc="article._mdcToc"
               size="lg"
               @toc-ready="onTocReady"
             />
@@ -138,6 +140,8 @@
 </template>
 
 <script setup>
+import { parseMarkdown } from '@nuxtjs/mdc/runtime'
+
 const route = useRoute()
 const router = useRouter()
 const config = useRuntimeConfig()
@@ -158,7 +162,7 @@ const getApiBase = () => {
     : 'http://localhost:5000/api'
 }
 
-// SSR 预取文章数据
+// SSR 预取文章数据 + 服务端 Markdown 解析 + SWR 缓存
 const { data: article, pending, error } = await useAsyncData(
   `article-${route.params.id}`,
   async () => {
@@ -179,11 +183,44 @@ const { data: article, pending, error } = await useAsyncData(
       })
     }
     
+    // 🔥 Markdown 预解析（SSR 优先，客户端回退）
+    if (response.contentMarkdown) {
+      try {
+        const ast = await parseMarkdown(response.contentMarkdown, {
+          highlight: {
+            theme: {
+              default: 'material-theme-lighter',
+              dark: 'material-theme-darker'
+            }
+          },
+          toc: {
+            depth: 4,
+            searchDepth: 4
+          }
+        })
+        
+        // 附加预解析的 AST 和 TOC 到响应数据
+        response._mdcAst = ast
+        response._mdcToc = ast.toc
+        
+        if (process.server) {
+          console.log('[SSR] Markdown 预解析成功，TOC:', ast.toc?.links?.length || 0, '项')
+        } else {
+          console.log('[Client] Markdown 解析成功，TOC:', ast.toc?.links?.length || 0, '项')
+        }
+      } catch (e) {
+        console.error('[Markdown] 解析失败:', e.message)
+        // 解析失败不影响页面渲染，组件会使用 HTML 回退
+      }
+    }
+    
     return response
   },
   {
-    // 客户端导航时重新获取
-    watch: [articleId]
+    // 客户端导航时重新验证
+    watch: [articleId],
+    // 立即加载，不延迟
+    lazy: false
   }
 )
 

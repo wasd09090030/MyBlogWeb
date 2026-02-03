@@ -67,6 +67,16 @@ const props = defineProps({
     type: String,
     default: ''
   },
+  // 🆕 接受服务端预解析的 AST（跳过客户端解析）
+  precomputedAst: {
+    type: Object,
+    default: null
+  },
+  // 🆕 接受服务端预解析的 TOC
+  precomputedToc: {
+    type: Object,
+    default: null
+  },
   size: {
     type: String,
     default: 'lg',
@@ -349,13 +359,49 @@ async function tryRenderMermaid() {
 // 监听主题变化重新渲染 Mermaid
 let themeObserver = null
 
-watch(() => props.markdown, () => {
+// 监听 markdown 或预解析 AST 变化
+watch(() => [props.markdown, props.precomputedAst], () => {
   mermaidRetryCount = 0 // 重置重试计数
+  
+  // 如果有预解析的 AST，直接使用
+  if (props.precomputedAst) {
+    ast.value = props.precomputedAst
+    if (props.precomputedToc) {
+      emit('toc-ready', props.precomputedToc)
+    } else if (props.precomputedAst.toc) {
+      emit('toc-ready', props.precomputedAst.toc)
+    }
+    nextTick(() => tryRenderMermaid())
+    return
+  }
+  
+  // 否则客户端解析
   parseContent()
-}, { immediate: true })
+}, { immediate: false })
 
 onMounted(() => {
+  // 🔥 优先使用服务端预解析的 AST（跳过客户端解析，大幅提升性能）
+  if (props.precomputedAst) {
+    console.log('[MDC] 使用服务端预解析的 AST，跳过客户端解析')
+    ast.value = props.precomputedAst
+    
+    // 发送 TOC 数据
+    if (props.precomputedToc) {
+      emit('toc-ready', props.precomputedToc)
+    } else if (props.precomputedAst.toc) {
+      emit('toc-ready', props.precomputedAst.toc)
+    }
+    
+    // 仍然需要渲染 Mermaid（客户端专属）
+    nextTick(() => {
+      tryRenderMermaid()
+    })
+    return
+  }
+  
+  // 回退：客户端解析（兼容旧数据或 SSR 解析失败的情况）
   if (props.markdown && !ast.value) {
+    console.log('[MDC] 客户端回退解析 Markdown')
     parseContent()
   }
   

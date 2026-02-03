@@ -359,19 +359,41 @@ export default defineNuxtConfig({
         'cache-control': 'no-cache, no-store, must-revalidate'
       }
     },
-    // 首页保持 SSR
+    // 首页 SWR 缓存（1分钟，后台可重验证 5 分钟）
     '/': {
-      ssr: true
+      ssr: true,
+      headers: {
+        'cache-control': 'public, max-age=60, stale-while-revalidate=300'
+      }
     },
-    // 其余页面保持 SSR
+    // 🔥 文章页面 SWR 缓存（5分钟，后台可重验证 1 小时）
     '/article/**': {
-      ssr: true
+      ssr: true,
+      headers: {
+        'cache-control': 'public, max-age=300, stale-while-revalidate=3600',
+        'cdn-cache-control': 'public, max-age=300, stale-while-revalidate=3600'
+      }
     },
+    // 画廊页面 SWR 缓存（3分钟）
     '/gallery': {
-      ssr: true
+      ssr: true,
+      headers: {
+        'cache-control': 'public, max-age=180, stale-while-revalidate=600'
+      }
     },
-      '/about': {
-      ssr: true
+    // 关于页面较长缓存（10分钟）
+    '/about': {
+      ssr: true,
+      headers: {
+        'cache-control': 'public, max-age=600, stale-while-revalidate=1800'
+      }
+    },
+    // 教程页面 SWR 缓存
+    '/tutorials': {
+      ssr: true,
+      headers: {
+        'cache-control': 'public, max-age=300, stale-while-revalidate=3600'
+      }
     }
   },
 
@@ -397,11 +419,12 @@ export default defineNuxtConfig({
       // 忽略 payload.json 的 404 错误（SSR模式下正常）
       failOnError: false
     },
-    // 服务器端存储缓存
+    // 服务端端存储缓存（增强版）
     storage: {
       cache: {
         driver: 'lruCache',
-        max: 500 // 最大缓存500个条目
+        max: 1000,          // 增加到 1000 个条目
+        ttl: 300            // 5 分钟过期
       }
     },
     // 路由缓存
