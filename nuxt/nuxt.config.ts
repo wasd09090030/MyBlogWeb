@@ -319,23 +319,7 @@ export default defineNuxtConfig({
         { rel: 'dns-prefetch', href: 'https://s41.ax1x.com' },
         { rel: 'dns-prefetch', href: 'https://static.cloudflareinsights.com' },
         // 预连接关键 CDN
-        { rel: 'preconnect', href: 'https://cfimg.wasd09090030.top', crossorigin: 'anonymous' },
-        // 关键图片预加载 - 提升 LCP
-        { 
-          rel: 'preload', 
-          as: 'image', 
-          href: 'https://cfimg.wasd09090030.top/file/websource/1770102705913_20251214_14133.webp',
-          type: 'image/webp',
-          fetchpriority: 'high'
-        },
-        // 首页 Hero 图片预加载
-        { 
-          rel: 'preload', 
-          as: 'image', 
-          href: 'https://cfimg.wasd09090030.top/file/websource/1770012440985_logo.webp',
-          type: 'image/webp',
-          fetchpriority: 'high'
-        }
+        { rel: 'preconnect', href: 'https://cfimg.wasd09090030.top', crossorigin: 'anonymous' }
       ]
     }
   },

@@ -10,7 +10,7 @@
         <header v-if="!isGalleryRoute" class="app-navbar" :class="{ 'navbar-hidden': isNavbarHidden, 'navbar-scrolled': hasScrolled }">
           <div class="navbar-container">
             <NuxtLink to="/" class="navbar-brand">
-              <img src="https://cfimg.wasd09090030.top/file/websource/1770012440985_logo.webp" alt="Logo" class="navbar-logo"               loading="eager" fetchpriority="high" decoding="async" />
+              <img src="/icon/logo.webp" alt="Logo" class="navbar-logo" loading="eager" fetchpriority="high" decoding="async" />
             </NuxtLink>
             <nav class="navbar-center-nav d-none d-lg-flex">
               <NuxtLink to="/" class="nav-link">
