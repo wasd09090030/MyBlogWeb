@@ -152,9 +152,12 @@ export default defineNuxtConfig({
   // 依赖配置
   build: {
     // 优化构建分析
-    analyze: true,
-    // 提升构建性能
-    transpile: ['@vueuse/core', 'naive-ui']
+    analyze: process.env.ANALYZE === 'true',
+    // 提升构建性能 - 仅 transpile 必要的库
+    transpile: [
+      process.env.NODE_ENV === 'production' ? 'naive-ui' : '',
+      process.env.NODE_ENV === 'production' ? '@vueuse/core' : ''
+    ].filter(Boolean)
   },
 
   // Vite配置 - 深度优化
@@ -162,16 +165,24 @@ export default defineNuxtConfig({
     optimizeDeps: {
       include: [
         'vue',
-        'keen-slider',
-        'naive-ui',
-        'katex',
         '@vueuse/core',
-        'mermaid',
-        'remark-math',
-        'rehype-katex'
+        // Naive UI 核心组件（首屏必需）
+        'naive-ui/es/button',
+        'naive-ui/es/drawer',
+        'naive-ui/es/menu',
+        'naive-ui/es/message',
+        'naive-ui/es/config-provider',
+        // 其他首屏不需要的库不包含，由懒加载处理
       ],
       // 排除不需要预构建的依赖
-      exclude: ['vue-demi']
+      exclude: [
+        'vue-demi',
+        'mermaid',
+        'katex',
+        'md-editor-v3',
+        'browser-image-compression',
+        'keen-slider'
+      ]
     },
     define: {
       global: 'globalThis'
@@ -192,15 +203,40 @@ export default defineNuxtConfig({
           comments: false // 移除注释
         }
       },
-      // 代码分割优化 - 简化版避免循环依赖
+      // 代码分割优化 - 分离大型库减少首屏 JS
       rollupOptions: {
         output: {
           manualChunks(id) {
-            // 仅分割不会导致循环依赖的大型库
-            if (id.includes('node_modules/mermaid')) {
-              return 'vendor-markdown';
+            // Naive UI 组件库分离（只在使用时加载）
+            if (id.includes('node_modules/naive-ui')) {
+              return 'vendor-naive-ui';
             }
-            // Vue/Naive UI 让 Nuxt 自动处理，避免初始化顺序问题
+            // Markdown 相关库分离（文章页面才需要）
+            if (id.includes('node_modules/mermaid')) {
+              return 'vendor-mermaid';
+            }
+            if (id.includes('node_modules/katex')) {
+              return 'vendor-katex';
+            }
+            if (id.includes('node_modules/md-editor-v3')) {
+              return 'vendor-md-editor';
+            }
+            // 图片处理库分离（工具页面才需要）
+            if (id.includes('node_modules/browser-image-compression')) {
+              return 'vendor-image-tools';
+            }
+            // Keen Slider 分离（画廊页面才需要）
+            if (id.includes('node_modules/keen-slider')) {
+              return 'vendor-keen-slider';
+            }
+            // VueUse 分离
+            if (id.includes('node_modules/@vueuse')) {
+              return 'vendor-vueuse';
+            }
+            // 其他公共依赖
+            if (id.includes('node_modules/')) {
+              return 'vendor-common';
+            }
           }
         }
       },
@@ -217,6 +253,10 @@ export default defineNuxtConfig({
     css: {
       devSourcemap: false
     },
+    // 性能优化
+    esbuild: {
+      drop: process.env.NODE_ENV === 'production' ? ['console', 'debugger'] : []
+    },
     // 服务器优化（开发环境）
     server: {
       warmup: {
@@ -225,7 +265,13 @@ export default defineNuxtConfig({
           './components/SideBar.vue',
           './layouts/default.vue'
         ]
-      }
+      },
+      // 预热关键模块
+      preTransformRequests: true
+    },
+    // 生产构建优化
+    ssr: {
+      noExternal: process.env.NODE_ENV === 'production' ? ['naive-ui', '@vueuse/core'] : []
     }
   },
 
@@ -248,12 +294,6 @@ export default defineNuxtConfig({
     name: 'WyrmKk',
     description: '分享技术、生活与创作的个人博客',
     defaultLocale: 'zh-CN'
-  },
-
-  seoUtils: {
-    autoIcons: true,
-    fallbackTitle: true,
-    titleSeparator: '·'
   },
 
   robots: {
@@ -300,6 +340,28 @@ export default defineNuxtConfig({
       ],
       link: [
         { rel: 'icon', type: 'image/x-icon', href: '/icon/Myfavicon.ico' },
+        // DNS 预解析 - 加速外部资源加载
+        { rel: 'dns-prefetch', href: 'https://cfimg.wasd09090030.top' },
+        { rel: 'dns-prefetch', href: 'https://s41.ax1x.com' },
+        { rel: 'dns-prefetch', href: 'https://static.cloudflareinsights.com' },
+        // 预连接关键 CDN
+        { rel: 'preconnect', href: 'https://cfimg.wasd09090030.top', crossorigin: 'anonymous' },
+        // 关键图片预加载 - 提升 LCP
+        { 
+          rel: 'preload', 
+          as: 'image', 
+          href: 'https://cfimg.wasd09090030.top/file/websource/1770102705913_20251214_14133.webp',
+          type: 'image/webp',
+          fetchpriority: 'high'
+        },
+        // 首页 Hero 图片预加载
+        { 
+          rel: 'preload', 
+          as: 'image', 
+          href: 'https://cfimg.wasd09090030.top/file/Study/1768384800398_20251214_141332.avif',
+          type: 'image/avif',
+          fetchpriority: 'high'
+        }
       ]
     }
   },
@@ -324,7 +386,14 @@ export default defineNuxtConfig({
     // 跨域请求fetch
     crossOriginPrefetch: true,
     // 写早期提示
-    writeEarlyHints: true
+    writeEarlyHints: true,
+    // 启用增量静态再生（ISR）
+    // 减少不必要的 SSR 调用
+    defaults: {
+      useAsyncData: {
+        deep: false // 禁用深度响应式以提升性能
+      }
+    }
   },
 
   // 路由配置优化

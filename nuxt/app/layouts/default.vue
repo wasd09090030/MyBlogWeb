@@ -2,15 +2,15 @@
   <n-config-provider :theme="isDarkMode ? darkTheme : null" :theme-overrides="themeOverrides">
     <n-message-provider>
       <div id="app" :class="['min-vh-100', isDarkMode ? 'dark-theme' : 'light-theme']">
-        <!-- 根据主题切换动画效果 -->
+        <!-- 根据主题切换动画效果 - 使用懒加载减少首屏 JS -->
         <Teleport to="body">
-          <SakuraFalling v-if="showBackgroundAnimation && !isDarkMode" />
-          <StarryNight v-else-if="showBackgroundAnimation" />
+          <LazySakuraFalling v-if="showBackgroundAnimation && !isDarkMode" />
+          <LazyStarryNight v-else-if="showBackgroundAnimation" />
         </Teleport>
         <header v-if="!isGalleryRoute" class="app-navbar" :class="{ 'navbar-hidden': isNavbarHidden, 'navbar-scrolled': hasScrolled }">
           <div class="navbar-container">
             <NuxtLink to="/" class="navbar-brand">
-              <img src="https://cfimg.wasd09090030.top/file/websource/1770012440985_logo.webp" alt="Logo" class="navbar-logo"
+              <img src="https://cfimg.wasd09090030.top/file/websource/1770102705913_20251214_14133.webp" alt="Logo" class="navbar-logo"
                loading="eager" fetchpriority="high" decoding="async" />
             </NuxtLink>
             <nav class="navbar-center-nav d-none d-lg-flex">
@@ -51,7 +51,7 @@
                   <Icon v-else name="moon-fill" size="md" :solid="true" />
                 </template>
               </n-button>
-              <SearchBar />
+              <LazySearchBar />
             </div>
           </div>
         </header>
@@ -71,7 +71,7 @@
             </template>
           </n-drawer-content>
         </n-drawer>
-        <div v-if="shouldShowWelcomeSection" class="welcome-section-container"><WelcomeSection /></div>
+        <div v-if="shouldShowWelcomeSection" class="welcome-section-container"><LazyWelcomeSection /></div>
         <div class="main-container">
           <div class="main-content">
             <div class="container-fluid">
@@ -80,7 +80,7 @@
                   <main><slot /></main>
                 </div>
                 <div v-if="showSidebar" class="col-lg-4 col-xl-3 d-none d-lg-block sidebar-animate">
-                  <div class="sidebar-content"><SideBar /></div>
+                  <div class="sidebar-content"><LazySideBar /></div>
                 </div>
               </div>
             </div>
@@ -155,7 +155,7 @@
 
 <script setup>
 import { darkTheme } from 'naive-ui'
-import SakuraFalling from '../components/SakuraFalling.vue'
+// SakuraFalling 和 StarryNight 改用 Lazy 前缀动态加载，减少首屏 JS
 
 const route = useRoute()
 const router = useRouter()

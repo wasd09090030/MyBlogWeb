@@ -75,11 +75,11 @@
       </template>
     </n-alert>
 
-    <SkeletonLoader
+    <LazySkeletonLoader
       v-if="loading && useSkeletonLoader"
       :count="4"
     />
-    <LoadingSpinner
+    <LazyLoadingSpinner
       v-else-if="loading"
       :text="loadingText"
       size="medium"
