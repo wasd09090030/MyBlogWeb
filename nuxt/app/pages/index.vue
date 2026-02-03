@@ -113,7 +113,8 @@
             style="height: 300px; aspect-ratio: 16/9; object-fit: cover; width: 100%;"
             @error="handleImageError"
             @load="handleImageLoad"
-            loading="lazy"
+            :loading="index < 3 ? 'eager' : 'lazy'"
+            :fetchpriority="index < 3 ? 'high' : 'low'"
           />
           <div v-else class="article-image-placeholder">
             <Icon name="image" size="3xl" class="text-muted" />

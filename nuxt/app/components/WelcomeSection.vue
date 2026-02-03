@@ -4,7 +4,7 @@
     <div class="carousel-wrapper welcome-image-wrapper">
       <div class="welcome-image-container">
         <img
-          src="https://cfimg.wasd09090030.top/file/Study/1768384800398_20251214_141332.avif"
+          src="https://cfimg.wasd09090030.top/file/websource/1770102705913_20251214_14133.webp"
           alt="Welcome Image"
           class="welcome-image"
           loading="eager"

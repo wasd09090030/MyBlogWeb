@@ -4,6 +4,18 @@ export default defineNuxtConfig({
   // 通过 NUXT_SOURCEMAP=true 按需开启 sourcemap
   sourcemap: process.env.NUXT_SOURCEMAP === 'true',
 
+  // 优化自动导入，减少重复代码
+  imports: {
+    autoImport: true,
+    // 仅导入使用的内容
+    presets: [
+      {
+        from: 'vue',
+        imports: ['ref', 'computed', 'watch', 'onMounted', 'onUnmounted', 'nextTick']
+      }
+    ]
+  },
+
   // CSS配置 - 使用 Tailwind Typography
   css: [
     '~/assets/css/theme-variables.css',
@@ -165,23 +177,21 @@ export default defineNuxtConfig({
     optimizeDeps: {
       include: [
         'vue',
-        '@vueuse/core',
-        // Naive UI 核心组件（首屏必需）
-        'naive-ui/es/button',
-        'naive-ui/es/drawer',
-        'naive-ui/es/menu',
-        'naive-ui/es/message',
-        'naive-ui/es/config-provider',
-        // 其他首屏不需要的库不包含，由懒加载处理
+        // 仅包含首屏必需的最小依赖
       ],
-      // 排除不需要预构建的依赖
+      // 排除不需要预构建的依赖 - 减少首屏加载
       exclude: [
         'vue-demi',
         'mermaid',
         'katex',
         'md-editor-v3',
         'browser-image-compression',
-        'keen-slider'
+        'keen-slider',
+        'docx',
+        'file-saver',
+        'html2pdf.js',
+        '@vueuse/core',
+        'naive-ui'
       ]
     },
     define: {
@@ -194,7 +204,12 @@ export default defineNuxtConfig({
           drop_console: true, // 生产环境移除 console.log
           drop_debugger: true, // 生产环境移除 debugger
           pure_funcs: ['console.log', 'console.info', 'console.debug'],
-          passes: 2 // 多次压缩优化
+          passes: 2, // 多次压缩优化
+          unsafe_arrows: true, // 优化箭头函数
+          unsafe_methods: true, // 优化方法调用
+          dead_code: true, // 移除死代码
+          collapse_vars: true, // 折叠变量
+          reduce_vars: true // 减少变量
         },
         mangle: {
           safari10: true // Safari 10 兼容
@@ -203,7 +218,11 @@ export default defineNuxtConfig({
           comments: false // 移除注释
         }
       },
-      // 代码分割优化 - 分离大型库减少首屏 JS
+      // 启用更激进的tree-shaking
+      modulePreload: {
+        polyfill: false // 禁用polyfill以减小体积
+      },
+      // 代码分割优化 - 细粒度分离避免单个巨大JS文件
       rollupOptions: {
         output: {
           manualChunks(id) {
@@ -233,15 +252,47 @@ export default defineNuxtConfig({
             if (id.includes('node_modules/@vueuse')) {
               return 'vendor-vueuse';
             }
-            // 其他公共依赖
-            if (id.includes('node_modules/')) {
-              return 'vendor-common';
+            // Vue 核心库分离
+            if (id.includes('node_modules/vue/') || id.includes('node_modules/@vue/')) {
+              return 'vendor-vue';
             }
+            // Pinia 状态管理分离
+            if (id.includes('node_modules/pinia')) {
+              return 'vendor-pinia';
+            }
+            // 文档处理库分离（工具页面）
+            if (id.includes('node_modules/docx') || id.includes('node_modules/file-saver') || id.includes('node_modules/html2pdf')) {
+              return 'vendor-doc-tools';
+            }
+            // Nuxt 相关模块
+            if (id.includes('node_modules/@nuxt') || id.includes('node_modules/nuxt')) {
+              return 'vendor-nuxt';
+            }
+            // 其他较小的公共依赖（限制大小）
+            if (id.includes('node_modules/')) {
+              // 将大型node_modules进一步拆分
+              const match = id.match(/node_modules\/(@[^/]+\/[^/]+|[^/]+)/);
+              if (match && match[1]) {
+                const pkgName = match[1].replace('@', '');
+                // 只为较大的包创建单独chunk
+                return `vendor-${pkgName.split('/')[0]}`;
+              }
+              return 'vendor-misc';
+            }
+          },
+          // 更严格的chunk大小限制
+          chunkFileNames: (chunkInfo) => {
+            // 为不同类型的chunk设置不同的命名
+            const facadeModuleId = chunkInfo.facadeModuleId ? chunkInfo.facadeModuleId : '';
+            if (facadeModuleId.includes('node_modules')) {
+              return 'vendor/[name]-[hash].js';
+            }
+            return 'chunks/[name]-[hash].js';
           }
         }
       },
-      // 设置警告阈值
-      chunkSizeWarningLimit: 1500,
+      // 降低警告阈值，强制更小的chunk
+      chunkSizeWarningLimit: 500,
       // 启用CSS代码分割
       cssCodeSplit: true,
       // 通过 NUXT_SOURCEMAP=true 按需开启 sourcemap
@@ -358,8 +409,8 @@ export default defineNuxtConfig({
         { 
           rel: 'preload', 
           as: 'image', 
-          href: 'https://cfimg.wasd09090030.top/file/Study/1768384800398_20251214_141332.avif',
-          type: 'image/avif',
+          href: 'https://cfimg.wasd09090030.top/file/websource/1770012440985_logo.webp',
+          type: 'image/webp',
           fetchpriority: 'high'
         }
       ]
@@ -471,7 +522,8 @@ export default defineNuxtConfig({
     preset: 'node-server',
     esbuild: {
       options: {
-        target: 'es2020'
+        target: 'es2020',
+        treeShaking: true // 启用tree-shaking
       }
     },
     // 启用压缩
@@ -481,6 +533,10 @@ export default defineNuxtConfig({
     },
     // 优化服务器输出
     minify: true,
+    // 移除未使用的代码
+    replace: {
+      'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'production')
+    },
     // 仅预渲染首页，避免全站 crawl
     prerender: {
       crawlLinks: false,
