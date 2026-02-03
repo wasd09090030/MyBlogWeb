@@ -4,18 +4,6 @@ export default defineNuxtConfig({
   // 通过 NUXT_SOURCEMAP=true 按需开启 sourcemap
   sourcemap: process.env.NUXT_SOURCEMAP === 'true',
 
-  // 优化自动导入，减少重复代码
-  imports: {
-    autoImport: true,
-    // 仅导入使用的内容
-    presets: [
-      {
-        from: 'vue',
-        imports: ['ref', 'computed', 'watch', 'onMounted', 'onUnmounted', 'nextTick']
-      }
-    ]
-  },
-
   // CSS配置 - 使用 Tailwind Typography
   css: [
     '~/assets/css/theme-variables.css',
@@ -164,12 +152,9 @@ export default defineNuxtConfig({
   // 依赖配置
   build: {
     // 优化构建分析
-    analyze: process.env.ANALYZE === 'true',
-    // 提升构建性能 - 仅 transpile 必要的库
-    transpile: [
-      process.env.NODE_ENV === 'production' ? 'naive-ui' : '',
-      process.env.NODE_ENV === 'production' ? '@vueuse/core' : ''
-    ].filter(Boolean)
+    analyze: true,
+    // 提升构建性能
+    transpile: ['@vueuse/core', 'naive-ui']
   },
 
   // Vite配置 - 深度优化
@@ -177,22 +162,16 @@ export default defineNuxtConfig({
     optimizeDeps: {
       include: [
         'vue',
-        // 仅包含首屏必需的最小依赖
-      ],
-      // 排除不需要预构建的依赖 - 减少首屏加载
-      exclude: [
-        'vue-demi',
-        'mermaid',
-        'katex',
-        'md-editor-v3',
-        'browser-image-compression',
         'keen-slider',
-        'docx',
-        'file-saver',
-        'html2pdf.js',
+        'naive-ui',
+        'katex',
         '@vueuse/core',
-        'naive-ui'
-      ]
+        'mermaid',
+        'remark-math',
+        'rehype-katex'
+      ],
+      // 排除不需要预构建的依赖
+      exclude: ['vue-demi']
     },
     define: {
       global: 'globalThis'
@@ -204,12 +183,7 @@ export default defineNuxtConfig({
           drop_console: true, // 生产环境移除 console.log
           drop_debugger: true, // 生产环境移除 debugger
           pure_funcs: ['console.log', 'console.info', 'console.debug'],
-          passes: 2, // 多次压缩优化
-          unsafe_arrows: true, // 优化箭头函数
-          unsafe_methods: true, // 优化方法调用
-          dead_code: true, // 移除死代码
-          collapse_vars: true, // 折叠变量
-          reduce_vars: true // 减少变量
+          passes: 2 // 多次压缩优化
         },
         mangle: {
           safari10: true // Safari 10 兼容
@@ -218,64 +192,20 @@ export default defineNuxtConfig({
           comments: false // 移除注释
         }
       },
-      // 代码分割优化 - 合理分包策略，避免循环依赖
+      // 代码分割优化 - 简化版避免循环依赖
       rollupOptions: {
         output: {
           manualChunks(id) {
-            // 只分离真正大的、客户端使用的库
-            
-            // Naive UI 组件库（大型UI库）
-            if (id.includes('node_modules/naive-ui')) {
-              return 'naive-ui';
+            // 仅分割不会导致循环依赖的大型库
+            if (id.includes('node_modules/mermaid')) {
+              return 'vendor-markdown';
             }
-            
-            // Markdown 编辑器（仅管理页面使用，可以独立加载）
-            if (id.includes('node_modules/md-editor-v3')) {
-              return 'md-editor';
-            }
-            
-            // Mermaid 图表库（大型库，文章页按需加载）
-            if (id.includes('node_modules/mermaid') || id.includes('node_modules/d3-')) {
-              return 'mermaid';
-            }
-            
-            // KaTeX 数学公式（文章页按需加载）
-            if (id.includes('node_modules/katex')) {
-              return 'katex';
-            }
-            
-            // 图片处理库（工具页面使用）
-            if (id.includes('node_modules/browser-image-compression')) {
-              return 'image-tools';
-            }
-            
-            // 文档处理库（工具页面使用）
-            if (id.includes('node_modules/docx') || 
-                id.includes('node_modules/file-saver') || 
-                id.includes('node_modules/html2pdf')) {
-              return 'doc-tools';
-            }
-            
-            // Keen Slider（画廊页面使用）
-            if (id.includes('node_modules/keen-slider')) {
-              return 'keen-slider';
-            }
-            
-            // VueUse 工具库
-            if (id.includes('node_modules/@vueuse')) {
-              return 'vueuse';
-            }
-            
-            // 其他 node_modules 统一放到 vendor
-            // 不再细分，避免循环依赖和空chunk
-            if (id.includes('node_modules/')) {
-              return 'vendor';
-            }
+            // Vue/Naive UI 让 Nuxt 自动处理，避免初始化顺序问题
           }
         }
       },
-      // 设置合理的chunk大小警告阈值
-      chunkSizeWarningLimit: 800,
+      // 设置警告阈值
+      chunkSizeWarningLimit: 1500,
       // 启用CSS代码分割
       cssCodeSplit: true,
       // 通过 NUXT_SOURCEMAP=true 按需开启 sourcemap
@@ -287,10 +217,6 @@ export default defineNuxtConfig({
     css: {
       devSourcemap: false
     },
-    // 性能优化
-    esbuild: {
-      drop: process.env.NODE_ENV === 'production' ? ['console', 'debugger'] : []
-    },
     // 服务器优化（开发环境）
     server: {
       warmup: {
@@ -299,13 +225,7 @@ export default defineNuxtConfig({
           './components/SideBar.vue',
           './layouts/default.vue'
         ]
-      },
-      // 预热关键模块
-      preTransformRequests: true
-    },
-    // 生产构建优化
-    ssr: {
-      noExternal: process.env.NODE_ENV === 'production' ? ['naive-ui', '@vueuse/core'] : []
+      }
     }
   },
 
@@ -328,6 +248,12 @@ export default defineNuxtConfig({
     name: 'WyrmKk',
     description: '分享技术、生活与创作的个人博客',
     defaultLocale: 'zh-CN'
+  },
+
+  seoUtils: {
+    autoIcons: true,
+    fallbackTitle: true,
+    titleSeparator: '·'
   },
 
   robots: {
@@ -372,7 +298,7 @@ export default defineNuxtConfig({
         // 性能优化meta
         { 'http-equiv': 'x-dns-prefetch-control', content: 'on' }
       ],
-      link: [
+            link: [
         { rel: 'icon', type: 'image/x-icon', href: '/icon/Myfavicon.ico' },
         // DNS 预解析 - 加速外部资源加载
         { rel: 'dns-prefetch', href: 'https://cfimg.wasd09090030.top' },
@@ -420,14 +346,7 @@ export default defineNuxtConfig({
     // 跨域请求fetch
     crossOriginPrefetch: true,
     // 写早期提示
-    writeEarlyHints: true,
-    // 启用增量静态再生（ISR）
-    // 减少不必要的 SSR 调用
-    defaults: {
-      useAsyncData: {
-        deep: false // 禁用深度响应式以提升性能
-      }
-    }
+    writeEarlyHints: true
   },
 
   // 路由配置优化
@@ -506,7 +425,7 @@ export default defineNuxtConfig({
     esbuild: {
       options: {
         target: 'es2020',
-        treeShaking: true // 启用tree-shaking
+        treeShaking: true 
       }
     },
     // 启用压缩
@@ -516,10 +435,6 @@ export default defineNuxtConfig({
     },
     // 优化服务器输出
     minify: true,
-    // 移除未使用的代码
-    replace: {
-      'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'production')
-    },
     // 仅预渲染首页，避免全站 crawl
     prerender: {
       crawlLinks: false,

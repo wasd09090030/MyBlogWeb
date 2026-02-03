@@ -117,6 +117,7 @@
           </div>
         </footer>
                 <Teleport to="body">
+        <ClientOnly>
         <div class="floating-action-buttons" aria-label="Quick actions">
           <button
             v-if="!isHomeRoute"
@@ -146,6 +147,7 @@
             <Icon name="sparkles" size="16" />
           </button>
         </div>
+        </ClientOnly>
         </Teleport>
       </div>
     </n-message-provider>
