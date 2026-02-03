@@ -218,81 +218,64 @@ export default defineNuxtConfig({
           comments: false // 移除注释
         }
       },
-      // 启用更激进的tree-shaking
-      modulePreload: {
-        polyfill: false // 禁用polyfill以减小体积
-      },
-      // 代码分割优化 - 细粒度分离避免单个巨大JS文件
+      // 代码分割优化 - 合理分包策略，避免循环依赖
       rollupOptions: {
         output: {
           manualChunks(id) {
-            // Naive UI 组件库分离（只在使用时加载）
+            // 只分离真正大的、客户端使用的库
+            
+            // Naive UI 组件库（大型UI库）
             if (id.includes('node_modules/naive-ui')) {
-              return 'vendor-naive-ui';
+              return 'naive-ui';
             }
-            // Markdown 相关库分离（文章页面才需要）
-            if (id.includes('node_modules/mermaid')) {
-              return 'vendor-mermaid';
-            }
-            if (id.includes('node_modules/katex')) {
-              return 'vendor-katex';
-            }
+            
+            // Markdown 编辑器（仅管理页面使用，可以独立加载）
             if (id.includes('node_modules/md-editor-v3')) {
-              return 'vendor-md-editor';
+              return 'md-editor';
             }
-            // 图片处理库分离（工具页面才需要）
+            
+            // Mermaid 图表库（大型库，文章页按需加载）
+            if (id.includes('node_modules/mermaid') || id.includes('node_modules/d3-')) {
+              return 'mermaid';
+            }
+            
+            // KaTeX 数学公式（文章页按需加载）
+            if (id.includes('node_modules/katex')) {
+              return 'katex';
+            }
+            
+            // 图片处理库（工具页面使用）
             if (id.includes('node_modules/browser-image-compression')) {
-              return 'vendor-image-tools';
+              return 'image-tools';
             }
-            // Keen Slider 分离（画廊页面才需要）
+            
+            // 文档处理库（工具页面使用）
+            if (id.includes('node_modules/docx') || 
+                id.includes('node_modules/file-saver') || 
+                id.includes('node_modules/html2pdf')) {
+              return 'doc-tools';
+            }
+            
+            // Keen Slider（画廊页面使用）
             if (id.includes('node_modules/keen-slider')) {
-              return 'vendor-keen-slider';
+              return 'keen-slider';
             }
-            // VueUse 分离
+            
+            // VueUse 工具库
             if (id.includes('node_modules/@vueuse')) {
-              return 'vendor-vueuse';
+              return 'vueuse';
             }
-            // Vue 核心库分离
-            if (id.includes('node_modules/vue/') || id.includes('node_modules/@vue/')) {
-              return 'vendor-vue';
-            }
-            // Pinia 状态管理分离
-            if (id.includes('node_modules/pinia')) {
-              return 'vendor-pinia';
-            }
-            // 文档处理库分离（工具页面）
-            if (id.includes('node_modules/docx') || id.includes('node_modules/file-saver') || id.includes('node_modules/html2pdf')) {
-              return 'vendor-doc-tools';
-            }
-            // Nuxt 相关模块
-            if (id.includes('node_modules/@nuxt') || id.includes('node_modules/nuxt')) {
-              return 'vendor-nuxt';
-            }
-            // 其他较小的公共依赖（限制大小）
+            
+            // 其他 node_modules 统一放到 vendor
+            // 不再细分，避免循环依赖和空chunk
             if (id.includes('node_modules/')) {
-              // 将大型node_modules进一步拆分
-              const match = id.match(/node_modules\/(@[^/]+\/[^/]+|[^/]+)/);
-              if (match && match[1]) {
-                const pkgName = match[1].replace('@', '');
-                // 只为较大的包创建单独chunk
-                return `vendor-${pkgName.split('/')[0]}`;
-              }
-              return 'vendor-misc';
+              return 'vendor';
             }
-          },
-          // 更严格的chunk大小限制
-          chunkFileNames: (chunkInfo) => {
-            // 为不同类型的chunk设置不同的命名
-            const facadeModuleId = chunkInfo.facadeModuleId ? chunkInfo.facadeModuleId : '';
-            if (facadeModuleId.includes('node_modules')) {
-              return 'vendor/[name]-[hash].js';
-            }
-            return 'chunks/[name]-[hash].js';
           }
         }
       },
-      // 降低警告阈值，强制更小的chunk
-      chunkSizeWarningLimit: 500,
+      // 设置合理的chunk大小警告阈值
+      chunkSizeWarningLimit: 800,
       // 启用CSS代码分割
       cssCodeSplit: true,
       // 通过 NUXT_SOURCEMAP=true 按需开启 sourcemap
