@@ -22,8 +22,19 @@ export default defineNuxtConfig({
     '@nuxt/fonts', // Nuxt Fonts 模块
     '@bg-dev/nuxt-naiveui', // Naive UI 模块
     '@nuxtjs/mdc', // MDC Markdown 渲染模块
-    '@nuxtjs/seo' // Nuxt SEO 模块
+    '@nuxtjs/seo', // Nuxt SEO 模块
+    'nuxt-vitalizer' // Core Web Vitals LCP 优化
   ],
+
+  // LCP/SI 优化 - Nuxt Vitalizer
+  vitalizer: {
+    // 默认只关闭动态导入的 prefetch；可选 true 关闭所有 prefetch
+    disablePrefetchLinks: 'dynamicImports',
+    // 移除构建资源的 preload，降低首屏请求数量
+    disablePreloadLinks: true,
+    // 需要 inline styles 生效；仅去掉 entry 样式表，避免阻塞渲染
+    disableStylesheets: 'entry'
+  },
 
   // 字体配置（本地化）
   fonts: {
@@ -177,6 +188,9 @@ export default defineNuxtConfig({
       global: 'globalThis'
     },
     build: {
+      // 改进 treeshaking 与模块预加载
+      modulePreload: { polyfill: true },
+      treeshake: 'recommended',
       minify: 'terser',
       terserOptions: {
         compress: {
@@ -343,6 +357,8 @@ export default defineNuxtConfig({
     asyncContext: true,
     // 头部优化
     headNext: true,
+    // 确保样式内联，配合 vitalizer 去除 entry 样式表
+    inlineSSRStyles: true,
     // 跨域请求fetch
     crossOriginPrefetch: true,
     // 写早期提示
