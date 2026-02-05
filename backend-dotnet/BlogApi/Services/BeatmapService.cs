@@ -100,17 +100,21 @@ namespace BlogApi.Services
             }
 
             var primary = maniaResults[0];
+            var oszInfo = ParseOszFileName(oszFile.FileName);
+            var resolvedTitle = !string.IsNullOrWhiteSpace(oszInfo.Title) ? oszInfo.Title : primary.Title;
+            var resolvedArtist = !string.IsNullOrWhiteSpace(oszInfo.Artist) ? oszInfo.Artist : primary.Artist;
+            var createdAt = oszInfo.CreatedAt ?? DateTime.UtcNow;
 
             var beatmapSet = new BeatmapSet
             {
                 StorageKey = storageKey,
-                Title = primary.Title ?? "Unknown",
-                Artist = primary.Artist ?? "Unknown",
+                Title = resolvedTitle ?? "Unknown",
+                Artist = resolvedArtist ?? "Unknown",
                 Creator = primary.Creator ?? "Unknown",
                 BackgroundFile = primary.BackgroundFile,
                 AudioFile = primary.AudioFile,
                 PreviewTime = primary.PreviewTime,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = createdAt
             };
 
             _context.BeatmapSets.Add(beatmapSet);
@@ -138,7 +142,7 @@ namespace BlogApi.Services
                     OsuFileName = result.OsuFileName,
                     DataJson = JsonSerializer.Serialize(data),
                     NoteCount = result.Notes.Count,
-                    CreatedAt = DateTime.UtcNow
+                    CreatedAt = createdAt
                 };
 
                 _context.BeatmapDifficulties.Add(difficulty);
@@ -529,6 +533,98 @@ namespace BlogApi.Services
             return NormalizeRelativePath(Path.GetRelativePath(rootFull, combined));
         }
 
+        private static OszFileNameInfo ParseOszFileName(string fileName)
+        {
+            var info = new OszFileNameInfo();
+            var baseName = Path.GetFileNameWithoutExtension(fileName) ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(baseName))
+            {
+                return info;
+            }
+
+            var trimmed = baseName.Trim();
+            var index = 0;
+            while (index < trimmed.Length && char.IsDigit(trimmed[index]))
+            {
+                index++;
+            }
+
+            if (index == 0)
+            {
+                return info;
+            }
+
+            var digits = trimmed.Substring(0, index);
+            info.CreatedAt = TryParseCreatedAtFromDigits(digits);
+
+            var rest = trimmed.Substring(index).Trim();
+            if (string.IsNullOrWhiteSpace(rest))
+            {
+                return info;
+            }
+
+            rest = rest.TrimStart('-', '_').Trim();
+            if (string.IsNullOrWhiteSpace(rest))
+            {
+                return info;
+            }
+
+            var parts = rest.Split(new[] { " - " }, 2, StringSplitOptions.None);
+            if (parts.Length == 2)
+            {
+                info.Artist = parts[0].Trim();
+                info.Title = parts[1].Trim();
+                return info;
+            }
+
+            var dashIndex = rest.IndexOf('-', StringComparison.Ordinal);
+            if (dashIndex > 0 && dashIndex < rest.Length - 1)
+            {
+                info.Artist = rest.Substring(0, dashIndex).Trim();
+                info.Title = rest.Substring(dashIndex + 1).Trim();
+            }
+
+            return info;
+        }
+
+        private static DateTime? TryParseCreatedAtFromDigits(string digits)
+        {
+            if (string.IsNullOrWhiteSpace(digits) || !digits.All(char.IsDigit))
+            {
+                return null;
+            }
+
+            if (digits.Length == 13 && long.TryParse(digits, out var milliseconds))
+            {
+                return DateTimeOffset.FromUnixTimeMilliseconds(milliseconds).UtcDateTime;
+            }
+
+            if (digits.Length == 10 && long.TryParse(digits, out var seconds))
+            {
+                return DateTimeOffset.FromUnixTimeSeconds(seconds).UtcDateTime;
+            }
+
+            var format = digits.Length switch
+            {
+                8 => "yyyyMMdd",
+                7 => "yyMMddH",
+                6 => "yyMMdd",
+                _ => null
+            };
+
+            if (format == null)
+            {
+                return null;
+            }
+
+            if (!DateTime.TryParseExact(digits, format, CultureInfo.InvariantCulture, DateTimeStyles.None, out var parsed))
+            {
+                return null;
+            }
+
+            return DateTime.SpecifyKind(parsed, DateTimeKind.Utc);
+        }
+
         private class BeatmapParseResult
         {
             public Dictionary<string, string> General { get; } = new(StringComparer.OrdinalIgnoreCase);
@@ -559,6 +655,13 @@ namespace BlogApi.Services
             public int? PreviewTime { get; set; }
             public List<TimingPointDto> TimingPoints { get; set; } = new();
             public List<ManiaNoteDto> Notes { get; set; } = new();
+        }
+
+        private class OszFileNameInfo
+        {
+            public DateTime? CreatedAt { get; set; }
+            public string? Artist { get; set; }
+            public string? Title { get; set; }
         }
     }
 }
