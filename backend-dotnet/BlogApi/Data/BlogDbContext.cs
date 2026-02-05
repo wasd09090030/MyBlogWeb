@@ -17,6 +17,8 @@ namespace BlogApi.Data
         public DbSet<Gallery> Galleries { get; set; }
         public DbSet<ImagebedConfig> ImagebedConfigs { get; set; }
         public DbSet<CfImageConfig> CfImageConfigs { get; set; }
+        public DbSet<BeatmapSet> BeatmapSets { get; set; }
+        public DbSet<BeatmapDifficulty> BeatmapDifficulties { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -135,6 +137,41 @@ namespace BlogApi.Data
                 entity.Property(e => e.SignatureSecret);
                 entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
                 entity.Property(e => e.UpdatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+            });
+
+            modelBuilder.Entity<BeatmapSet>(entity =>
+            {
+                entity.ToTable("beatmap_sets");
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.StorageKey).HasColumnName("storageKey").HasMaxLength(64).IsRequired();
+                entity.Property(e => e.Title).HasColumnName("title").HasMaxLength(200).IsRequired();
+                entity.Property(e => e.Artist).HasColumnName("artist").HasMaxLength(200).IsRequired();
+                entity.Property(e => e.Creator).HasColumnName("creator").HasMaxLength(200).IsRequired();
+                entity.Property(e => e.BackgroundFile).HasColumnName("backgroundFile");
+                entity.Property(e => e.AudioFile).HasColumnName("audioFile");
+                entity.Property(e => e.PreviewTime).HasColumnName("previewTime");
+                entity.Property(e => e.CreatedAt).HasColumnName("createdAt");
+                entity.HasMany(e => e.Difficulties)
+                    .WithOne(d => d.BeatmapSet)
+                    .HasForeignKey(d => d.BeatmapSetId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<BeatmapDifficulty>(entity =>
+            {
+                entity.ToTable("beatmap_difficulties");
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.BeatmapSetId).HasColumnName("beatmapSetId");
+                entity.Property(e => e.Version).HasColumnName("version").HasMaxLength(200).IsRequired();
+                entity.Property(e => e.Mode).HasColumnName("mode");
+                entity.Property(e => e.Columns).HasColumnName("columns");
+                entity.Property(e => e.OverallDifficulty).HasColumnName("overallDifficulty");
+                entity.Property(e => e.Bpm).HasColumnName("bpm");
+                entity.Property(e => e.OsuFileName).HasColumnName("osuFileName").HasMaxLength(512).IsRequired();
+                entity.Property(e => e.DataJson).HasColumnName("dataJson").IsRequired();
+                entity.Property(e => e.NoteCount).HasColumnName("noteCount");
+                entity.Property(e => e.CreatedAt).HasColumnName("createdAt");
+                entity.HasIndex(e => e.BeatmapSetId);
             });
         }
     }

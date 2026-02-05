@@ -22,6 +22,9 @@
               <NuxtLink to="/tools" class="nav-link">
                 <Icon name="wrench-screwdriver" size="sm" class="me-1" />工具箱
               </NuxtLink>
+              <NuxtLink to="/mania" class="nav-link">
+                <Icon name="musical-note" size="sm" class="me-1" />音游
+              </NuxtLink>
               <NuxtLink to="/about" class="nav-link">
                 <Icon name="person-circle" size="sm" class="me-1" />关于站长
               </NuxtLink>
@@ -238,6 +241,11 @@ const mobileMenuOptions = computed(() => [
     icon: () => h(resolveComponent('Icon'), { name: 'puzzle-piece', size: 'sm' })
   },
   {
+    label: '音游',
+    key: 'mania',
+    icon: () => h(resolveComponent('Icon'), { name: 'musical-note', size: 'sm' })
+  },
+  {
     label: '关于站长',
     key: 'about',
     icon: () => h(resolveComponent('Icon'), { name: 'person-circle', size: 'sm' })
@@ -260,6 +268,8 @@ const handleMobileMenuSelect = (key) => {
     router.push('/tutorials')
   } else if (key === 'tools') {
     router.push('/tools')
+  } else if (key === 'mania') {
+    router.push('/mania')
   } else if (key === 'about') {
     router.push('/about')
   }
@@ -291,7 +301,8 @@ const isArticleDetailRoute = computed(() => route.path.startsWith('/article/'))
 const isAboutRoute = computed(() => route.path === '/about')
 const isTutorialsRoute = computed(() => route.path === '/tutorials')
 const isToolsRoute = computed(() => route.path.startsWith('/tools'))
-const showSidebar = computed(() => !isGalleryRoute.value && !isArticleDetailRoute.value && !isAboutRoute.value && !isToolsRoute.value && !isTutorialsRoute.value)
+const isManiaRoute = computed(() => route.path.startsWith('/mania'))
+const showSidebar = computed(() => !isGalleryRoute.value && !isArticleDetailRoute.value && !isAboutRoute.value && !isToolsRoute.value && !isTutorialsRoute.value && !isManiaRoute.value)
 
 onMounted(() => {
   isHydrated.value = true

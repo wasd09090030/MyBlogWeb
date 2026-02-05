@@ -177,7 +177,9 @@ export default defineAppConfig({
       'arrows-right-left': 'heroicons:arrows-right-left',
       'journal-x': 'heroicons:document-minus',
       'cog-6-tooth': 'heroicons:cog-6-tooth',
-      'cog': 'heroicons:cog-6-tooth'
+      'cog': 'heroicons:cog-6-tooth',
+      'musical-note': 'heroicons:musical-note',
+      'music-note': 'heroicons:musical-note'
     }
   }
 })

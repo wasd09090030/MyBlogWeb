@@ -37,6 +37,7 @@ builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<DeepSeekService>();
 builder.Services.AddScoped<ImagebedService>();
 builder.Services.AddScoped<CfImageConfigService>();
+builder.Services.AddScoped<BeatmapService>();
 
 // JWT 认证配置
 var jwtSecretKey = builder.Configuration["Jwt:SecretKey"] 
