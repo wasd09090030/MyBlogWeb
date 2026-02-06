@@ -14,8 +14,8 @@
           class="absolute inset-0 bg-black/40 backdrop-blur-[2px] z-0"
         />
 
-        <!-- PixiJS 游戏组件 -->
-        <ManiaGame
+        <!-- PixiJS 游戏组件（使用纹理渲染） -->
+        <ManiaGameTextured
           ref="gameRef"
           class="relative z-1"
           :notes="beatmapData.notes"
