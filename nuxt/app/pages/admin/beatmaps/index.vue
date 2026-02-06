@@ -28,6 +28,21 @@
           </div>
         </n-upload-dragger>
       </n-upload>
+      <div class="mt-4 flex items-center gap-4 bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+        <div class="flex items-center gap-2">
+          <Icon name="folder-open" class="text-gray-400" />
+          <span class="text-sm font-medium">上传路径:</span>
+        </div>
+        <n-input
+          v-model:value="uploadPath"
+          placeholder="可选 (如: beatmaps/2024)"
+          size="small"
+          class="w-64"
+        />
+        <div class="text-xs text-gray-400 ml-auto">
+          将创建子文件夹: <span class="font-mono">{{ oszFolderPreview }}</span>
+        </div>
+      </div>
     </n-card>
 
     <n-card title="谱面列表">
@@ -55,6 +70,12 @@
                   Preview {{ set.previewTime }}ms
                 </n-tag>
                 <n-tag type="success" size="small">共 {{ set.difficulties.length }} 个难度</n-tag>
+                <n-button size="small" type="error" quaternary @click="confirmDelete(set)">
+                  <template #icon>
+                    <Icon name="trash" size="sm" />
+                  </template>
+                  删除
+                </n-button>
               </div>
             </div>
             <div class="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
@@ -77,11 +98,22 @@
         </div>
       </n-spin>
     </n-card>
+
+    <n-modal v-model:show="showDeleteModal" preset="dialog" type="warning" title="确认删除">
+      <div class="space-y-3">
+        <p>确定要删除谱面集「{{ setToDelete?.title }}」吗？此操作不可撤销。</p>
+        <div class="flex justify-end gap-2">
+          <n-button @click="showDeleteModal = false">取消</n-button>
+          <n-button type="error" :loading="deleting" @click="handleDelete">确认删除</n-button>
+        </div>
+      </div>
+    </n-modal>
   </div>
 </template>
 
 <script setup>
-import { NCard, NUpload, NUploadDragger, NSpin, NTag, NButton, useMessage } from 'naive-ui'
+import JSZip from 'jszip'
+import { NCard, NUpload, NUploadDragger, NSpin, NTag, NButton, NInput, NModal, useMessage } from 'naive-ui'
 
 definePageMeta({
   ssr: false,
@@ -93,9 +125,65 @@ const message = useMessage()
 const config = useRuntimeConfig()
 const baseURL = config.public.apiBase
 const authStore = useAuthStore()
+const imagebedApi = useImagebed()
 
 const loading = ref(false)
+const deleting = ref(false)
 const beatmapSets = ref([])
+const uploadPath = ref('')
+const lastOszFolder = ref('')
+const showDeleteModal = ref(false)
+const setToDelete = ref(null)
+const allowedExtensions = new Set([
+  '.osu',
+  '.ogg',
+  '.mp3',
+  '.wav',
+  '.flac',
+  '.png',
+  '.jpg',
+  '.jpeg',
+  '.webp',
+  '.bmp',
+  '.gif'
+])
+
+const normalizePath = (value) => (value || '').replace(/\\/g, '/').replace(/^\/+/, '')
+const getExtension = (value) => {
+  const index = value.lastIndexOf('.')
+  return index >= 0 ? value.slice(index).toLowerCase() : ''
+}
+const getDirName = (value) => {
+  const index = value.lastIndexOf('/')
+  return index >= 0 ? value.slice(0, index) : ''
+}
+const normalizeFolder = (value) => (value || '').replace(/\\/g, '/').replace(/^\/+|\/+$/g, '')
+const buildUploadFolder = (...segments) => segments.map(normalizeFolder).filter(Boolean).join('/')
+const getOszBaseName = (value) => {
+  const safeValue = (value || '').replace(/\\/g, '/')
+  const base = safeValue.split('/').pop() || ''
+  return base.replace(/\.osz$/i, '').trim()
+}
+const sanitizeFolderName = (value) => {
+  const normalized = (value || '').trim()
+  if (!normalized) return ''
+  return normalized
+    .replace(/[<>:"/\\|?*\u0000-\u001F]/g, '-')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^[-.]+|[-.]+$/g, '')
+}
+const createStorageKey = (fileName) => {
+  const baseName = sanitizeFolderName(getOszBaseName(fileName))
+  if (baseName) {
+    return baseName
+  }
+  const uuid = globalThis.crypto?.randomUUID
+    ? globalThis.crypto.randomUUID()
+    : `${Date.now().toString(16)}${Math.random().toString(16).slice(2)}`
+  return `set-${uuid.replace(/-/g, '')}`
+}
+const oszFolderPreview = computed(() => lastOszFolder.value || 'osz文件名')
 
 const fetchBeatmaps = async () => {
   loading.value = true
@@ -116,25 +204,111 @@ const handleUpload = async ({ file, onError, onFinish }) => {
     return
   }
 
-  const formData = new FormData()
-  formData.append('file', file.file)
-
   try {
     loading.value = true
-    await $fetch(`${baseURL}/beatmaps/upload`, {
+    const configData = await imagebedApi.getConfig()
+    if (!configData?.domain || !configData?.apiToken) {
+      throw new Error('请先在图床管理中配置 Domain 和 API Token')
+    }
+
+    const storageKey = createStorageKey(file.file.name)
+    lastOszFolder.value = storageKey
+    const zip = await JSZip.loadAsync(file.file)
+    const entries = Object.values(zip.files).filter(entry => !entry.dir)
+
+    const uploadedFiles = []
+    const uploadedMap = new Set()
+    const osuFiles = []
+
+    const baseUploadFolder = buildUploadFolder(
+      configData.uploadFolder,
+      uploadPath.value,
+      storageKey
+    )
+
+    for (const entry of entries) {
+      const entryPath = normalizePath(entry.name)
+      const extension = getExtension(entryPath)
+      if (!allowedExtensions.has(extension)) {
+        continue
+      }
+
+      if (extension === '.osu') {
+        const content = await entry.async('string')
+        osuFiles.push({ path: entryPath, content })
+        continue
+      }
+
+      if (uploadedMap.has(entryPath)) {
+        continue
+      }
+
+      const blob = await entry.async('blob')
+      const fileName = entryPath.split('/').pop() || entryPath
+      const uploadFile = new File([blob], fileName, {
+        type: blob.type || 'application/octet-stream'
+      })
+      const uploadFolder = buildUploadFolder(baseUploadFolder, getDirName(entryPath))
+
+      const result = await imagebedApi.uploadImage(uploadFile, {
+        domain: configData.domain,
+        apiToken: configData.apiToken,
+        uploadFolder
+      })
+
+      uploadedFiles.push({ path: entryPath, src: result.src })
+      uploadedMap.add(entryPath)
+    }
+
+    if (osuFiles.length === 0) {
+      throw new Error('未找到 .osu 文件')
+    }
+
+    await $fetch(`${baseURL}/beatmaps/import`, {
       method: 'POST',
       headers: authStore.authHeaders,
-      body: formData
+      body: {
+        sourceFileName: file.file.name,
+        storageKey,
+        uploadPath: normalizeFolder(uploadPath.value),
+        uploadedFiles,
+        osuFiles
+      }
     })
     message.success('上传成功，已解析 osu!mania 谱面')
     await fetchBeatmaps()
     onFinish?.()
   } catch (error) {
     console.error('上传失败:', error)
-    message.error(error?.data?.error || '上传失败')
+    message.error(error?.data?.error || error?.message || '上传失败')
     onError?.()
   } finally {
     loading.value = false
+  }
+}
+
+const confirmDelete = (set) => {
+  setToDelete.value = set
+  showDeleteModal.value = true
+}
+
+const handleDelete = async () => {
+  if (!setToDelete.value) return
+  deleting.value = true
+  try {
+    await $fetch(`${baseURL}/beatmaps/${setToDelete.value.id}`, {
+      method: 'DELETE',
+      headers: authStore.authHeaders
+    })
+    message.success('谱面已删除')
+    showDeleteModal.value = false
+    setToDelete.value = null
+    await fetchBeatmaps()
+  } catch (error) {
+    console.error('删除谱面失败:', error)
+    message.error(error?.data?.error || error?.message || '删除谱面失败')
+  } finally {
+    deleting.value = false
   }
 }
 

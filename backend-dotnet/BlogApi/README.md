@@ -39,6 +39,7 @@
 - ✅ 创建画廊图片（管理员）
 - ✅ 更新画廊图片（管理员）
 - ✅ 删除画廊图片（管理员）
+- ✅ 获取图片宽高（公开）
 - ✅ 批量更新排序（管理员）
 - ✅ 切换激活状态（管理员）
 
@@ -147,6 +148,8 @@ DELETE /api/comments/admin/{id}         # 删除评论
 GET    /api/gallery                     # 获取激活的画廊
 GET    /api/gallery/admin               # 获取所有画廊（管理员）
 GET    /api/gallery/{id}                # 获取单个画廊
+GET    /api/gallery/{id}/dimensions     # 获取图片宽高
+POST   /api/gallery/refresh-dimensions  # 刷新图片宽高（管理员）
 POST   /api/gallery                     # 创建画廊（管理员）
 PATCH  /api/gallery/{id}                # 更新画廊（管理员）
 DELETE /api/gallery/{id}                # 删除画廊（管理员）

@@ -27,6 +27,7 @@ builder.Services.AddDbContext<BlogDbContext>(options =>
     options.UseSqlite("Data Source=blog.sqlite"));
 
 builder.Services.AddHttpClient();
+builder.Services.AddHttpClient<CfBedClient>();
 
 // Add services
 builder.Services.AddScoped<ArticleService>();

@@ -39,7 +39,11 @@
                     <span class="font-medium">{{ diff.version }}</span>
                     <span class="text-xs bg-pink-600/30 text-pink-200 px-2 py-1 rounded">{{ diff.columns }}K</span>
                   </div>
-                  <p class="text-xs text-slate-400">OD {{ diff.overallDifficulty }} · Notes {{ diff.noteCount }}</p>
+                  <p class="text-xs text-slate-400">
+                    OD {{ diff.overallDifficulty }}
+                    <span v-if="diff.bpm">· BPM {{ Math.round(diff.bpm) }}</span>
+                    · Notes {{ diff.noteCount }}
+                  </p>
                   <n-button size="small" type="primary" @click="goPlay(diff.id)">开始</n-button>
                 </div>
               </div>

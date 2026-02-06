@@ -12,7 +12,6 @@ using BlogApi.DTOs;
 using BlogApi.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 
 namespace BlogApi.Services
@@ -35,13 +34,19 @@ namespace BlogApi.Services
         };
 
         private readonly BlogDbContext _context;
-        private readonly IWebHostEnvironment _env;
+        private readonly ImagebedService _imagebedService;
+        private readonly CfBedClient _cfBedClient;
         private readonly ILogger<BeatmapService> _logger;
 
-        public BeatmapService(BlogDbContext context, IWebHostEnvironment env, ILogger<BeatmapService> logger)
+        public BeatmapService(
+            BlogDbContext context,
+            ImagebedService imagebedService,
+            CfBedClient cfBedClient,
+            ILogger<BeatmapService> logger)
         {
             _context = context;
-            _env = env;
+            _imagebedService = imagebedService;
+            _cfBedClient = cfBedClient;
             _logger = logger;
         }
 
@@ -58,36 +63,153 @@ namespace BlogApi.Services
                 throw new InvalidOperationException("仅支持 .osz 文件");
             }
 
-            var storageKey = $"set-{Guid.NewGuid():N}";
-            var setRoot = GetSetRoot(storageKey);
-            Directory.CreateDirectory(setRoot);
+            var storageKey = BuildStorageKey(oszFile?.FileName);
+            var tempRoot = Path.Combine(Path.GetTempPath(), $"beatmap-{Guid.NewGuid():N}");
+            Directory.CreateDirectory(tempRoot);
 
-            var tempPath = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid():N}.osz");
+            var tempPath = Path.Combine(tempRoot, $"{Guid.NewGuid():N}.osz");
             await using (var stream = File.Create(tempPath))
             {
                 await oszFile.CopyToAsync(stream);
             }
 
+            Dictionary<string, string> uploadedFiles = new(StringComparer.OrdinalIgnoreCase);
             try
             {
-                ExtractZipSafe(tempPath, setRoot);
+                ExtractZipSafe(tempPath, tempRoot);
+
+                var osuFiles = Directory.GetFiles(tempRoot, "*.osu", SearchOption.AllDirectories);
+                if (osuFiles.Length == 0)
+                {
+                    throw new InvalidOperationException("未找到 .osu 文件");
+                }
+
+                var maniaResults = new List<BeatmapParseResult>();
+                foreach (var osuPath in osuFiles)
+                {
+                    var relativePath = NormalizeRelativePath(Path.GetRelativePath(tempRoot, osuPath));
+                    var result = ParseOsuFile(tempRoot, osuPath, relativePath);
+                    if (result.IsMania)
+                    {
+                        maniaResults.Add(result);
+                    }
+                }
+                if (maniaResults.Count == 0)
+                {
+                    throw new InvalidOperationException("未找到 osu!mania 谱面");
+                }
+
+                var primary = maniaResults[0];
+                var oszInfo = ParseOszFileName(oszFile.FileName);
+                var resolvedTitle = !string.IsNullOrWhiteSpace(oszInfo.Title) ? oszInfo.Title : primary.Title;
+                var resolvedArtist = !string.IsNullOrWhiteSpace(oszInfo.Artist) ? oszInfo.Artist : primary.Artist;
+                var createdAt = oszInfo.CreatedAt ?? DateTime.UtcNow;
+
+                var config = await _imagebedService.GetConfigAsync();
+                if (config == null || string.IsNullOrWhiteSpace(config.Domain) || string.IsNullOrWhiteSpace(config.ApiToken))
+                {
+                    throw new InvalidOperationException("图床配置未设置");
+                }
+
+                var uploadRoot = BuildUploadRoot(config.UploadFolder, storageKey);
+                uploadedFiles = await UploadExtractedFilesAsync(tempRoot, uploadRoot, config);
+
+                var beatmapSet = new BeatmapSet
+                {
+                    StorageKey = storageKey,
+                    Title = resolvedTitle ?? "Unknown",
+                    Artist = resolvedArtist ?? "Unknown",
+                    Creator = primary.Creator ?? "Unknown",
+                    BackgroundFile = MapUploadedSrc(uploadedFiles, primary.BackgroundFile),
+                    AudioFile = MapUploadedSrc(uploadedFiles, primary.AudioFile),
+                    PreviewTime = primary.PreviewTime,
+                    CreatedAt = createdAt
+                };
+
+                _context.BeatmapSets.Add(beatmapSet);
+                await _context.SaveChangesAsync();
+
+                foreach (var result in maniaResults)
+                {
+                    var data = new ManiaBeatmapData
+                    {
+                        Columns = result.Columns,
+                        AudioLeadIn = result.AudioLeadIn,
+                        PreviewTime = result.PreviewTime,
+                        TimingPoints = result.TimingPoints,
+                        Notes = result.Notes
+                    };
+
+                    var difficulty = new BeatmapDifficulty
+                    {
+                        BeatmapSetId = beatmapSet.Id,
+                        Version = result.Version ?? "Unknown",
+                        Mode = 3,
+                        Columns = result.Columns,
+                        OverallDifficulty = result.OverallDifficulty,
+                        Bpm = result.Bpm,
+                        OsuFileName = result.OsuFileName,
+                        DataJson = JsonSerializer.Serialize(data),
+                        NoteCount = result.Notes.Count,
+                        CreatedAt = createdAt
+                    };
+
+                    _context.BeatmapDifficulties.Add(difficulty);
+                    beatmapSet.Difficulties.Add(difficulty);
+                }
+
+                await _context.SaveChangesAsync();
+
+                return beatmapSet;
             }
             finally
             {
                 TryDeleteFile(tempPath);
+                TryDeleteDirectory(tempRoot);
+            }
+        }
+
+        public async Task<BeatmapSet> CreateFromImportAsync(BeatmapImportRequestDto dto)
+        {
+            if (dto == null)
+            {
+                throw new InvalidOperationException("导入数据不能为空");
             }
 
-            var osuFiles = Directory.GetFiles(setRoot, "*.osu", SearchOption.AllDirectories);
-            if (osuFiles.Length == 0)
+            if (dto.OsuFiles == null || dto.OsuFiles.Count == 0)
             {
                 throw new InvalidOperationException("未找到 .osu 文件");
             }
 
-            var maniaResults = new List<BeatmapParseResult>();
-            foreach (var osuPath in osuFiles)
+            var storageKey = string.IsNullOrWhiteSpace(dto.StorageKey)
+                ? BuildStorageKey(dto.SourceFileName)
+                : dto.StorageKey.Trim();
+
+            var uploadedFiles = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            if (dto.UploadedFiles != null)
             {
-                var relativePath = NormalizeRelativePath(Path.GetRelativePath(setRoot, osuPath));
-                var result = ParseOsuFile(setRoot, osuPath, relativePath);
+                foreach (var file in dto.UploadedFiles)
+                {
+                    if (string.IsNullOrWhiteSpace(file.Path) || string.IsNullOrWhiteSpace(file.Src))
+                    {
+                        continue;
+                    }
+
+                    var normalizedPath = NormalizeRelativePath(file.Path).TrimStart('/');
+                    uploadedFiles[normalizedPath] = file.Src;
+                }
+            }
+
+            var maniaResults = new List<BeatmapParseResult>();
+            foreach (var osuFile in dto.OsuFiles)
+            {
+                if (string.IsNullOrWhiteSpace(osuFile?.Content))
+                {
+                    continue;
+                }
+
+                var relativePath = NormalizeRelativePath(osuFile.Path ?? string.Empty).TrimStart('/');
+                var result = ParseOsuContent(osuFile.Content, relativePath, uploadedFiles);
                 if (result.IsMania)
                 {
                     maniaResults.Add(result);
@@ -100,7 +222,7 @@ namespace BlogApi.Services
             }
 
             var primary = maniaResults[0];
-            var oszInfo = ParseOszFileName(oszFile.FileName);
+            var oszInfo = ParseOszFileName(dto.SourceFileName ?? string.Empty);
             var resolvedTitle = !string.IsNullOrWhiteSpace(oszInfo.Title) ? oszInfo.Title : primary.Title;
             var resolvedArtist = !string.IsNullOrWhiteSpace(oszInfo.Artist) ? oszInfo.Artist : primary.Artist;
             var createdAt = oszInfo.CreatedAt ?? DateTime.UtcNow;
@@ -111,8 +233,8 @@ namespace BlogApi.Services
                 Title = resolvedTitle ?? "Unknown",
                 Artist = resolvedArtist ?? "Unknown",
                 Creator = primary.Creator ?? "Unknown",
-                BackgroundFile = primary.BackgroundFile,
-                AudioFile = primary.AudioFile,
+                BackgroundFile = MapUploadedSrc(uploadedFiles, primary.BackgroundFile),
+                AudioFile = MapUploadedSrc(uploadedFiles, primary.AudioFile),
                 PreviewTime = primary.PreviewTime,
                 CreatedAt = createdAt
             };
@@ -179,39 +301,370 @@ namespace BlogApi.Services
                 .FirstOrDefaultAsync(d => d.Id == id);
         }
 
-        public string? ResolveAssetPath(string storageKey, string relativePath)
+        public async Task<bool> DeleteSetAsync(int id)
         {
-            if (string.IsNullOrWhiteSpace(storageKey) || string.IsNullOrWhiteSpace(relativePath))
+            var set = await _context.BeatmapSets
+                .Include(s => s.Difficulties)
+                .FirstOrDefaultAsync(s => s.Id == id);
+
+            if (set == null)
             {
-                return null;
+                return false;
             }
 
-            var safeRelative = NormalizeRelativePath(relativePath);
-            if (safeRelative.Contains("..", StringComparison.Ordinal))
+            var config = await _imagebedService.GetConfigAsync();
+            if (config == null || string.IsNullOrWhiteSpace(config.Domain) || string.IsNullOrWhiteSpace(config.ApiToken))
             {
-                return null;
+                throw new InvalidOperationException("图床配置未设置");
             }
 
-            var setRoot = GetSetRoot(storageKey);
-            var fullPath = Path.GetFullPath(Path.Combine(setRoot, safeRelative));
-            var rootFull = Path.GetFullPath(setRoot);
-            if (!fullPath.StartsWith(rootFull, StringComparison.OrdinalIgnoreCase))
+            var folderPath = ResolveBeatmapFolderPath(set, config);
+            if (!string.IsNullOrWhiteSpace(folderPath))
             {
-                return null;
+                await _cfBedClient.DeleteAsync(config, folderPath, true);
             }
 
-            return fullPath;
-        }
-
-        private string GetSetRoot(string storageKey)
-        {
-            var root = Path.Combine(_env.ContentRootPath, "Storage", "beatmaps");
-            return Path.Combine(root, storageKey);
+            _context.BeatmapSets.Remove(set);
+            await _context.SaveChangesAsync();
+            return true;
         }
 
         private static string NormalizeRelativePath(string path)
         {
             return path.Replace('\\', '/');
+        }
+
+        private BeatmapParseResult ParseOsuContent(
+            string content,
+            string osuRelativePath,
+            Dictionary<string, string> uploadedFiles)
+        {
+            var result = new BeatmapParseResult
+            {
+                OsuFileName = osuRelativePath
+            };
+
+            string? section = null;
+            using var reader = new StringReader(content);
+            string? rawLine;
+            while ((rawLine = reader.ReadLine()) != null)
+            {
+                var line = rawLine.Trim();
+                if (string.IsNullOrWhiteSpace(line) || line.StartsWith("//", StringComparison.Ordinal))
+                {
+                    continue;
+                }
+
+                if (line.StartsWith("[", StringComparison.Ordinal) && line.EndsWith("]", StringComparison.Ordinal))
+                {
+                    section = line.Substring(1, line.Length - 2);
+                    continue;
+                }
+
+                switch (section)
+                {
+                    case "General":
+                        ParseKeyValue(line, result.General);
+                        break;
+                    case "Metadata":
+                        ParseKeyValue(line, result.Metadata);
+                        break;
+                    case "Difficulty":
+                        ParseKeyValue(line, result.Difficulty);
+                        break;
+                    case "Events":
+                        if (string.IsNullOrWhiteSpace(result.BackgroundFile))
+                        {
+                            var background = TryParseBackground(line);
+                            if (!string.IsNullOrWhiteSpace(background))
+                            {
+                                result.BackgroundFile = ResolveAssetFromMap(osuRelativePath, background, uploadedFiles);
+                            }
+                        }
+                        break;
+                    case "TimingPoints":
+                        var timingPoint = TryParseTimingPoint(line);
+                        if (timingPoint != null)
+                        {
+                            result.TimingPoints.Add(timingPoint);
+                        }
+                        break;
+                    case "HitObjects":
+                        var note = TryParseManiaNote(line, result.Columns);
+                        if (note != null)
+                        {
+                            result.Notes.Add(note);
+                        }
+                        break;
+                }
+            }
+
+            result.Mode = ParseInt(result.General, "Mode", 0);
+            result.IsMania = result.Mode == 3;
+
+            result.Title = GetValue(result.Metadata, "Title") ?? GetValue(result.Metadata, "TitleUnicode");
+            result.Artist = GetValue(result.Metadata, "Artist") ?? GetValue(result.Metadata, "ArtistUnicode");
+            result.Creator = GetValue(result.Metadata, "Creator");
+            result.Version = GetValue(result.Metadata, "Version");
+
+            result.AudioLeadIn = ParseInt(result.General, "AudioLeadIn", null);
+            result.PreviewTime = ParseInt(result.General, "PreviewTime", null);
+
+            var audioFilename = GetValue(result.General, "AudioFilename");
+            if (!string.IsNullOrWhiteSpace(audioFilename))
+            {
+                result.AudioFile = ResolveAssetFromMap(osuRelativePath, audioFilename, uploadedFiles);
+            }
+
+            var circleSize = ParseDouble(result.Difficulty, "CircleSize", 4d);
+            result.Columns = Math.Max(1, (int)Math.Round(circleSize));
+            result.OverallDifficulty = ParseDouble(result.Difficulty, "OverallDifficulty", 5d);
+
+            var firstTiming = result.TimingPoints.FirstOrDefault(tp => tp.Uninherited && tp.BeatLength > 0);
+            if (firstTiming != null)
+            {
+                result.Bpm = 60000d / firstTiming.BeatLength;
+            }
+
+            if (!result.IsMania)
+            {
+                result.Notes.Clear();
+            }
+
+            return result;
+        }
+
+        private async Task<Dictionary<string, string>> UploadExtractedFilesAsync(
+            string root,
+            string uploadRoot,
+            ImagebedConfig config)
+        {
+            var results = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            var files = Directory.GetFiles(root, "*", SearchOption.AllDirectories);
+
+            foreach (var filePath in files)
+            {
+                var ext = Path.GetExtension(filePath);
+                if (string.IsNullOrWhiteSpace(ext) || !AllowedExtensions.Contains(ext))
+                {
+                    continue;
+                }
+
+                var relativePath = NormalizeRelativePath(Path.GetRelativePath(root, filePath)).TrimStart('/');
+                var relativeDir = Path.GetDirectoryName(relativePath) ?? string.Empty;
+                var uploadFolder = CombineUploadFolder(uploadRoot, relativeDir);
+
+                try
+                {
+                    var src = await _cfBedClient.UploadAsync(config, filePath, uploadFolder);
+                    results[relativePath] = src;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "上传文件失败: {File}", relativePath);
+                    throw new InvalidOperationException($"上传文件失败: {relativePath} - {ex.Message}", ex);
+                }
+            }
+
+            return results;
+        }
+
+        private static string BuildUploadRoot(string? baseFolder, string storageKey)
+        {
+            var normalizedBase = NormalizeFolderSegment(baseFolder);
+            if (string.IsNullOrWhiteSpace(normalizedBase))
+            {
+                normalizedBase = "beatmaps";
+            }
+
+            return $"{normalizedBase}/{storageKey}";
+        }
+
+        private static string CombineUploadFolder(string root, string relativeDir)
+        {
+            var normalizedRoot = NormalizeFolderSegment(root);
+            var normalizedDir = NormalizeFolderSegment(relativeDir);
+
+            if (string.IsNullOrWhiteSpace(normalizedRoot))
+            {
+                return normalizedDir;
+            }
+
+            if (string.IsNullOrWhiteSpace(normalizedDir))
+            {
+                return normalizedRoot;
+            }
+
+            return $"{normalizedRoot}/{normalizedDir}";
+        }
+
+        private static string NormalizeFolderSegment(string? folder)
+        {
+            if (string.IsNullOrWhiteSpace(folder))
+            {
+                return string.Empty;
+            }
+
+            return folder.Replace('\\', '/').Trim().Trim('/');
+        }
+
+        private static string? MapUploadedSrc(Dictionary<string, string> uploaded, string? relativePath)
+        {
+            if (string.IsNullOrWhiteSpace(relativePath))
+            {
+                return null;
+            }
+
+            var normalized = NormalizeRelativePath(relativePath).TrimStart('/');
+            if (uploaded.TryGetValue(normalized, out var src))
+            {
+                return src;
+            }
+
+            return null;
+        }
+
+        private static string ResolveBeatmapFolderPath(BeatmapSet set, ImagebedConfig config)
+        {
+            var candidate = !string.IsNullOrWhiteSpace(set.BackgroundFile)
+                ? set.BackgroundFile
+                : set.AudioFile;
+
+            var normalized = NormalizeAssetPath(candidate);
+            if (!string.IsNullOrWhiteSpace(normalized))
+            {
+                var root = ExtractRootByStorageKey(normalized, set.StorageKey);
+                if (!string.IsNullOrWhiteSpace(root))
+                {
+                    return root;
+                }
+
+                var dir = GetDirectoryPath(normalized);
+                if (!string.IsNullOrWhiteSpace(dir))
+                {
+                    return dir;
+                }
+            }
+
+            return BuildUploadRoot(config.UploadFolder, set.StorageKey);
+        }
+
+        private static string NormalizeAssetPath(string? src)
+        {
+            if (string.IsNullOrWhiteSpace(src))
+            {
+                return string.Empty;
+            }
+
+            var trimmed = src.Trim();
+            if (Uri.TryCreate(trimmed, UriKind.Absolute, out var uri))
+            {
+                trimmed = uri.AbsolutePath;
+            }
+
+            var normalized = trimmed.Replace('\\', '/').TrimStart('/');
+            if (normalized.StartsWith("file/", StringComparison.OrdinalIgnoreCase))
+            {
+                normalized = normalized.Substring("file/".Length);
+            }
+
+            return normalized;
+        }
+
+        private static string? ExtractRootByStorageKey(string normalizedPath, string storageKey)
+        {
+            if (string.IsNullOrWhiteSpace(normalizedPath) || string.IsNullOrWhiteSpace(storageKey))
+            {
+                return null;
+            }
+
+            var segments = normalizedPath
+                .Split('/', StringSplitOptions.RemoveEmptyEntries);
+
+            for (var i = 0; i < segments.Length; i++)
+            {
+                if (string.Equals(segments[i], storageKey, StringComparison.OrdinalIgnoreCase))
+                {
+                    return string.Join('/', segments.Take(i + 1));
+                }
+            }
+
+            return null;
+        }
+
+        private static string? GetDirectoryPath(string normalizedPath)
+        {
+            var index = normalizedPath.LastIndexOf('/');
+            if (index <= 0)
+            {
+                return null;
+            }
+
+            return normalizedPath.Substring(0, index);
+        }
+
+        private static string BuildStorageKey(string? fileName)
+        {
+            var baseName = Path.GetFileNameWithoutExtension(fileName ?? string.Empty) ?? string.Empty;
+            var sanitized = SanitizeFolderName(baseName);
+            if (!string.IsNullOrWhiteSpace(sanitized))
+            {
+                return sanitized;
+            }
+
+            return $"set-{Guid.NewGuid():N}";
+        }
+
+        private static string SanitizeFolderName(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return string.Empty;
+            }
+
+            var invalidChars = Path.GetInvalidFileNameChars();
+            var builder = new StringBuilder(value.Length);
+            var previousDash = false;
+
+            foreach (var ch in value.Trim())
+            {
+                char output;
+                if (ch == '/' || ch == '\\' || invalidChars.Contains(ch) || char.IsControl(ch))
+                {
+                    output = '-';
+                }
+                else if (char.IsWhiteSpace(ch))
+                {
+                    output = '-';
+                }
+                else
+                {
+                    output = ch;
+                }
+
+                if (output == '-')
+                {
+                    if (previousDash)
+                    {
+                        continue;
+                    }
+                    previousDash = true;
+                    builder.Append(output);
+                }
+                else
+                {
+                    previousDash = false;
+                    builder.Append(output);
+                }
+            }
+
+            var result = builder.ToString().Trim('-', '.');
+            if (result.Length > 64)
+            {
+                result = result.Substring(0, 64).Trim('-', '.');
+            }
+
+            return result;
         }
 
         private static void ExtractZipSafe(string zipPath, string destinationDir)
@@ -259,6 +712,21 @@ namespace BlogApi.Services
                 if (File.Exists(path))
                 {
                     File.Delete(path);
+                }
+            }
+            catch
+            {
+                // Ignore cleanup failures
+            }
+        }
+
+        private static void TryDeleteDirectory(string path)
+        {
+            try
+            {
+                if (Directory.Exists(path))
+                {
+                    Directory.Delete(path, true);
                 }
             }
             catch
@@ -531,6 +999,26 @@ namespace BlogApi.Services
             }
 
             return NormalizeRelativePath(Path.GetRelativePath(rootFull, combined));
+        }
+
+        private static string? ResolveAssetFromMap(
+            string osuRelativePath,
+            string assetRelativePath,
+            Dictionary<string, string> uploadedFiles)
+        {
+            if (string.IsNullOrWhiteSpace(assetRelativePath))
+            {
+                return null;
+            }
+
+            var baseDir = Path.GetDirectoryName(osuRelativePath) ?? string.Empty;
+            var combined = NormalizeRelativePath(Path.Combine(baseDir, assetRelativePath)).TrimStart('/');
+            if (combined.Contains("..", StringComparison.Ordinal))
+            {
+                return null;
+            }
+
+            return uploadedFiles.ContainsKey(combined) ? combined : null;
         }
 
         private static OszFileNameInfo ParseOszFileName(string fileName)

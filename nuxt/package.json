@@ -22,6 +22,7 @@
     "docx": "^9.5.1",
     "file-saver": "^2.0.5",
     "html2pdf.js": "^0.14.0",
+    "jszip": "^3.10.1",
     "katex": "^0.16.25",
     "keen-slider": "^6.8.6",
     "md-editor-v3": "^6.3.1",

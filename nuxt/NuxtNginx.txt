@@ -1,3 +1,7 @@
+# 🔥 SWR 缓存区定义（需要放在 http 块中，此处仅作参考）
+# 请确保在 nginx.conf 的 http {} 块中添加以下配置：
+# proxy_cache_path /tmp/nginx_cache levels=1:2 keys_zone=cache_one:100m max_size=1g inactive=1d use_temp_path=off;
+
 server
 {
 listen 80;
@@ -99,6 +103,21 @@ listen 80;
         add_header Cache-Control "public, max-age=31536000, immutable";
         expires 1y;
     }
+        # Nuxt Icon API - 必须在 /api/ 之前处理（优先级更高）
+    location /api/_nuxt_icon/ {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_connect_timeout 30s;
+        proxy_send_timeout 60s;
+        proxy_read_timeout 60s;
+        
+        # 图标数据可以缓存（减少服务器负载）
+        add_header Cache-Control "public, max-age=86400"; # 缓存24小时
+    }
 
     # API 代理到 .NET 后端 (5000端口)
     location /api/ {
@@ -118,14 +137,13 @@ listen 80;
         add_header Cache-Control "no-cache, no-store, must-revalidate";
     }
 
-    # 所有其他请求代理到Nuxt SSR服务器
+    # 🔥 SWR 缓存：所有其他请求代理到Nuxt SSR服务器
     location / {
         proxy_pass http://127.0.0.1:3000;
         proxy_set_header Host $host:$server_port;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header REMOTE-HOST $remote_addr;
-        add_header X-Cache $upstream_cache_status;
         proxy_set_header X-Host $host:$server_port;
         proxy_set_header X-Scheme $scheme;
         proxy_connect_timeout 30s;
@@ -135,10 +153,38 @@ listen 80;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "upgrade";
         
-        # SSR页面缓存（可选）
-        # proxy_cache cache_one;
-        # proxy_cache_valid 200 304 5m;
-        # proxy_cache_key $host$request_uri;
+        # 🔥 SWR 缓存配置（Stale-While-Revalidate）
+        proxy_cache cache_one;
+        proxy_cache_valid 200 10m;           # 成功响应缓存5分钟
+        proxy_cache_valid 301 302 1m;       # 重定向缓存1分钟
+        proxy_cache_valid 404 1m;           # 404缓存1分钟
+        
+        # SWR 核心：过期后仍可使用旧缓存，同时后台更新
+        proxy_cache_use_stale error timeout updating http_500 http_502 http_503 http_504;
+        proxy_cache_background_update on;   # 后台静默更新
+        proxy_cache_lock on;                # 防止缓存击穿
+        proxy_cache_lock_timeout 5s;        # 锁超时时间
+        
+        proxy_cache_key $scheme$host$request_uri;
+        add_header X-Cache-Status $upstream_cache_status;
+        
+        # 跳过缓存的情况：admin页面、带认证token、搜索请求
+        set $no_cache 0;
+        if ($request_uri ~* "^/admin") {
+            set $no_cache 1;
+        }
+        if ($cookie_auth_token) {
+            set $no_cache 1;
+        }
+        if ($arg_search) {
+            set $no_cache 1;
+        }
+        if ($arg_nocache) {
+            set $no_cache 1;
+        }
+        
+        proxy_cache_bypass $no_cache;
+        proxy_no_cache $no_cache;
     }
     # HTTP反向代理相关配置结束 <<<
 

@@ -5,7 +5,6 @@ using BlogApi.DTOs;
 using BlogApi.Models;
 using System.Linq;
 using System.Text.Json;
-using Microsoft.AspNetCore.StaticFiles;
 
 namespace BlogApi.Controllers
 {
@@ -14,10 +13,12 @@ namespace BlogApi.Controllers
     public class BeatmapsController : ControllerBase
     {
         private readonly BeatmapService _beatmapService;
+        private readonly ImagebedService _imagebedService;
 
-        public BeatmapsController(BeatmapService beatmapService)
+        public BeatmapsController(BeatmapService beatmapService, ImagebedService imagebedService)
         {
             _beatmapService = beatmapService;
+            _imagebedService = imagebedService;
         }
 
         [Authorize]
@@ -35,6 +36,22 @@ namespace BlogApi.Controllers
                 var beatmapSet = await _beatmapService.CreateFromOszAsync(file);
                 var dto = ToBeatmapSetDto(beatmapSet);
                 return Ok(new BeatmapUploadResultDto { BeatmapSet = dto });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
+        [Authorize]
+        [HttpPost("import")]
+        public async Task<ActionResult<BeatmapUploadResultDto>> Import([FromBody] BeatmapImportRequestDto dto)
+        {
+            try
+            {
+                var beatmapSet = await _beatmapService.CreateFromImportAsync(dto);
+                var result = ToBeatmapSetDto(beatmapSet);
+                return Ok(new BeatmapUploadResultDto { BeatmapSet = result });
             }
             catch (Exception ex)
             {
@@ -89,21 +106,49 @@ namespace BlogApi.Controllers
             return Ok(dto);
         }
 
-        [HttpGet("asset/{setKey}/{*path}")]
-        public IActionResult GetAsset(string setKey, string path)
+        [Authorize]
+        [HttpDelete("{id:int}")]
+        public async Task<IActionResult> Delete(int id)
         {
-            var fullPath = _beatmapService.ResolveAssetPath(setKey, path);
-            if (fullPath == null || !System.IO.File.Exists(fullPath))
+            try
+            {
+                var deleted = await _beatmapService.DeleteSetAsync(id);
+                if (!deleted)
+                {
+                    return NotFound();
+                }
+
+                return Ok(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
+        [HttpGet("asset/{setKey}/{*path}")]
+        public async Task<IActionResult> GetAsset(string setKey, string path)
+        {
+            if (string.IsNullOrWhiteSpace(path))
             {
                 return NotFound();
             }
 
-            var provider = new FileExtensionContentTypeProvider();
-            if (!provider.TryGetContentType(path, out var contentType))
+            var config = await _imagebedService.GetConfigAsync();
+            if (config == null || string.IsNullOrWhiteSpace(config.Domain))
             {
-                contentType = "application/octet-stream";
+                return NotFound(new { error = "图床配置未设置" });
             }
-            return PhysicalFile(fullPath, contentType);
+
+            var safePath = path.Replace("\\", "/").TrimStart('/');
+            if (safePath.Contains("..", StringComparison.Ordinal))
+            {
+                return BadRequest(new { error = "非法路径" });
+            }
+
+            var domain = config.Domain.TrimEnd('/');
+            var targetUrl = $"{domain}/{safePath}";
+            return Redirect(targetUrl);
         }
 
         private BeatmapSetDto ToBeatmapSetDto(BeatmapSet set)
@@ -142,7 +187,7 @@ namespace BlogApi.Controllers
                 return null;
             }
 
-            var safe = relativePath.Replace("\\", "/");
+            var safe = relativePath.Replace("\\", "/").TrimStart('/');
             var host = Request?.Host.Value;
             if (string.IsNullOrWhiteSpace(host))
             {

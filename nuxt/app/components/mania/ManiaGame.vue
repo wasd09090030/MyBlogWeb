@@ -44,6 +44,7 @@ let effectsContainer = null
 
 // 音符数据
 let noteObjects = []
+let holdingNotes = {} // 追踪正在按住的长按音符 { column: noteObj }
 
 // 轨道配置
 const LANE_WIDTH = 80 // 每条轨道宽度
@@ -73,7 +74,7 @@ const initPixi = async () => {
     canvas: canvasRef.value,
     width,
     height,
-    backgroundColor: COLORS.background,
+    backgroundAlpha: 0,
     antialias: true,
     resolution: window.devicePixelRatio || 1,
     autoDensity: true
@@ -152,7 +153,8 @@ const createNotes = () => {
       id: index,
       note,
       graphics,
-      status: 'active' // active, hit, missed
+      status: 'active', // active, hit, missed, holding
+      holdStarted: false // 长按是否已开始
     })
   })
 }
@@ -209,7 +211,13 @@ const updateNotes = () => {
   const appearTime = (hitLineY / props.scrollSpeed) * 1000
 
   noteObjects.forEach((noteObj) => {
-    if (noteObj.status !== 'active') {
+    if (noteObj.status === 'hit' || noteObj.status === 'missed') {
+      noteObj.graphics.visible = false
+      return
+    }
+    
+    // holding 状态的音符继续渲染
+    if (noteObj.status !== 'active' && noteObj.status !== 'holding') {
       noteObj.graphics.visible = false
       return
     }
@@ -248,7 +256,7 @@ const updateNotes = () => {
   })
 }
 
-// 处理按键
+// 处理按键按下
 const handleKeyPress = (column) => {
   if (!props.isPlaying) return
 
@@ -278,14 +286,49 @@ const handleKeyPress = (column) => {
     else if (bestTimeDiff <= 150) judgement = 'GOOD'
     else if (bestTimeDiff <= 200) judgement = 'BAD'
 
-    bestMatch.status = 'hit'
-    emit('note-hit', { noteId: bestMatch.id, judgement, timeDiff: bestTimeDiff })
+    // 如果是长按音符
+    if (bestMatch.note.endTime) {
+      bestMatch.status = 'holding'
+      bestMatch.holdStarted = true
+      holdingNotes[column] = bestMatch
+      // 只给头部判定的反馈
+      emit('note-hit', { noteId: bestMatch.id, judgement, timeDiff: bestTimeDiff, isHoldStart: true })
+    } else {
+      // 普通音符直接击中
+      bestMatch.status = 'hit'
+      emit('note-hit', { noteId: bestMatch.id, judgement, timeDiff: bestTimeDiff })
+    }
     
     // 显示击打效果
     showHitEffect(bestMatch.note.column)
   }
 
   emit('key-press', column)
+}
+
+// 处理按键松开
+const handleKeyRelease = (column) => {
+  if (!props.isPlaying) return
+  
+  const holdNote = holdingNotes[column]
+  if (holdNote) {
+    const currentTime = props.audioTime
+    const holdEndTime = holdNote.note.endTime
+    const timeDiff = Math.abs(holdEndTime - currentTime)
+    
+    // 判定是否持续到音符结束
+    let judgement = 'MISS'
+    if (timeDiff <= 50) judgement = 'PERFECT'
+    else if (timeDiff <= 100) judgement = 'GREAT'
+    else if (timeDiff <= 150) judgement = 'GOOD'
+    else if (timeDiff <= 200) judgement = 'BAD'
+    
+    holdNote.status = 'hit'
+    delete holdingNotes[column]
+    
+    // 发送长按结束的判定
+    emit('note-hit', { noteId: holdNote.id, judgement, timeDiff, isHoldEnd: true })
+  }
 }
 
 // 显示击打效果
@@ -324,11 +367,27 @@ const checkMissedNotes = () => {
   const missWindow = 200 // 超过判定线 200ms 判定为 MISS
 
   noteObjects.forEach((noteObj) => {
-    if (noteObj.status !== 'active') return
-    const timeDiff = currentTime - noteObj.note.time
-    if (timeDiff > missWindow) {
-      noteObj.status = 'missed'
-      emit('note-miss', { noteId: noteObj.id })
+    if (noteObj.status !== 'active' && noteObj.status !== 'holding') return
+    
+    // 对于长按音符，检查是否超过结束时间
+    if (noteObj.note.endTime) {
+      const endTimeDiff = currentTime - noteObj.note.endTime
+      if (endTimeDiff > missWindow && noteObj.status === 'holding') {
+        // 长按音符超时，自动结束
+        noteObj.status = 'hit'
+        const column = noteObj.note.column
+        if (holdingNotes[column]) {
+          delete holdingNotes[column]
+        }
+        emit('note-hit', { noteId: noteObj.id, judgement: 'PERFECT', timeDiff: 0, isHoldEnd: true, auto: true })
+      }
+    } else {
+      // 普通音符
+      const timeDiff = currentTime - noteObj.note.time
+      if (timeDiff > missWindow) {
+        noteObj.status = 'missed'
+        emit('note-miss', { noteId: noteObj.id })
+      }
     }
   })
 }
@@ -337,8 +396,10 @@ const checkMissedNotes = () => {
 const reset = () => {
   noteObjects.forEach((noteObj) => {
     noteObj.status = 'active'
+    noteObj.holdStarted = false
     noteObj.graphics.visible = false
   })
+  holdingNotes = {}
 }
 
 // 处理窗口大小变化
@@ -352,6 +413,7 @@ const handleResize = () => {
 // 暴露方法给父组件
 defineExpose({
   handleKeyPress,
+  handleKeyRelease,
   checkMissedNotes,
   reset
 })

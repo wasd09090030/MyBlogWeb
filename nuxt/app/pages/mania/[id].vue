@@ -1,30 +1,23 @@
 <template>
   <div class="fixed inset-0 bg-[#0F0F23] text-slate-100 overflow-hidden">
     <div class="h-full flex flex-col">
-      <!-- 顶部信息栏 -->
-      <div class="flex-shrink-0 px-4 py-2 flex items-center justify-between gap-3 bg-black/50 z-10">
-        <div class="flex-1 min-w-0">
-          <p class="text-xs text-slate-400">osu!mania · Web</p>
-          <h1 class="text-lg font-bold truncate">{{ beatmapData.title }}</h1>
-          <p class="text-xs text-slate-400 truncate">
-            {{ beatmapData.artist }} · {{ beatmapData.creator }} · {{ beatmapData.version }}
-          </p>
-        </div>
-        <div class="flex items-center gap-2 flex-shrink-0">
-          <span class="text-xs bg-purple-600/30 text-purple-200 px-2 py-1 rounded">
-            OD {{ beatmapData.overallDifficulty }}
-          </span>
-          <span class="text-xs bg-pink-600/30 text-pink-200 px-2 py-1 rounded">
-            {{ beatmapData.columns }}K
-          </span>
-        </div>
-      </div>
-
       <!-- 游戏区域 -->
       <div class="flex-1 relative">
+        <!-- 背景图 -->
+        <div
+          v-if="beatmapData.backgroundUrl"
+          class="absolute inset-0 bg-center bg-cover bg-no-repeat z-0"
+          :style="backgroundStyle"
+        />
+        <div
+          v-if="beatmapData.backgroundUrl"
+          class="absolute inset-0 bg-black/40 backdrop-blur-[2px] z-0"
+        />
+
         <!-- PixiJS 游戏组件 -->
         <ManiaGame
           ref="gameRef"
+          class="relative z-1"
           :notes="beatmapData.notes"
           :columns="beatmapData.columns"
           :scroll-speed="scrollSpeed"
@@ -65,8 +58,12 @@
         <!-- 开始提示 -->
         <div v-if="!isPlaying && !isLoading" class="absolute inset-0 flex items-center justify-center bg-black/50 z-30">
           <div class="text-center space-y-6">
-            <div class="text-2xl font-bold">{{ beatmapData.title }}</div>
+            <div>
+              <div class="text-3xl font-bold">{{ songTitleOnly }}</div>
+              <div v-if="featuredArtist" class="text-xl text-purple-400 mt-2">feat. {{ featuredArtist }}</div>
+            </div>
             <div class="text-slate-400">{{ beatmapData.artist }}</div>
+            <div class="text-sm text-slate-500">{{ beatmapData.creator }} · {{ beatmapData.version }}</div>
             <div class="space-y-2">
               <div class="text-sm text-slate-300">按键映射:</div>
               <div class="text-xl font-mono font-bold text-cyan-400">
@@ -101,6 +98,21 @@
         </span>
       </div>
     </div>
+
+    <!-- 游戏结束弹窗 -->
+    <GameResultModal
+      :show="showResultModal"
+      :score="score"
+      :accuracy="accuracy"
+      :max-combo="maxCombo"
+      :stats="stats"
+      :song-title="songTitleOnly"
+      :artist="featuredArtist ? `feat. ${featuredArtist}` : beatmapData.artist"
+      :creator="beatmapData.creator"
+      :version="beatmapData.version"
+      @retry="onRetry"
+      @back="onBack"
+    />
   </div>
 </template>
 
@@ -160,6 +172,8 @@ const stats = ref({
   miss: 0
 })
 
+const showResultModal = ref(false)
+
 // 按键配置
 const keyBindings = computed(() => {
   const maps = {
@@ -181,6 +195,25 @@ const keyToColumn = computed(() => {
   return mapping
 })
 
+// 拆分歌名中的 feat. 部分
+const songTitleOnly = computed(() => {
+  const title = beatmapData.value.title
+  const featIndex = title.indexOf(' feat. ')
+  if (featIndex !== -1) {
+    return title.substring(0, featIndex)
+  }
+  return title
+})
+
+const featuredArtist = computed(() => {
+  const title = beatmapData.value.title
+  const featIndex = title.indexOf(' feat. ')
+  if (featIndex !== -1) {
+    return title.substring(featIndex + 7) // 7 = ' feat. '.length
+  }
+  return ''
+})
+
 // 判定分数
 const JUDGEMENT_SCORES = {
   PERFECT: 300,
@@ -200,6 +233,15 @@ const judgementClass = computed(() => {
     MISS: 'text-red-500 drop-shadow-[0_0_20px_rgba(239,68,68,0.8)]'
   }
   return classes[currentJudgement.value] || ''
+})
+
+const backgroundStyle = computed(() => {
+  if (!beatmapData.value.backgroundUrl) {
+    return {}
+  }
+  return {
+    backgroundImage: `url('${beatmapData.value.backgroundUrl}')`
+  }
 })
 
 // 加载谱面
@@ -270,6 +312,7 @@ const startGame = async () => {
 
     // 添加键盘监听
     window.addEventListener('keydown', onKeyDown)
+    window.addEventListener('keyup', onKeyUp)
   } catch (error) {
     console.error('播放失败:', error)
   }
@@ -287,6 +330,7 @@ const stopGame = () => {
     audioTimeUpdater = null
   }
   window.removeEventListener('keydown', onKeyDown)
+  window.removeEventListener('keyup', onKeyUp)
   audioTime.value = 0
 }
 
@@ -302,15 +346,42 @@ const resetGameState = () => {
 
 // 音频结束
 const onAudioEnded = () => {
-  stopGame()
+  isPlaying.value = false
+  if (audioTimeUpdater) {
+    clearInterval(audioTimeUpdater)
+    audioTimeUpdater = null
+  }
+  window.removeEventListener('keydown', onKeyDown)
+  window.removeEventListener('keyup', onKeyUp)
+  
   console.log('游戏结束!', {
     score: score.value,
     maxCombo: maxCombo.value,
     accuracy: accuracy.value
   })
+  
+  // 显示结果弹窗
+  showResultModal.value = true
 }
 
-// 键盘事件
+// 重新游玩
+const onRetry = () => {
+  showResultModal.value = false
+  if (audio) {
+    audio.currentTime = 0
+  }
+  audioTime.value = 0
+  setTimeout(() => {
+    startGame()
+  }, 100)
+}
+
+// 返回选曲界面
+const onBack = () => {
+  navigateTo('/mania')
+}
+
+// 键盘按下事件
 const onKeyDown = (e) => {
   const key = e.key.toLowerCase()
   const column = keyToColumn.value[key]
@@ -320,8 +391,24 @@ const onKeyDown = (e) => {
   }
 }
 
+// 键盘松开事件
+const onKeyUp = (e) => {
+  const key = e.key.toLowerCase()
+  const column = keyToColumn.value[key]
+  if (column !== undefined) {
+    e.preventDefault()
+    gameRef.value?.handleKeyRelease(column)
+  }
+}
+
 // 音符击中
-const onNoteHit = ({ noteId, judgement, timeDiff }) => {
+const onNoteHit = ({ noteId, judgement, timeDiff, isHoldStart, isHoldEnd, auto }) => {
+  // 长按音符开始时不更新统计，只在结束时更新
+  if (isHoldStart) {
+    // 可以播放开始音效
+    return
+  }
+  
   // 更新统计
   stats.value[judgement.toLowerCase()]++
 
