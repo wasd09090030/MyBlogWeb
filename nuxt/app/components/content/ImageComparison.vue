@@ -1,5 +1,9 @@
 <template>
+<<<<<<< HEAD
   <div class="image-comparison-mdc my-6 relative rounded-lg overflow-hidden shadow-lg" ref="containerRef">
+=======
+  <div class="image-comparison-mdc my-6 relative rounded-lg overflow-hidden" ref="containerRef">
+>>>>>>> 960c065 (mdc功能模块添加)
     <div class="relative select-none" :style="{ aspectRatio: aspectRatio || 'auto' }">
       <!-- 后图（右侧） -->
       <div class="absolute inset-0">
@@ -20,7 +24,11 @@
       
       <!-- 滑块 -->
       <div 
+<<<<<<< HEAD
         class="slider-handle absolute top-0 bottom-0 w-1 bg-white shadow-lg cursor-ew-resize"
+=======
+        class="slider-handle absolute top-0 bottom-0 w-1 bg-white cursor-ew-resize"
+>>>>>>> 960c065 (mdc功能模块添加)
         :style="{ left: `${sliderPosition}%` }"
         @mousedown="startDrag"
         @touchstart="startDrag"

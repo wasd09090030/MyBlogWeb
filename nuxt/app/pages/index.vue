@@ -434,12 +434,12 @@ const getCategoryName = (category) => {
   if (!category) return '其他'
   const lowerCategory = category.toLowerCase()
   const categoryMap = {
-    'study': '学习',
-    'game': '游戏',
+    'study': '学习笔记',
+    'game': '游戏评测',
     'work': '个人作品',
     'resource': '资源分享'
   }
-  return categoryMap[lowerCategory] || '其他'
+  return categoryMap[lowerCategory] || '其他/杂谈'
 }
 
 const getCategoryClass = (category) => {

@@ -366,7 +366,7 @@
   align-items: center;
   font-size: 0.82rem;
   font-weight: 500;
-  color: #384ce3;
+  color: #1874ff;
   /* 移除所有装饰性样式 */
   background: none;
   border: none;
@@ -381,7 +381,7 @@
 }
 
 .article-tag:hover {
-  color: #1d42ff;
+  color: #1dffff;
   /* 移除所有装饰性样式 */
   background: none;
   border: none;

@@ -1,5 +1,5 @@
-# @BlogApi_HostAddress = http://localhost:3000/api
-@BlogApi_HostAddress =http://115.190.164.243:3000/api
+@BlogApi_HostAddress = http://localhost:5000/api
+# @BlogApi_HostAddress =http://115.190.164.243:3000/api
 
 ### Auth - Login
 POST {{BlogApi_HostAddress}}/auth/login
@@ -133,6 +133,12 @@ Content-Type: application/json
 	"sortOrder": 2
 }
 
+### Gallery - Get Dimensions
+GET {{BlogApi_HostAddress}}/gallery/{{galleryId}}/dimensions
+
+### Gallery - Refresh Dimensions
+POST {{BlogApi_HostAddress}}/gallery/refresh-dimensions
+
 ### Gallery - Toggle Active
 PATCH {{BlogApi_HostAddress}}/gallery/{{galleryId}}/toggle-active
 
@@ -147,4 +153,28 @@ Content-Type: application/json
 
 ### Gallery - Delete
 DELETE {{BlogApi_HostAddress}}/gallery/{{galleryId}}
+
+### CF Image Config - Get
+GET {{BlogApi_HostAddress}}/cf-image-config
+Accept: application/json
+
+### CF Image Config - Save
+POST {{BlogApi_HostAddress}}/cf-image-config
+Content-Type: application/json
+
+{
+	"isEnabled": true,
+	"zoneDomain": "imgbed.test.test",
+	"useHttps": true,
+	"fit": "scale-down",
+	"width": 300,
+	"quality": 50,
+	"format": "webp",
+	"signatureParam": "sig",
+	"useWorker": true,
+	"workerBaseUrl": "https://imgworker.wasd09090030.top",
+	"tokenTtlSeconds": 3600,
+	"signatureToken": "",
+	"signatureSecret": "your-secret"
+}
 
