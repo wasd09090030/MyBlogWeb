@@ -87,6 +87,7 @@ const isCollapsed = ref(false)
 const activeHeading = ref('')
 const progress = ref(0)
 const itemRefs = ref({})
+let highlightedId = ref(null)
 
 // 设置目录项引用
 function setItemRef(id, el) {
@@ -135,11 +136,24 @@ function scrollToHeading(id) {
     behavior: 'smooth'
   })
   
-  // 高亮效果
-  element.classList.add('heading-highlight')
+  // 延迟确保滚动完成后再显示高亮
   setTimeout(() => {
-    element.classList.remove('heading-highlight')
-  }, 2000)
+    // 移除之前的高亮
+    const prevHighlighted = document.querySelector('.heading-highlight')
+    if (prevHighlighted) {
+      prevHighlighted.classList.remove('heading-highlight')
+    }
+    
+    // 添加新的高亮
+    element.classList.add('heading-highlight')
+    highlightedId.value = id
+    
+    // 3秒后移除高亮
+    setTimeout(() => {
+      element.classList.remove('heading-highlight')
+      highlightedId.value = null
+    }, 3000)
+  }, 200)
 }
 
 // 监听滚动更新进度和活动标题
@@ -161,15 +175,19 @@ function setupObserver() {
   
   observer = new IntersectionObserver(
     (entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          activeHeading.value = entry.target.id
-        }
-      })
+      // 找出所有在视口中的标题，选择最接近顶部的那个
+      const visibleEntries = entries.filter(entry => entry.isIntersecting)
+      if (visibleEntries.length > 0) {
+        // 按照在视口中的位置排序，选择最接近顶部的
+        const topEntry = visibleEntries.reduce((top, current) => 
+          current.boundingClientRect.top < top.boundingClientRect.top ? current : top
+        )
+        activeHeading.value = topEntry.target.id
+      }
     },
     {
-      rootMargin: '-80px 0px -80% 0px',
-      threshold: 0
+      rootMargin: '-80px 0px -50% 0px',
+      threshold: [0, 0.5, 1]
     }
   )
   
@@ -217,7 +235,7 @@ onUnmounted(() => {
   background: #9ca3af;
 }
 
-/* 暗色模式滚动条 - 使用 :global 确保匹配根元素的 dark 类 */
+/* 暗色模式滚动条 */
 :global(.dark) .custom-scrollbar::-webkit-scrollbar-thumb {
   background: #4b5563;
 }
@@ -228,18 +246,23 @@ onUnmounted(() => {
 </style>
 
 <style>
-/* 标题高亮动画 - 全局样式 */
+/* 标题高亮动画 - 全局样式，更明显 */
 .heading-highlight {
-  animation: highlight-flash 2s ease-out;
+  animation: highlight-flash 3s ease-out !important;
 }
 
 @keyframes highlight-flash {
   0% {
-    background-color: rgb(236 72 153 / 0.2);
+    background-color: rgb(236 72 153 / 0.3) !important;
     border-radius: 0.25rem;
+    box-shadow: 0 0 8px rgb(236 72 153 / 0.4);
+  }
+  50% {
+    background-color: rgb(236 72 153 / 0.2);
   }
   100% {
     background-color: transparent;
+    box-shadow: none;
   }
 }
 </style>

@@ -323,7 +323,7 @@ onMounted(() => {
   color: white;
 }
 
-.search-btn.searching .bi {
+.search-btn.searching :deep(svg) {
   animation: spin 1s linear infinite;
 }
 

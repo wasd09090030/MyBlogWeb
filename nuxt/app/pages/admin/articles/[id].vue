@@ -393,8 +393,16 @@ const handleHtmlChange = (html) => {
 }
 
 // 返回
-const goBack = () => {
-  router.push('/admin/articles')
+const goBack = async () => {
+  try {
+    await navigateTo('/admin/articles')
+  } catch (error) {
+    console.error('导航失败:', error)
+    // 降级方案：使用 window.location
+    if (process.client) {
+      window.location.href = '/admin/articles'
+    }
+  }
 }
 
 // 监听封面图URL变化

@@ -179,7 +179,9 @@ export default defineAppConfig({
       'cog-6-tooth': 'heroicons:cog-6-tooth',
       'cog': 'heroicons:cog-6-tooth',
       'musical-note': 'heroicons:musical-note',
-      'music-note': 'heroicons:musical-note'
+      'music-note': 'heroicons:musical-note',
+      'star': 'heroicons:star',
+      'star-fill': 'heroicons:star-solid',
     }
   }
 })

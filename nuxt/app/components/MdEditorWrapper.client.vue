@@ -1,6 +1,36 @@
 <template>
   <div class="md-editor-wrapper">
+    <!-- MDC 组件快捷工具栏 -->
+    <div class="mdc-toolbar bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-t-lg p-2 flex items-center gap-2">
+      <span class="text-xs font-semibold text-gray-600 dark:text-gray-400 mr-2">MDC 组件:</span>
+      <n-button-group size="small">
+        <n-button @click="insertTemplate('alert')" quaternary title="插入 Alert 提示框">
+          💡 Alert
+        </n-button>
+        <n-button @click="insertTemplate('tabs')" quaternary title="插入 Tabs 标签页">
+          📑 Tabs
+        </n-button>
+        <n-button @click="insertTemplate('collapse')" quaternary title="插入 Collapse 折叠">
+          📦 Collapse
+        </n-button>
+        <n-button @click="insertTemplate('codePlayground')" quaternary title="插入代码演示">
+          💻 Code
+        </n-button>
+        <n-button @click="insertTemplate('imageComparison')" quaternary title="插入图片对比">
+          🖼️ Image
+        </n-button>
+        <n-button @click="insertTemplate('webEmbed')" quaternary title="插入视频嵌入">
+          🎬 Video
+        </n-button>
+        <n-button @click="insertTemplate('starRating')" quaternary title="插入星级评分">
+          ⭐ Rating
+        </n-button>
+      </n-button-group>
+    </div>
+    
+    <!-- Markdown 编辑器 -->
     <MdEditor
+      ref="editorRef"
       v-model="localValue"
       :height="height"
       :toolbars="toolbars"
@@ -21,7 +51,7 @@
       :no-katex="false"
       :max-length="100000"
       :auto-save="true"
-      placeholder="请输入文章内容...支持 Markdown 语法和 HTML 标签"
+      placeholder="请输入文章内容...支持 Markdown 语法、HTML 标签和 MDC 组件"
     />
   </div>
 </template>
@@ -132,6 +162,8 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue', 'save', 'html-change'])
 
+const editorRef = ref(null)
+
 // 本地状态，解决 v-model 不能直接用在 prop 上的问题
 const localValue = ref(props.modelValue)
 
@@ -141,6 +173,72 @@ watch(() => props.modelValue, (newVal) => {
     localValue.value = newVal
   }
 })
+
+// 插入 MDC 模板 — 使用 md-editor-v3 的 insert() 暴露方法在光标处插入
+const insertTemplate = (templateName) => {
+  const template = mdcTemplates[templateName]
+  if (!template) return
+
+  // md-editor-v3 的 ExposeParam.insert 接受一个 generator 函数
+  // generator 参数为当前选中文本，返回 { targetValue, select, deviationStart, deviationEnd }
+  if (editorRef.value?.insert) {
+    editorRef.value.insert((_selectedText) => {
+      return {
+        targetValue: '\n\n' + template + '\n\n',
+        select: false,
+        deviationStart: 0,
+        deviationEnd: 0
+      }
+    })
+  } else {
+    // 降级：直接追加到末尾
+    localValue.value += '\n\n' + template
+    emit('update:modelValue', localValue.value)
+  }
+}
+
+// MDC 组件模板
+const mdcTemplates = {
+  alert: `::alert{type="info"}
+#title
+提示标题
+#default
+这是提示内容，支持 **Markdown** 格式
+::`,
+  
+  tabs: `::tabs
+---
+labels: ["选项卡 1", "选项卡 2", "选项卡 3"]
+---
+#tab-0
+第一个标签页的内容
+
+#tab-1
+第二个标签页的内容
+
+#tab-2
+第三个标签页的内容
+::`,
+  
+  collapse: `::collapse{title="点击展开更多内容"}
+这里是折叠的内容，可以包含任何 Markdown 元素
+::`,
+  
+  codePlayground: `::code-playground{lang="javascript" title="JavaScript 示例" editable runnable}
+console.log('Hello World!')
+const sum = (a, b) => a + b
+console.log(sum(2, 3))
+::`,
+  
+  imageComparison: `::image-comparison{before="/img/before.jpg" after="/img/after.jpg" aspectRatio="16/9"}
+::`,
+  
+  webEmbed: `::web-embed{url="https://www.bilibili.com/video/BV1xx411c7mD" aspectRatio="16/9"}
+::`,
+  
+  starRating: `::star-rating{rating="4.5" maxStars="5" label="推荐指数" showScore}
+::`
+}
 
 // 定义编辑器工具栏
 const toolbars = [
@@ -193,9 +291,24 @@ const handleUploadImg = async (files, callback) => {
 /* md-editor-v3 样式覆盖 */
 .md-editor {
   --md-bk-color: var(--n-color) !important;
+  border-top-left-radius: 0 !important;
+  border-top-right-radius: 0 !important;
 }
 
 .md-editor-dark {
   --md-bk-color: #1e1e1e !important;
+}
+
+.mdc-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+@media (max-width: 768px) {
+  .mdc-toolbar {
+    font-size: 0.75rem;
+  }
 }
 </style>

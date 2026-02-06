@@ -15,6 +15,14 @@ export default defineNuxtConfig({
     '~/assets/css/app.css',
   ],
 
+  // 组件目录配置 - content/ 下的组件不添加路径前缀，以便 MDC 正确解析
+  components: {
+    dirs: [
+      { path: '~/components/content', pathPrefix: false, global: true },
+      '~/components'
+    ]
+  },
+
   // 模块配置
   modules: [
     '@pinia/nuxt',

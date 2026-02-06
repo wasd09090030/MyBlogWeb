@@ -17,8 +17,6 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted, computed } from 'vue'
-import f01Image from '../public/flower/f01.webp'
-import f02Image from '../public/flower/f02.webp'
 
 const petals = ref([])
 const isActive = ref(true)
@@ -26,8 +24,8 @@ const isActive = ref(true)
 // 花瓣配置
 const PETAL_COUNT = 15
 const PETAL_IMAGES = [
-  f01Image,
-  f02Image
+  '/flower/f01.webp',
+  '/flower/f02.webp'
 ]
 
 // 只显示活跃的花瓣
@@ -195,10 +193,5 @@ onUnmounted(() => {
   .petal-image {
     animation: none;
   }
-}
-
-/* 暗色主题适配 */
-:global(.dark-theme) .petal-image {
-  filter: drop-shadow(1px 1px 2px rgba(255, 192, 203, 0.5));
 }
 </style>

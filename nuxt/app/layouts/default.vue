@@ -4,8 +4,8 @@
       <div id="app" :class="['min-vh-100', isDarkMode ? 'dark-theme' : 'light-theme']">
         <!-- 根据主题切换动画效果 - 使用懒加载减少首屏 JS -->
         <Teleport to="body">
-          <LazySakuraFalling v-if="showBackgroundAnimation && !isDarkMode" />
-          <LazyStarryNight v-else-if="showBackgroundAnimation" />
+          <LazyEffectsSakuraFalling v-if="showBackgroundAnimation && !isDarkMode" />
+          <LazyEffectsStarryNight v-else-if="showBackgroundAnimation" />
         </Teleport>
         <header v-if="!isGalleryRoute" class="app-navbar" :class="{ 'navbar-hidden': isNavbarHidden, 'navbar-scrolled': hasScrolled }">
           <div class="navbar-container">
@@ -53,7 +53,7 @@
                   <Icon v-else name="moon-fill" size="md" :solid="true" />
                 </template>
               </n-button>
-              <LazySearchBar />
+              <LazyEffectsSearchBar />
             </div>
           </div>
         </header>
@@ -159,7 +159,7 @@
 
 <script setup>
 import { darkTheme } from 'naive-ui'
-// SakuraFalling 和 StarryNight 改用 Lazy 前缀动态加载，减少首屏 JS
+// Effects 相关组件（SakuraFalling 和 StarryNight）改用 Lazy 前缀动态加载，减少首屏 JS
 
 const route = useRoute()
 const router = useRouter()
