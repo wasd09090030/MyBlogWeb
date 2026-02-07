@@ -275,19 +275,17 @@ steps:
   
   fileTree: `::file-tree{title="项目结构"}
 my-project/
-├── node_modules/          # 依赖包
-├── public/                # 静态资源
-├── src/
-│   ├── assets/           # 资源文件
-│   ├── components/       # 组件
-│   │   └── Button.vue
-│   ├── pages/            # 路由页面
-│   │   └── index.vue
-│   ├── stores/           # 状态管理
-│   └── App.vue           # 根组件
-├── package.json
-├── nuxt.config.ts
-└── README.md
+  src/
+    components/
+      Button.vue
+      Input.vue
+    pages/
+      index.vue
+    App.vue
+  public/
+    logo.svg
+  package.json
+  README.md
 ::`
 }
 
