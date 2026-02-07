@@ -37,9 +37,6 @@
           <n-button @click="insertTemplate('imageEnhanced')" quaternary title="插入增强图片">
             🎨 Image+
           </n-button>
-          <n-button @click="insertTemplate('fileTree')" quaternary title="插入文件树">
-            📁 Tree
-          </n-button>
         </n-button-group>
       </div>
     </div>
@@ -240,7 +237,7 @@ labels: ["选项卡 1", "选项卡 2", "选项卡 3"]
 这里是折叠的内容，可以包含任何 Markdown 元素
 ::`,
   
-  codePlayground: `::code-playground{lang="javascript" title="JavaScript 示例" editable runnable}
+  codePlayground: `::code-playground{lang="javascript" title="JavaScript 示例" runnable}
 console.log('Hello World!')
 const sum = (a, b) => a + b
 console.log(sum(2, 3))
@@ -271,21 +268,6 @@ steps:
 ::`,
   
   imageEnhanced: `::image-enhanced{src="/img/photo.jpg" caption="图片说明文字" zoomable shadow rounded}
-::`,
-  
-  fileTree: `::file-tree{title="项目结构"}
-my-project/
-  src/
-    components/
-      Button.vue
-      Input.vue
-    pages/
-      index.vue
-    App.vue
-  public/
-    logo.svg
-  package.json
-  README.md
 ::`
 }
 

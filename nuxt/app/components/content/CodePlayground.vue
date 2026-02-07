@@ -1,5 +1,10 @@
 <template>
   <div class="code-playground-mdc my-6 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+    <!-- 隐藏的原始内容容器 -->
+    <div ref="slotContainer" style="display: none;">
+      <slot />
+    </div>
+    
     <!-- 头部 -->
     <div class="playground-header flex items-center justify-between px-4 py-2 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
       <div class="flex items-center gap-2">
@@ -8,24 +13,18 @@
       </div>
       <div class="flex items-center gap-2">
         <button
-          v-if="editable"
-          @click="toggleEdit"
-          class="px-3 py-1 text-xs font-medium rounded transition-colors"
-          :class="isEditing ? 'bg-blue-500 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'"
-        >
-          {{ isEditing ? '预览' : '编辑' }}
-        </button>
-        <button
           v-if="runnable"
           @click="runCode"
-          class="px-3 py-1 text-xs font-medium bg-green-500 hover:bg-green-600 text-white rounded transition-colors"
+          class="px-3 py-1 text-xs font-medium bg-green-500 hover:bg-green-600 text-white rounded transition-colors flex items-center gap-1"
         >
-          ▶ 运行
+          <Icon name="arrow-path" size="sm" />
+          运行
         </button>
         <button
           @click="copyCode"
-          class="px-3 py-1 text-xs font-medium bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 rounded transition-colors"
+          class="px-3 py-1 text-xs font-medium bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 rounded transition-colors flex items-center gap-1"
         >
+          <Icon name="copy" size="sm" />
           复制
         </button>
       </div>
@@ -33,22 +32,17 @@
     
     <!-- 代码区域 -->
     <div class="playground-body">
-      <div v-if="isEditing" class="p-4">
-        <textarea
-          v-model="editableCode"
-          class="w-full font-mono text-sm bg-transparent border-0 outline-none resize-none"
-          :rows="Math.max(5, editableCode.split('\n').length)"
-          spellcheck="false"
-        />
-      </div>
-      <div v-else class="p-4 bg-gray-900">
-        <pre class="text-sm overflow-x-auto"><code :class="`language-${lang}`">{{ displayCode }}</code></pre>
+      <div class="p-4 bg-gray-900 dark:bg-gray-950">
+        <pre class="text-sm overflow-x-auto"><code :class="`language-${lang}`" class="text-gray-100">{{ displayCode }}</code></pre>
       </div>
       
       <!-- 输出区域 -->
       <div v-if="output" class="output-panel border-t border-gray-200 dark:border-gray-700 p-4 bg-gray-50 dark:bg-gray-800">
-        <div class="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">输出：</div>
-        <pre class="text-sm text-gray-800 dark:text-gray-200 whitespace-pre-wrap">{{ output }}</pre>
+        <div class="flex items-center gap-2 mb-2">
+          <Icon name="arrow-right" size="sm" class="text-gray-500 dark:text-gray-400" />
+          <span class="text-xs font-semibold text-gray-600 dark:text-gray-400">输出结果</span>
+        </div>
+        <pre class="text-sm text-gray-800 dark:text-gray-200 whitespace-pre-wrap bg-white dark:bg-gray-900 p-3 rounded border">{{ output }}</pre>
       </div>
     </div>
   </div>
@@ -56,13 +50,19 @@
 
 <script setup>
 /**
- * CodePlayground 可交互代码演示组件 - MDC 语法
+ * CodePlayground 代码演示组件 - MDC 语法
  * 
  * 在 Markdown 中使用：
- * ::code-playground{lang="javascript" title="JavaScript 示例" editable runnable}
+ * ::code-playground{lang="javascript" title="JavaScript 示例" runnable}
  * console.log('Hello World!')
  * const sum = (a, b) => a + b
  * console.log(sum(2, 3))
+ * ::
+ * 
+ * 只读模式（仅复制）：
+ * ::code-playground{lang="python" title="Python 示例"}
+ * def hello():
+ *     print("Hello World")
  * ::
  */
 
@@ -75,52 +75,27 @@ const props = defineProps({
     type: String,
     default: 'Code Playground'
   },
-  editable: {
-    type: Boolean,
-    default: true
-  },
   runnable: {
     type: Boolean,
-    default: false
+    default: true
   }
 })
 
-const slots = useSlots()
-const isEditing = ref(false)
+const slotContainer = ref(null)
 const output = ref('')
+const displayCode = ref('')
 
-// 从 slot 获取初始代码
-const initialCode = computed(() => {
-  const content = slots.default?.()
-  if (!content) return ''
-  return content.map(node => {
-    if (typeof node.children === 'string') return node.children
-    if (Array.isArray(node.children)) {
-      return node.children.map(child => 
-        typeof child === 'string' ? child : child.children || ''
-      ).join('')
-    }
-    return ''
-  }).join('').trim()
-})
-
-const editableCode = ref(initialCode.value)
-const displayCode = computed(() => isEditing.value ? editableCode.value : initialCode.value)
-
-watch(initialCode, (newCode) => {
-  if (!isEditing.value) {
-    editableCode.value = newCode
+// 在组件挂载后从 DOM 读取代码内容
+onMounted(() => {
+  if (slotContainer.value) {
+    displayCode.value = slotContainer.value.textContent?.trim() || ''
   }
 })
-
-const toggleEdit = () => {
-  isEditing.value = !isEditing.value
-}
 
 const copyCode = async () => {
   try {
     await navigator.clipboard.writeText(displayCode.value)
-    // 可以添加提示
+    // TODO: 可以添加复制成功提示
   } catch (err) {
     console.error('复制失败:', err)
   }
@@ -128,6 +103,13 @@ const copyCode = async () => {
 
 const runCode = () => {
   output.value = ''
+  
+  // 只支持 JavaScript 运行
+  if (props.lang !== 'javascript' && props.lang !== 'js') {
+    output.value = `错误: 只支持运行 JavaScript 代码`
+    return
+  }
+  
   try {
     // 捕获 console.log
     const logs = []
@@ -139,7 +121,7 @@ const runCode = () => {
     }
     
     // 执行代码
-    const result = eval(editableCode.value)
+    const result = eval(displayCode.value)
     
     // 恢复 console.log
     console.log = originalLog
@@ -150,26 +132,52 @@ const runCode = () => {
     } else if (result !== undefined) {
       output.value = String(result)
     } else {
-      output.value = '(无输出)'
+      output.value = '✓ 代码执行成功（无输出）'
     }
   } catch (err) {
-    output.value = `错误: ${err.message}`
+    output.value = `❌ 错误: ${err.message}\n\n${err.stack || ''}`
   }
 }
 </script>
 
 <style scoped>
-pre code {
-  color: #e5e7eb;
-  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+.code-playground-mdc pre {
+  margin: 0;
 }
 
-textarea {
+.code-playground-mdc code {
+  color: #e5e7eb;
   font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  display: block;
 }
 
 .playground-body {
-  max-height: 500px;
+  max-height: 600px;
   overflow-y: auto;
+}
+
+/* 确保输出文字可见 */
+.output-panel pre {
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  line-height: 1.5;
+}
+
+/* 滚动条美化 */
+.playground-body::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.playground-body::-webkit-scrollbar-track {
+  background: rgb(31 41 55);
+}
+
+.playground-body::-webkit-scrollbar-thumb {
+  background: rgb(75 85 99);
+  border-radius: 4px;
+}
+
+.playground-body::-webkit-scrollbar-thumb:hover {
+  background: rgb(107 114 128);
 }
 </style>
