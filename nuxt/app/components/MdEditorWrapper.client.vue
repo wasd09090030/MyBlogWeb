@@ -1,33 +1,6 @@
 <template>
   <div class="md-editor-wrapper">
     <!-- MDC 组件快捷工具栏 -->
-<<<<<<< HEAD
-    <div class="mdc-toolbar bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-t-lg p-2 flex items-center gap-2">
-      <span class="text-xs font-semibold text-gray-600 dark:text-gray-400 mr-2">MDC 组件:</span>
-      <n-button-group size="small">
-        <n-button @click="insertTemplate('alert')" quaternary title="插入 Alert 提示框">
-          💡 Alert
-        </n-button>
-        <n-button @click="insertTemplate('tabs')" quaternary title="插入 Tabs 标签页">
-          📑 Tabs
-        </n-button>
-        <n-button @click="insertTemplate('collapse')" quaternary title="插入 Collapse 折叠">
-          📦 Collapse
-        </n-button>
-        <n-button @click="insertTemplate('codePlayground')" quaternary title="插入代码演示">
-          💻 Code
-        </n-button>
-        <n-button @click="insertTemplate('imageComparison')" quaternary title="插入图片对比">
-          🖼️ Image
-        </n-button>
-        <n-button @click="insertTemplate('webEmbed')" quaternary title="插入视频嵌入">
-          🎬 Video
-        </n-button>
-        <n-button @click="insertTemplate('starRating')" quaternary title="插入星级评分">
-          ⭐ Rating
-        </n-button>
-      </n-button-group>
-=======
     <div class="mdc-toolbar bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-t-lg p-2">
       <div class="flex items-center gap-2 flex-wrap">
         <span class="text-xs font-semibold text-gray-600 dark:text-gray-400 mr-2">MDC 组件:</span>
@@ -69,7 +42,6 @@
           </n-button>
         </n-button-group>
       </div>
->>>>>>> 960c065 (mdc功能模块添加)
     </div>
     
     <!-- Markdown 编辑器 -->
@@ -281,8 +253,6 @@ console.log(sum(2, 3))
 ::`,
   
   starRating: `::star-rating{rating="4.5" maxStars="5" label="推荐指数" showScore}
-<<<<<<< HEAD
-=======
 ::`,
   
   steps: `::steps{current="2" status="process" showControls clickable}
@@ -304,16 +274,20 @@ steps:
 ::`,
   
   fileTree: `::file-tree{title="项目结构"}
-src/
-  components/
-    Button.vue
-    Input.vue
-  pages/
-    index.vue
-  App.vue
-package.json
-README.md
->>>>>>> 960c065 (mdc功能模块添加)
+my-project/
+├── node_modules/          # 依赖包
+├── public/                # 静态资源
+├── src/
+│   ├── assets/           # 资源文件
+│   ├── components/       # 组件
+│   │   └── Button.vue
+│   ├── pages/            # 路由页面
+│   │   └── index.vue
+│   ├── stores/           # 状态管理
+│   └── App.vue           # 根组件
+├── package.json
+├── nuxt.config.ts
+└── README.md
 ::`
 }
 

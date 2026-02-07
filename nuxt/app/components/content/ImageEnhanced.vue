@@ -19,11 +19,6 @@
           :class="{ 'cursor-zoom-in': zoomable }"
           @load="handleImageLoad"
         />
-        
-        <!-- 放大图标提示 -->
-        <div v-if="zoomable" class="zoom-hint">
-          <Icon name="mdi:magnify-plus-outline" class="zoom-icon" />
-        </div>
       </div>
       
       <!-- 图片说明文字 -->
@@ -237,23 +232,8 @@ onMounted(() => {
   border-radius: 0.5rem;
 }
 
-.zoom-hint {
-  position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
-  background: rgba(0, 0, 0, 0.6);
-  color: white;
-  padding: 0.5rem;
-  border-radius: 0.375rem;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  pointer-events: none;
-}
 
-.zoom-icon {
-  width: 1.25rem;
-  height: 1.25rem;
-}
+
 
 .image-caption {
   margin-top: 0.75rem;

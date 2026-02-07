@@ -56,6 +56,22 @@ const props = defineProps({
 
 const slots = useSlots()
 
+const extractText = (nodes = []) => {
+  return nodes.map((node) => {
+    if (typeof node === 'string') return node
+    if (!node) return ''
+    if (node.type === 'br') return '\n'
+    const children = node.children
+    let text = ''
+    if (typeof children === 'string') text = children
+    else if (Array.isArray(children)) text = extractText(children)
+    if (typeof node.type === 'string' && ['p', 'div', 'pre', 'blockquote', 'li'].includes(node.type)) {
+      return `${text}\n`
+    }
+    return text
+  }).join('')
+}
+
 const normalizeTreeText = (raw) => {
   if (!raw || typeof raw !== 'string') return ''
   const lines = raw.replace(/\r\n/g, '\n').split('\n')
@@ -83,12 +99,7 @@ const parsedTree = computed(() => {
   
   // 如果没有 tree prop，尝试从 slot 获取
   if (!treeText && slots.default) {
-    const slotContent = slots.default()
-    if (slotContent && slotContent[0]) {
-      const children = slotContent[0].children
-      // children 可能是字符串或数组
-      treeText = typeof children === 'string' ? children : Array.isArray(children) ? children.join('') : ''
-    }
+    treeText = extractText(slots.default())
   }
   
   treeText = normalizeTreeText(treeText)
@@ -106,13 +117,17 @@ const parsedTree = computed(() => {
     
     if (!line.trim()) return
     
-    const treeMatch = line.match(/^(.*?)(?:├──|└──|\|--|\+--)\s*(.+)$/)
+    // 匹配树形字符格式，支持多种风格：
+    // ├──, └──, |──, +──, ├─, └─, ├, └, |--, +--, +-, |-
+    const treeMatch = line.match(/^(.*?)(?:├──|└──|├─|└─|├|└|\|──|\|--|\|--|\+--|\+─|\+-|\|-)\s*(.+)$/)
     let level = 0
     let name = ''
     
     if (treeMatch) {
       const prefix = treeMatch[1] || ''
-      const matches = prefix.match(/(?:[│|] {3}| {4})/g)
+      // 匹配前缀中的缩进字符：│ + 空格、| + 空格、或纯空格
+      // 每个单位代表一级（通常是 4 个字符宽度）
+      const matches = prefix.match(/(?:[│|]\s{1,3}|\s{4})/g)
       level = matches ? matches.length : 0
       name = treeMatch[2]?.trim() || ''
     } else {

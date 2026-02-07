@@ -1,4 +1,5 @@
 <template>
+  <NuxtLoadingIndicator color="#18a058" :height="3" :duration="2000" :throttle="200" />
   <NuxtLayout>
     <NuxtPage :keepalive="shouldKeepAlive" :page-key="getPageKey" />
   </NuxtLayout>
