@@ -338,6 +338,7 @@ const drawNoteFallback = (container, x, y, width, height, isHold = false, holdEn
 const gameLoop = () => {
   if (!props.isPlaying || !app) return
   updateNotes()
+  checkMissedNotes()
 }
 
 // 更新音符位置

@@ -56,7 +56,7 @@
         </div>
 
         <!-- 开始提示 -->
-        <div v-if="!isPlaying && !isLoading" class="absolute inset-0 flex items-center justify-center bg-black/50 z-30">
+        <div v-if="!isPlaying && !isLoading && !showResultModal" class="absolute inset-0 flex items-center justify-center bg-black/50 z-30">
           <div class="text-center space-y-6">
             <div>
               <div class="text-3xl font-bold">{{ songTitleOnly }}</div>
@@ -173,6 +173,19 @@ const stats = ref({
 })
 
 const showResultModal = ref(false)
+const hasGameEnded = ref(false)
+
+// 计算最后一个音符的时间（用于备用结束判定）
+const lastNoteTime = computed(() => {
+  const notes = beatmapData.value.notes
+  if (!notes.length) return 0
+  let maxTime = 0
+  for (const note of notes) {
+    const t = note.endTime || note.time
+    if (t > maxTime) maxTime = t
+  }
+  return maxTime
+})
 
 // 按键配置
 const keyBindings = computed(() => {
@@ -291,6 +304,8 @@ const startGame = async () => {
   }
 
   // 重置状态
+  hasGameEnded.value = false
+  showResultModal.value = false
   resetGameState()
   gameRef.value?.reset()
 
@@ -307,7 +322,21 @@ const startGame = async () => {
 
     // 开始更新音频时间
     audioTimeUpdater = setInterval(() => {
+      if (!audio) return
       audioTime.value = Math.max(0, audio.currentTime * 1000 - beatmapData.value.audioLeadIn)
+      if (!isPlaying.value || hasGameEnded.value) return
+      if (audio.ended) {
+        finishGame('ended')
+        return
+      }
+      if (Number.isFinite(audio.duration) && audio.duration > 0 && audio.currentTime >= audio.duration - 0.01) {
+        finishGame('duration')
+        return
+      }
+      // 备用结束判定：所有音符已落下并超过判定窗口后，结束游戏
+      if (lastNoteTime.value > 0 && audioTime.value > lastNoteTime.value + 2000) {
+        finishGame('allNotesDone')
+      }
     }, 16) // ~60fps
 
     // 添加键盘监听
@@ -334,6 +363,30 @@ const stopGame = () => {
   audioTime.value = 0
 }
 
+const finishGame = (reason) => {
+  if (hasGameEnded.value) return
+  hasGameEnded.value = true
+  isPlaying.value = false
+  if (audio && !audio.ended) {
+    audio.pause()
+  }
+  if (audioTimeUpdater) {
+    clearInterval(audioTimeUpdater)
+    audioTimeUpdater = null
+  }
+  window.removeEventListener('keydown', onKeyDown)
+  window.removeEventListener('keyup', onKeyUp)
+
+  console.log('游戏结束!', {
+    reason,
+    score: score.value,
+    maxCombo: maxCombo.value,
+    accuracy: accuracy.value
+  })
+
+  showResultModal.value = true
+}
+
 // 重置游戏状态
 const resetGameState = () => {
   score.value = 0
@@ -346,22 +399,7 @@ const resetGameState = () => {
 
 // 音频结束
 const onAudioEnded = () => {
-  isPlaying.value = false
-  if (audioTimeUpdater) {
-    clearInterval(audioTimeUpdater)
-    audioTimeUpdater = null
-  }
-  window.removeEventListener('keydown', onKeyDown)
-  window.removeEventListener('keyup', onKeyUp)
-  
-  console.log('游戏结束!', {
-    score: score.value,
-    maxCombo: maxCombo.value,
-    accuracy: accuracy.value
-  })
-  
-  // 显示结果弹窗
-  showResultModal.value = true
+  finishGame('ended')
 }
 
 // 重新游玩

@@ -2,9 +2,9 @@
   <div class="min-h-screen bg-transparent text-slate-100">
     <div class="max-w-7xl mx-auto px-4 py-8 space-y-6">
       <div>
-        <p class="text-sm text-slate-400">osu!mania</p>
-        <h1 class="text-3xl font-bold">谱面列表</h1>
-        <p class="text-slate-400 text-sm">仅显示 osu!mania 谱面</p>
+        <p class="text-sm text-slate-400">Osu! Mania</p>
+        <h1 class="text-3xl font-bold text-gray-600">谱面列表</h1>
+        <p class="text-slate-400 text-sm">仅有 Osu! Mania 谱面</p>
       </div>
 
       <n-spin :show="loading">
@@ -20,7 +20,7 @@
             <!-- 背景图 -->
             <div 
               class="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-110"
-              :style="{ backgroundImage: set.coverUrl ? `url(${set.coverUrl})` : 'none' }"
+              :style="{ backgroundImage: set.backgroundUrl ? `url(${set.backgroundUrl})` : 'none' }"
             >
               <div class="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-black/30 group-hover:via-black/50 transition-colors duration-300"></div>
             </div>
@@ -116,10 +116,14 @@ const fetchBeatmaps = async () => {
   loading.value = true
   try {
     const data = await $fetch(`${baseURL}/beatmaps`)
-    beatmapSets.value = data || []
+    const normalized = (data || []).map(set => ({
+      ...set,
+      backgroundUrl: normalizeAssetUrl(set.backgroundUrl)
+    }))
+    beatmapSets.value = normalized
     
     // 初始化选中难度状态
-    data?.forEach(set => {
+    normalized.forEach(set => {
       selectedDifficulties.value[set.id] = []
     })
   } catch (error) {
@@ -149,6 +153,15 @@ const startGame = (setId) => {
   // 如果选中多个难度，跳转到第一个
   const firstDiffId = selectedIds[0]
   navigateTo(`/mania/${firstDiffId}`)
+}
+
+const normalizeAssetUrl = (url) => {
+  if (!url) return null
+  if (url.startsWith('http://') || url.startsWith('https://')) return url
+  if (url.startsWith('/api/')) {
+    return `${baseURL}${url.replace('/api', '')}`
+  }
+  return `${baseURL}/${url.replace(/^\/+/, '')}`
 }
 
 onMounted(fetchBeatmaps)
