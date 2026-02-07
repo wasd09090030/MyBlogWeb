@@ -1,55 +1,61 @@
 <template>
-  <div class="steps-mdc my-6">
-    <n-steps
-      :current="currentStep"
-      :status="status"
-      :vertical="vertical"
-      :size="size"
-      @update:current="onStepChange"
-    >
-      <n-step
-        v-for="(step, index) in stepsList"
-        :key="index"
-        :title="step.title"
-        :description="step.description"
-      />
-    </n-steps>
+  <div class="steps-mdc my-6 p-4 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-md dark:shadow-2xl relative overflow-hidden">
+    <!-- 装饰性光晕效果 -->
+    <div class="absolute inset-0 bg-gradient-to-br from-blue-50/70 via-transparent to-transparent dark:from-sky-500/15 dark:via-transparent dark:to-transparent pointer-events-none"></div>
     
-    <!-- 控制按钮（可选） -->
-    <div v-if="showControls" class="steps-controls" :class="{ 'vertical-controls': vertical }">
-      <n-button
-        :disabled="currentStep <= 1"
-        @click="prevStep"
-        secondary
+    <!-- 内容区域 -->
+    <div class="relative z-10">
+      <n-steps
+        :current="currentStep"
+        :status="status"
+        :vertical="vertical"
+        :size="size"
+        @update:current="onStepChange"
       >
-        <template #icon>
-          <Icon name="mdi:chevron-left" />
-        </template>
-        上一步
-      </n-button>
+        <n-step
+          v-for="(step, index) in stepsList"
+          :key="index"
+          :title="step.title"
+          :description="step.description"
+        />
+      </n-steps>
       
-      <n-button
-        v-if="currentStep < stepsList.length"
-        :disabled="currentStep >= stepsList.length"
-        @click="nextStep"
-        type="primary"
-      >
-        下一步
-        <template #icon>
-          <Icon name="mdi:chevron-right" />
-        </template>
-      </n-button>
-      
-      <n-button
-        v-else
-        type="success"
-        @click="onComplete"
-      >
-        <template #icon>
-          <Icon name="mdi:check" />
-        </template>
-        完成
-      </n-button>
+      <!-- 控制按钮（可选） -->
+      <div v-if="showControls" class="steps-controls flex justify-end gap-3 mt-6 pt-4 border-t border-gray-200 dark:border-gray-700" :class="{ 'justify-center': vertical }">
+        <n-button
+          :disabled="currentStep <= 1"
+          @click="prevStep"
+          secondary
+        >
+          <template #icon>
+            <Icon name="mdi:chevron-left" />
+          </template>
+          上一步
+        </n-button>
+        
+        <n-button
+          v-if="currentStep < stepsList.length"
+          :disabled="currentStep >= stepsList.length"
+          @click="nextStep"
+          type="primary"
+        >
+          下一步
+          <template #icon>
+            <Icon name="mdi:chevron-right" />
+          </template>
+        </n-button>
+        
+        <n-button
+          v-else
+          type="success"
+          @click="onComplete"
+        >
+          <template #icon>
+            <Icon name="mdi:check" />
+          </template>
+          完成
+        </n-button>
+      </div>
     </div>
   </div>
 </template>
@@ -177,34 +183,55 @@ const onComplete = () => {
 </script>
 
 <style scoped>
-.steps-mdc {
-  /* 确保在 prose 内正确显示 */
-  padding: 1rem;
-  background: rgb(249 250 251);
-  border-radius: 0.5rem;
-  border: 1px solid rgb(229 231 235);
+/* 暗色模式下 n-steps 组件的颜色调整 */
+.dark .steps-mdc :deep(.n-step__title) {
+  color: #e2e8f0;
 }
 
-:global(.dark) .steps-mdc {
-  background: rgb(31 41 55);
-  border-color: rgb(55 65 81);
+.dark .steps-mdc :deep(.n-step__description) {
+  color: #94a3b8;
 }
 
-.steps-controls {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.75rem;
-  margin-top: 1.5rem;
-  padding-top: 1rem;
-  border-top: 1px solid rgb(229 231 235);
+.dark .steps-mdc :deep(.n-step__indicator) {
+  background: #0f172a;
+  border: 1px solid #334155;
+  color: #e2e8f0;
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.12);
 }
 
-:global(.dark) .steps-controls {
-  border-top-color: rgb(55 65 81);
+.dark .steps-mdc :deep(.n-step__line) {
+  background: linear-gradient(90deg, #1f2937, #334155);
 }
 
-.steps-controls.vertical-controls {
-  justify-content: center;
+.dark .steps-mdc :deep(.n-step--process .n-step__indicator) {
+  background: #0b1220;
+  border-color: #38bdf8;
+  color: #e0f2fe;
+  box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.2);
+}
+
+.dark .steps-mdc :deep(.n-step--finish .n-step__indicator) {
+  background: #052e2b;
+  border-color: #34d399;
+  color: #d1fae5;
+}
+
+.dark .steps-mdc :deep(.n-step--error .n-step__indicator) {
+  background: #3b1d2a;
+  border-color: #f87171;
+  color: #fecaca;
+}
+
+.dark .steps-mdc :deep(.n-step--finish .n-step__line) {
+  background: linear-gradient(90deg, #10b981, #34d399);
+}
+
+.dark .steps-mdc :deep(.n-step--process .n-step__line) {
+  background: linear-gradient(90deg, #38bdf8, #0ea5e9);
+}
+
+.dark .steps-mdc :deep(.n-step--error .n-step__line) {
+  background: linear-gradient(90deg, #f87171, #ef4444);
 }
 
 @media (max-width: 640px) {

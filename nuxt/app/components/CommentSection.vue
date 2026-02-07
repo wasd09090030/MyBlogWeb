@@ -1,9 +1,9 @@
 ﻿<template>
-  <div class="comment-section-container">
+  <div class="comment-section-container max-w-full mx-auto py-8 text-gray-900 dark:text-gray-200">
     <!-- 点赞区域 -->
-    <div class="like-section">
+    <div class="like-section flex justify-center mb-8">
       <n-button
-        class="like-btn"
+        class="like-btn px-8 h-[50px] text-lg shadow-lg hover:shadow-xl transition-all duration-200 hover:-translate-y-0.5"
         :type="isLiked ? 'primary' : 'default'"
         round
         size="large"
@@ -14,17 +14,17 @@
           <Icon v-if="isHydrated" :name="isLiked ? 'heart-fill' : 'heart'" :solid="isLiked" />
           <Icon v-else name="heart" />
         </template>
-        <span class="like-count">{{ likeCount }}</span>
+        <span class="like-count mx-2 font-bold">{{ likeCount }}</span>
         <span class="like-text">{{ isLiked ? '已点赞' : '点赞' }}</span>
       </n-button>
     </div>
 
-    <n-divider />
+    <n-divider class="dark-divider" />
 
     <!-- 评论表单 -->
-    <n-card title="发表评论" class="comment-form-card" size="medium">
+    <n-card title="发表评论" class="comment-form-card rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-xl dark:shadow-2xl" size="medium">
       <template #header-extra>
-        <Icon name="chat-dots" size="md" />
+        <Icon name="chat-dots" size="md" class="text-gray-500 dark:text-gray-400" />
       </template>
       
       <n-alert v-if="submitSuccess" type="success" class="mb-4" closable>
@@ -56,13 +56,13 @@
           />
         </n-form-item>
 
-        <div class="form-actions">
+        <div class="form-actions flex justify-end mt-4">
           <n-button
             type="primary"
             size="large"
             :loading="submitting"
             @click="submitComment"
-            class="submit-btn"
+            class="submit-btn px-8"
           >
             <template #icon>
               <Icon name="send" />
@@ -74,78 +74,89 @@
     </n-card>
 
     <!-- 评论列表 -->
-    <div class="comments-list mt-5">
-      <div class="list-header mb-4">
-        <h3>
-          <Icon name="chat-left-text" class="me-2" />
-          评论列表 <n-tag round type="info" size="small">{{ comments.length }}</n-tag>
-        </h3>
-      </div>
+    <div class="comments-list mt-12 bg-gray-50 dark:bg-gray-800 p-8 rounded-2xl border border-gray-200 dark:border-gray-700 relative overflow-hidden">
+      <!-- 装饰性光晕 -->
+      <div class="absolute inset-0 bg-gradient-to-br from-blue-50/80 via-transparent to-transparent dark:from-sky-500/10 dark:via-transparent dark:to-transparent pointer-events-none"></div>
+      
+      <div class="relative z-10">
+        <div class="list-header mb-6">
+          <h3 class="text-xl font-semibold text-gray-800 dark:text-gray-200 flex items-center">
+            <Icon name="chat-left-text" class="mr-2" />
+            评论列表 <n-tag round type="info" size="small" class="ml-2">{{ comments.length }}</n-tag>
+          </h3>
+        </div>
 
-      <div v-if="loadingComments" class="text-center py-5">
-        <n-spin size="large" description="加载评论中..." />
-      </div>
+        <div v-if="loadingComments" class="text-center py-12">
+          <n-spin size="large" description="加载评论中..." />
+        </div>
 
-      <n-empty v-else-if="comments.length === 0" description="暂无评论，来抢沙发吧！" class="py-5">
-        <template #icon>
-          <Icon name="chat-square-dots" size="3xl" />
-        </template>
-      </n-empty>
+        <n-empty v-else-if="comments.length === 0" description="暂无评论，来抢沙发吧！" class="py-12">
+          <template #icon>
+            <Icon name="chat-square-dots" size="3xl" />
+          </template>
+        </n-empty>
 
-      <div v-else class="comment-items">
-        <n-thing
-          v-for="comment in comments"
-          :key="comment.id"
-          class="comment-item mb-4"
-        >
-          <template #avatar>
-            <n-avatar
-              round
-              size="medium"
-              :src="getAvatarUrl(comment.author)"
-              :fallback-src="'https://ui-avatars.com/api/?name=' + comment.author"
-            />
-          </template>
-          
-          <template #header>
-            <span class="author-name">{{ comment.author }}</span>
-            <n-tag v-if="comment.isAdmin" type="error" size="small" round class="ms-2">博主</n-tag>
-          </template>
-          
-          <template #header-extra>
-            <span class="comment-time text-muted">
-              <Icon name="clock" size="xs" class="me-1" />
-              {{ formatDate(comment.createdAt) }}
-            </span>
-          </template>
-          
-          <div class="comment-content">
-            {{ comment.content }}
-          </div>
-          
-          <template #action>
-            <n-space>
-              <n-button
-                size="small"
-                quaternary
-                :type="comment.isLiked ? 'error' : 'default'"
-                @click="likeComment(comment.id)"
-              >
-                <template #icon>
-                  <Icon v-if="isHydrated" :name="comment.isLiked ? 'heart-fill' : 'heart'" />
-                  <Icon v-else name="heart" />
-                </template>
-                {{ comment.likes || 0 }}
-              </n-button>
-              <n-button size="small" quaternary v-if="comment.website" tag="a" :href="comment.website" target="_blank">
-                <template #icon>
-                  <Icon name="link-45deg" />
-                </template>
-                访问主页
-              </n-button>
-            </n-space>
-          </template>
-        </n-thing>
+        <div v-else class="comment-items space-y-4">
+          <n-thing
+            v-for="comment in comments"
+            :key="comment.id"
+            class="comment-item p-6 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-md hover:shadow-lg dark:shadow-xl transition-all duration-200 hover:-translate-y-0.5 relative overflow-hidden"
+          >
+            <!-- 装饰性光晕 -->
+            <div class="absolute inset-0 bg-gradient-to-br from-white/60 via-transparent to-transparent dark:from-sky-500/8 dark:via-transparent dark:to-transparent pointer-events-none"></div>
+            
+            <!-- 内容区域 -->
+            <div class="relative z-10">
+              <template #avatar>
+                <n-avatar
+                  round
+                  size="medium"
+                  :src="getAvatarUrl(comment.author)"
+                  :fallback-src="'https://ui-avatars.com/api/?name=' + comment.author"
+                />
+              </template>
+              
+              <template #header>
+                <span class="author-name font-semibold text-lg text-gray-800 dark:text-gray-200">{{ comment.author }}</span>
+                <n-tag v-if="comment.isAdmin" type="error" size="small" round class="ml-2">博主</n-tag>
+              </template>
+              
+              <template #header-extra>
+                <span class="comment-time text-gray-500 dark:text-gray-400 text-sm">
+                  <Icon name="clock" size="xs" class="mr-1" />
+                  {{ formatDate(comment.createdAt) }}
+                </span>
+              </template>
+              
+              <div class="comment-content mt-2 mb-4 leading-relaxed text-gray-700 dark:text-gray-300 text-base">
+                {{ comment.content }}
+              </div>
+              
+              <template #action>
+                <n-space>
+                  <n-button
+                    size="small"
+                    quaternary
+                    :type="comment.isLiked ? 'error' : 'default'"
+                    @click="likeComment(comment.id)"
+                  >
+                    <template #icon>
+                      <Icon v-if="isHydrated" :name="comment.isLiked ? 'heart-fill' : 'heart'" />
+                      <Icon v-else name="heart" />
+                    </template>
+                    {{ comment.likes || 0 }}
+                  </n-button>
+                  <n-button size="small" quaternary v-if="comment.website" tag="a" :href="comment.website" target="_blank">
+                    <template #icon>
+                      <Icon name="link-45deg" />
+                    </template>
+                    访问主页
+                  </n-button>
+                </n-space>
+              </template>
+            </div>
+          </n-thing>
+        </div>
       </div>
     </div>
   </div>
@@ -334,89 +345,92 @@ onMounted(() => {
 </script>
 
 <style scoped>
+/* 基础容器样式保留（Tailwind 已处理大部分） */
 .comment-section-container {
-  max-width: 100%;
-  margin: 0 auto;
-  padding: 2rem 0;
+  position: relative;
 }
 
-.like-section {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 2rem;
+/* 暗色模式下点赞按钮的高级样式 */
+.dark .like-btn {
+  --n-color: rgba(15, 23, 42, 0.6);
+  --n-color-hover: rgba(30, 41, 59, 0.75);
+  --n-color-pressed: rgba(30, 41, 59, 0.85);
+  --n-border: 1px solid rgba(56, 189, 248, 0.25);
+  --n-border-hover: 1px solid rgba(56, 189, 248, 0.45);
+  --n-border-pressed: 1px solid rgba(56, 189, 248, 0.6);
+  --n-text-color: #e2e8f0;
+  box-shadow: 0 14px 28px rgba(2, 8, 23, 0.6), 0 0 0 1px rgba(56, 189, 248, 0.14);
 }
 
-.like-btn {
-  padding: 0 2rem;
-  height: 50px;
-  font-size: 1.1rem;
+.dark .like-btn.n-button--primary-type {
+  --n-color: rgba(14, 165, 233, 0.18);
+  --n-color-hover: rgba(14, 165, 233, 0.26);
+  --n-color-pressed: rgba(14, 165, 233, 0.32);
+  --n-text-color: #e0f2fe;
+  --n-border: 1px solid rgba(56, 189, 248, 0.65);
 }
 
-.like-count {
-  margin: 0 0.5rem;
-  font-weight: bold;
+/* 暗色模式下评论表单卡片的高级样式 */
+.dark .comment-form-card {
+  box-shadow: 0 20px 40px rgba(2, 8, 23, 0.6), inset 0 0 0 1px rgba(125, 211, 252, 0.08);
 }
 
-.comment-form-card {
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+.comment-form-card :deep(.n-card-header) {
+  border-bottom: 1px solid rgb(229 231 235);
+  padding-bottom: 0.75rem;
 }
 
-.form-actions {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 1rem;
+.dark .comment-form-card :deep(.n-card-header) {
+  border-bottom-color: rgb(55 65 81);
 }
 
-.submit-btn {
-  padding-left: 2rem;
-  padding-right: 2rem;
+.comment-form-card :deep(.n-card-header__main) {
+  color: rgb(31 41 55);
 }
 
-.comments-list {
-  background: var(--bg-secondary);
-  padding: 2rem;
-  border-radius: 16px;
-  margin-top: 3rem;
+.dark .comment-form-card :deep(.n-card-header__main) {
+  color: rgb(226 232 240);
 }
 
-.comment-item {
-  background: var(--bg-primary);
-  padding: 1.5rem;
-  border-radius: 12px;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+.comment-form-card :deep(.n-card-header__extra) {
+  color: rgb(107 114 128);
 }
 
-.comment-item:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+.dark .comment-form-card :deep(.n-card-header__extra) {
+  color: rgb(156 163 175);
 }
 
-.author-name {
-  font-weight: 600;
-  font-size: 1.05rem;
-  color: var(--text-primary);
+/* 暗色模式下评论项的增强悬停效果 */
+.dark .comment-item:hover {
+  box-shadow: 0 20px 50px rgba(2, 8, 23, 0.7), 0 0 0 1px rgba(56, 189, 248, 0.25);
 }
 
-.comment-content {
-  margin-top: 0.5rem;
-  margin-bottom: 1rem;
-  line-height: 1.6;
-  color: var(--text-secondary);
-  font-size: 1rem;
+/* Naive UI 组件的暗色模式定制 */
+.dark .comment-section-container :deep(.n-divider) {
+  --n-color: rgb(55 65 81);
 }
 
-/* Dark mode adaptations */
-:root[class~="dark"] .comment-form-card {
-  background-color: #2c2c32;
-  border-color: #3c3c42;
+.dark .comment-section-container :deep(.n-form-item-label) {
+  color: rgb(203 213 225);
 }
 
-:root[class~="dark"] .comments-list {
-  background-color: #252529;
+.dark .comment-section-container :deep(.n-input) {
+  --n-color: rgb(17 24 39);
+  --n-border: 1px solid rgb(55 65 81);
+  --n-border-hover: 1px solid rgba(56, 189, 248, 0.45);
+  --n-border-focus: 1px solid rgba(56, 189, 248, 0.65);
+  --n-text-color: rgb(226 232 240);
+  --n-placeholder-color: rgb(100 116 139);
+  --n-box-shadow-focus: 0 0 0 3px rgba(56, 189, 248, 0.2);
 }
 
-:root[class~="dark"] .comment-item {
-  background-color: #2c2c32;
+.dark .comment-section-container :deep(.n-tag) {
+  --n-color: rgba(56, 189, 248, 0.15);
+  --n-text-color: rgb(186 230 253);
+  --n-border: 1px solid rgba(56, 189, 248, 0.35);
+}
+
+.dark .comment-section-container :deep(.n-empty__description) {
+  color: rgb(148 163 184);
 }
 </style>

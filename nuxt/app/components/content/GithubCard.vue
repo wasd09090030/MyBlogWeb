@@ -1,56 +1,62 @@
 <template>
   <div class="github-card-mdc my-6">
-    <div v-if="loading" class="loading-skeleton">
-      <div class="skeleton-line w-3/4 h-6 mb-3"></div>
-      <div class="skeleton-line w-full h-4 mb-2"></div>
-      <div class="skeleton-line w-5/6 h-4"></div>
+    <div v-if="loading" class="loading-skeleton p-4 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg">
+      <div class="skeleton-line w-3/4 h-6 mb-3 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+      <div class="skeleton-line w-full h-4 mb-2 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+      <div class="skeleton-line w-5/6 h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
     </div>
     
-    <div v-else-if="repoData" class="github-card">
-      <!-- 仓库名称和描述 -->
-      <div class="repo-header">
-        <a :href="repoData.html_url" target="_blank" rel="noopener" class="repo-name">
-          <Icon name="mdi:github" class="inline-block mr-2" />
-          {{ repoData.full_name }}
-        </a>
-        <p v-if="repoData.description" class="repo-description">
-          {{ repoData.description }}
-        </p>
-      </div>
+    <div v-else-if="repoData" class="github-card p-4 bg-white dark:bg-gradient-to-br dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-md hover:shadow-lg dark:shadow-2xl transition-all duration-200 hover:-translate-y-0.5 relative overflow-hidden">
+      <!-- 装饰性光晕效果 -->
+      <div class="absolute inset-0 bg-gradient-to-br from-blue-50/60 via-transparent to-transparent dark:from-sky-500/10 dark:via-transparent dark:to-transparent pointer-events-none"></div>
       
-      <!-- 统计信息 -->
-      <div class="repo-stats">
-        <div class="stat-item">
-          <Icon name="mdi:star-outline" class="stat-icon" />
-          <span>{{ formatNumber(repoData.stargazers_count) }}</span>
+      <!-- 内容区域 -->
+      <div class="relative z-10">
+        <!-- 仓库名称和描述 -->
+        <div class="repo-header mb-4">
+          <a :href="repoData.html_url" target="_blank" rel="noopener" class="repo-name text-lg font-semibold text-blue-600 hover:text-blue-700 dark:text-sky-300 dark:hover:text-sky-200 transition-colors inline-flex items-center no-underline hover:underline">
+            <Icon name="mdi:github" class="inline-block mr-2" />
+            {{ repoData.full_name }}
+          </a>
+          <p v-if="repoData.description" class="repo-description mt-2 text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+            {{ repoData.description }}
+          </p>
         </div>
-        <div class="stat-item">
-          <Icon name="mdi:source-fork" class="stat-icon" />
-          <span>{{ formatNumber(repoData.forks_count) }}</span>
+        
+        <!-- 统计信息 -->
+        <div class="repo-stats flex gap-4 mb-4 pb-4 border-b border-gray-200 dark:border-gray-700">
+          <div class="stat-item flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400">
+            <Icon name="mdi:star-outline" class="w-4 h-4" />
+            <span>{{ formatNumber(repoData.stargazers_count) }}</span>
+          </div>
+          <div class="stat-item flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400">
+            <Icon name="mdi:source-fork" class="w-4 h-4" />
+            <span>{{ formatNumber(repoData.forks_count) }}</span>
+          </div>
+          <div v-if="repoData.open_issues_count" class="stat-item flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400">
+            <Icon name="mdi:alert-circle-outline" class="w-4 h-4" />
+            <span>{{ formatNumber(repoData.open_issues_count) }}</span>
+          </div>
         </div>
-        <div v-if="repoData.open_issues_count" class="stat-item">
-          <Icon name="mdi:alert-circle-outline" class="stat-icon" />
-          <span>{{ formatNumber(repoData.open_issues_count) }}</span>
-        </div>
-      </div>
-      
-      <!-- 底部信息 -->
-      <div class="repo-footer">
-        <div v-if="repoData.language" class="language">
-          <span class="language-dot" :style="{ backgroundColor: getLanguageColor(repoData.language) }"></span>
-          {{ repoData.language }}
-        </div>
-        <div v-if="repoData.license" class="license">
-          <Icon name="mdi:scale-balance" class="inline-block mr-1" />
-          {{ repoData.license.spdx_id }}
-        </div>
-        <div class="updated">
-          更新于 {{ formatDate(repoData.updated_at) }}
+        
+        <!-- 底部信息 -->
+        <div class="repo-footer flex items-center gap-4 flex-wrap text-xs text-gray-600 dark:text-gray-400">
+          <div v-if="repoData.language" class="language flex items-center gap-2">
+            <span class="language-dot w-3 h-3 rounded-full" :style="{ backgroundColor: getLanguageColor(repoData.language) }"></span>
+            {{ repoData.language }}
+          </div>
+          <div v-if="repoData.license" class="license flex items-center">
+            <Icon name="mdi:scale-balance" class="inline-block mr-1" />
+            {{ repoData.license.spdx_id }}
+          </div>
+          <div class="updated">
+            更新于 {{ formatDate(repoData.updated_at) }}
+          </div>
         </div>
       </div>
     </div>
     
-    <div v-else-if="error" class="error-message">
+    <div v-else-if="error" class="error-message p-4 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/50 rounded-lg text-red-600 dark:text-red-400">
       <Icon name="mdi:alert-circle" class="inline-block mr-2" />
       {{ error }}
     </div>
@@ -168,150 +174,18 @@ watch(() => props.repo, () => {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
 }
 
-.github-card {
-  padding: 1rem;
-  background: #ffffff;
-  border: 1px solid #d0d7de;
-  border-radius: 6px;
-  transition: box-shadow 0.2s;
+/* 保留装饰性光晕在暗色模式下的增强效果 */
+.dark .github-card:hover {
+  box-shadow: 0 20px 40px rgba(2, 8, 23, 0.7), 0 0 0 1px rgba(56, 189, 248, 0.2);
 }
 
-.github-card:hover {
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
+/* 暗色模式下仓库名称的文字发光效果 */
+.dark .repo-name {
+  text-shadow: 0 0 12px rgba(56, 189, 248, 0.25);
 }
 
-:global(.dark) .github-card {
-  background: #0d1117;
-  border-color: #30363d;
-}
-
-.repo-header {
-  margin-bottom: 1rem;
-}
-
-.repo-name {
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: #0969da;
-  text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-}
-
-.repo-name:hover {
-  text-decoration: underline;
-}
-
-:global(.dark) .repo-name {
-  color: #58a6ff;
-}
-
-.repo-description {
-  margin-top: 0.5rem;
-  font-size: 0.875rem;
-  color: #656d76;
-  line-height: 1.5;
-}
-
-:global(.dark) .repo-description {
-  color: #8b949e;
-}
-
-.repo-stats {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 1rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid #d0d7de;
-}
-
-:global(.dark) .repo-stats {
-  border-bottom-color: #21262d;
-}
-
-.stat-item {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  font-size: 0.875rem;
-  color: #656d76;
-}
-
-:global(.dark) .stat-item {
-  color: #8b949e;
-}
-
-.stat-icon {
-  width: 1rem;
-  height: 1rem;
-}
-
-.repo-footer {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  font-size: 0.75rem;
-  color: #656d76;
-  flex-wrap: wrap;
-}
-
-:global(.dark) .repo-footer {
-  color: #8b949e;
-}
-
-.language {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.language-dot {
-  width: 0.75rem;
-  height: 0.75rem;
-  border-radius: 50%;
-}
-
-.license {
-  display: flex;
-  align-items: center;
-}
-
-.loading-skeleton {
-  padding: 1rem;
-}
-
-.skeleton-line {
-  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-  background-size: 200% 100%;
-  animation: loading 1.5s infinite;
-  border-radius: 4px;
-}
-
-:global(.dark) .skeleton-line {
-  background: linear-gradient(90deg, #1f1f1f 25%, #2a2a2a 50%, #1f1f1f 75%);
-  background-size: 200% 100%;
-}
-
-@keyframes loading {
-  0% {
-    background-position: 200% 0;
-  }
-  100% {
-    background-position: -200% 0;
-  }
-}
-
-.error-message {
-  padding: 1rem;
-  background: #fff1f0;
-  border: 1px solid #ffccc7;
-  border-radius: 6px;
-  color: #cf1322;
-}
-
-:global(.dark) .error-message {
-  background: #2a1215;
-  border-color: #58181c;
-  color: #ff7875;
+/* 暗色模式下语言点的外光晕 */
+.dark .language-dot {
+  box-shadow: 0 0 0 2px rgba(17, 24, 39, 0.9), 0 0 8px rgba(148, 163, 184, 0.2);
 }
 </style>
