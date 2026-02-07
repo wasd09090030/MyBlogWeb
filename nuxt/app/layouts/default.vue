@@ -41,18 +41,6 @@
               </template>
             </n-button>
             <div class="navbar-right-buttons d-none d-lg-flex">
-              <n-button 
-                quaternary 
-                circle 
-                @click="toggleTheme" 
-                class="theme-toggle-btn"
-                :aria-label="isDarkMode ? '切换到浅色模式' : '切换到深色模式'"
-              >
-                <template #icon>
-                  <Icon v-if="isHydrated" :name="isDarkMode ? 'sun-fill' : 'moon-fill'" size="md" :solid="true" />
-                  <Icon v-else name="moon-fill" size="md" :solid="true" />
-                </template>
-              </n-button>
               <LazyEffectsSearchBar />
             </div>
           </div>
@@ -119,7 +107,7 @@
             </div>
           </div>
         </footer>
-                <Teleport to="body">
+      <Teleport to="body">
         <ClientOnly>
         <div class="floating-action-buttons" aria-label="Quick actions">
           <button
@@ -138,6 +126,15 @@
             aria-label="回到顶部"
           >
             <Icon name="arrow-up" size="16" />
+          </button>
+          <button
+            type="button"
+            class="fab-btn"
+            @click="toggleTheme"
+            :aria-label="isDarkMode ? '切换到浅色模式' : '切换到深色模式'"
+          >
+            <Icon v-if="isHydrated" :name="isDarkMode ? 'sun-fill' : 'moon-fill'" size="16" :solid="true" />
+            <Icon v-else name="moon-fill" size="16" :solid="true" />
           </button>
           <button
             type="button"
@@ -430,7 +427,6 @@ onUnmounted(() => {
 .navbar-right-buttons {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
 }
 .theme-toggle-btn {
   font-size: 1.1rem;

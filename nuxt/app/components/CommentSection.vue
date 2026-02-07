@@ -97,7 +97,7 @@
         </n-empty>
 
         <div v-else class="comment-items space-y-4">
-          <n-thing
+          <div
             v-for="comment in comments"
             :key="comment.id"
             class="comment-item p-6 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-md hover:shadow-lg dark:shadow-xl transition-all duration-200 hover:-translate-y-0.5 relative overflow-hidden"
@@ -107,55 +107,57 @@
             
             <!-- 内容区域 -->
             <div class="relative z-10">
-              <template #avatar>
-                <n-avatar
-                  round
-                  size="medium"
-                  :src="getAvatarUrl(comment.author)"
-                  :fallback-src="'https://ui-avatars.com/api/?name=' + comment.author"
-                />
-              </template>
-              
-              <template #header>
-                <span class="author-name font-semibold text-lg text-gray-800 dark:text-gray-200">{{ comment.author }}</span>
-                <n-tag v-if="comment.isAdmin" type="error" size="small" round class="ml-2">博主</n-tag>
-              </template>
-              
-              <template #header-extra>
-                <span class="comment-time text-gray-500 dark:text-gray-400 text-sm">
-                  <Icon name="clock" size="xs" class="mr-1" />
-                  {{ formatDate(comment.createdAt) }}
-                </span>
-              </template>
-              
-              <div class="comment-content mt-2 mb-4 leading-relaxed text-gray-700 dark:text-gray-300 text-base">
-                {{ comment.content }}
-              </div>
-              
-              <template #action>
-                <n-space>
-                  <n-button
-                    size="small"
-                    quaternary
-                    :type="comment.isLiked ? 'error' : 'default'"
-                    @click="likeComment(comment.id)"
-                  >
-                    <template #icon>
-                      <Icon v-if="isHydrated" :name="comment.isLiked ? 'heart-fill' : 'heart'" />
-                      <Icon v-else name="heart" />
-                    </template>
-                    {{ comment.likes || 0 }}
-                  </n-button>
-                  <n-button size="small" quaternary v-if="comment.website" tag="a" :href="comment.website" target="_blank">
-                    <template #icon>
-                      <Icon name="link-45deg" />
-                    </template>
-                    访问主页
-                  </n-button>
-                </n-space>
-              </template>
+              <n-thing>
+                <template #avatar>
+                  <n-avatar
+                    round
+                    size="medium"
+                    :src="getAvatarUrl(comment.author)"
+                    :fallback-src="'https://ui-avatars.com/api/?name=' + comment.author"
+                  />
+                </template>
+                
+                <template #header>
+                  <span class="author-name font-semibold text-lg text-gray-800 dark:text-gray-200">{{ comment.author }}</span>
+                  <n-tag v-if="comment.isAdmin" type="error" size="small" round class="ml-2">博主</n-tag>
+                </template>
+                
+                <template #header-extra>
+                  <span class="comment-time text-gray-500 dark:text-gray-400 text-sm">
+                    <Icon name="clock" size="xs" class="mr-1" />
+                    {{ formatDate(comment.createdAt) }}
+                  </span>
+                </template>
+                
+                <div class="comment-content mt-2 mb-4 leading-relaxed text-gray-700 dark:text-gray-300 text-base">
+                  {{ comment.content }}
+                </div>
+                
+                <template #action>
+                  <n-space>
+                    <n-button
+                      size="small"
+                      quaternary
+                      :type="comment.isLiked ? 'error' : 'default'"
+                      @click="likeComment(comment.id)"
+                    >
+                      <template #icon>
+                        <Icon v-if="isHydrated" :name="comment.isLiked ? 'heart-fill' : 'heart'" />
+                        <Icon v-else name="heart" />
+                      </template>
+                      {{ comment.likes || 0 }}
+                    </n-button>
+                    <n-button size="small" quaternary v-if="comment.website" tag="a" :href="comment.website" target="_blank">
+                      <template #icon>
+                        <Icon name="link-45deg" />
+                      </template>
+                      访问主页
+                    </n-button>
+                  </n-space>
+                </template>
+              </n-thing>
             </div>
-          </n-thing>
+          </div>
         </div>
       </div>
     </div>
