@@ -76,7 +76,7 @@
 
               <h3 class="card-title" :title="article.title">{{ article.title }}</h3>
               
-              <p class="card-excerpt">{{ getExcerpt(article.content) }}</p>
+              <p class="card-excerpt">{{ getExcerpt(article.content, 100) }}</p>
             </div>
           </NuxtLink>
         </TransitionGroup>
@@ -110,6 +110,7 @@
 </template>
 
 <script setup>
+import { getExcerpt } from '~/utils/excerpt'
 import { useArticles } from '~/composables/useArticles'
 
 definePageMeta({
@@ -255,11 +256,6 @@ const formatDate = (dateString) => {
     month: '2-digit',
     day: '2-digit'
   })
-}
-
-const getExcerpt = (content) => {
-  if (!content) return ''
-  return content.replace(/<[^>]*>/g, '').trim().substring(0, 100) + '...'
 }
 
 // 生命周期

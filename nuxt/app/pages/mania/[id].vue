@@ -1,109 +1,115 @@
 <template>
   <div class="fixed inset-0 bg-[#0F0F23] text-slate-100 overflow-hidden">
-    <div class="h-full flex flex-col">
-      <!-- 游戏区域 -->
-      <div class="flex-1 relative">
-        <!-- 背景图 -->
-        <div
-          v-if="beatmapData.backgroundUrl"
-          class="absolute inset-0 bg-center bg-cover bg-no-repeat z-0"
-          :style="backgroundStyle"
-        />
-        <div
-          v-if="beatmapData.backgroundUrl"
-          class="absolute inset-0 bg-black/40 backdrop-blur-[2px] z-0"
-        />
+    <div class="h-full relative">
+      <!-- 背景图 -->
+      <div
+        v-if="beatmapData.backgroundUrl"
+        class="absolute inset-0 bg-center bg-cover bg-no-repeat z-0"
+        :style="backgroundStyle"
+      />
+      <div
+        v-if="beatmapData.backgroundUrl"
+        class="absolute inset-0 bg-black/40 backdrop-blur-[2px] z-0"
+      />
 
-        <!-- PixiJS 游戏组件（使用纹理渲染） -->
-        <ManiaGameTextured
-          ref="gameRef"
-          class="relative z-1"
-          :notes="beatmapData.notes"
-          :columns="beatmapData.columns"
-          :scroll-speed="scrollSpeed"
-          :is-playing="isPlaying"
-          :audio-time="audioTime"
-          @note-hit="onNoteHit"
-          @note-miss="onNoteMiss"
-          @key-press="onKeyPress"
-        />
+      <!-- PixiJS 游戏组件（使用纹理渲染） -->
+      <ManiaGameTextured
+        ref="gameRef"
+        class="relative z-1"
+        :notes="beatmapData.notes"
+        :columns="beatmapData.columns"
+        :scroll-speed="scrollSpeed"
+        :is-playing="isPlaying"
+        :audio-time="audioTime"
+        @note-hit="onNoteHit"
+        @note-miss="onNoteMiss"
+        @key-press="onKeyPress"
+      />
 
-        <!-- 游戏 UI 覆盖层 -->
-        <div class="absolute top-4 left-4 right-4 pointer-events-none z-10">
-          <div class="flex justify-between items-start">
-            <div class="space-y-1">
-              <div class="text-4xl font-bold text-white drop-shadow-lg">
-                {{ score.toLocaleString() }}
-              </div>
-              <div class="text-sm text-slate-300">
-                准确度: {{ accuracy.toFixed(2) }}%
-              </div>
+      <!-- 游戏 UI 覆盖层 -->
+      <div class="absolute top-4 left-4 right-4 pointer-events-none z-10">
+        <div class="flex justify-between items-start">
+          <div class="space-y-1">
+            <div class="text-4xl font-bold text-white drop-shadow-lg">
+              {{ score.toLocaleString() }}
             </div>
-            <div v-if="combo > 0" class="text-right">
-              <div class="text-5xl font-bold text-cyan-400 drop-shadow-lg">{{ combo }}</div>
-              <div class="text-xs text-slate-400">COMBO</div>
+            <div class="text-sm text-slate-300">
+              准确度: {{ Math.round(accuracy) }}%
             </div>
           </div>
-        </div>
-
-        <!-- 判定文本显示 -->
-        <div class="absolute top-1/3 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none z-20">
-          <transition name="judgement">
-            <div v-if="currentJudgement" :key="judgementKey" :class="judgementClass" class="text-6xl font-black">
-              {{ currentJudgement }}
-            </div>
-          </transition>
-        </div>
-
-        <!-- 开始提示 -->
-        <div v-if="!isPlaying && !isLoading && !showResultModal" class="absolute inset-0 flex items-center justify-center bg-black/50 z-30">
-          <div class="text-center space-y-6">
-            <div>
-              <div class="text-3xl font-bold">{{ songTitleOnly }}</div>
-              <div v-if="featuredArtist" class="text-xl text-purple-400 mt-2">feat. {{ featuredArtist }}</div>
-            </div>
-            <div class="text-slate-400">{{ beatmapData.artist }}</div>
-            <div class="text-sm text-slate-500">{{ beatmapData.creator }} · {{ beatmapData.version }}</div>
-            <div class="space-y-2">
-              <div class="text-sm text-slate-300">按键映射:</div>
-              <div class="text-xl font-mono font-bold text-cyan-400">
-                {{ keyBindings.join(' · ') }}
-              </div>
-            </div>
-            <n-button type="primary" size="large" @click="startGame">
-              开始游戏
-            </n-button>
-          </div>
-        </div>
-
-        <!-- 加载中 -->
-        <div v-if="isLoading" class="absolute inset-0 flex items-center justify-center bg-black/70 z-30">
-          <div class="text-center space-y-4">
-            <div class="text-xl">加载中...</div>
+          <div v-if="combo > 0" class="text-right">
+            <div class="text-5xl font-bold text-cyan-400 drop-shadow-lg">{{ combo }}</div>
+            <div class="text-xs text-slate-400">COMBO</div>
           </div>
         </div>
       </div>
 
-      <!-- 底部控制栏 -->
-      <div class="flex-shrink-0 px-4 py-2 flex flex-wrap gap-3 items-center bg-black/50 z-10">
-        <n-button v-if="isPlaying" type="error" size="small" @click="stopGame">
-          停止
-        </n-button>
-        <span class="text-xs text-slate-400">速度: {{ scrollSpeed }} px/s</span>
-        <span class="text-xs text-slate-400">
-          P:{{ stats.perfect }} G:{{ stats.great }} G:{{ stats.good }} B:{{ stats.bad }} M:{{ stats.miss }}
-        </span>
-        <span class="text-xs text-slate-400 ml-auto">
-          最大连击: {{ maxCombo }}
-        </span>
+      <!-- 判定文本显示 -->
+      <div class="absolute top-1/3 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none z-20">
+        <transition name="judgement">
+          <div v-if="currentJudgement" :key="judgementKey" :class="judgementClass" class="text-6xl font-black">
+            {{ currentJudgement }}
+          </div>
+        </transition>
+      </div>
+
+      <!-- 开始提示 -->
+      <div v-if="showStartScreen" class="absolute inset-0 flex items-center justify-center bg-black/50 z-30">
+        <div class="text-center space-y-6">
+          <div>
+            <div class="text-3xl font-bold">{{ songTitleOnly }}</div>
+            <div v-if="featuredArtist" class="text-xl text-purple-400 mt-2">feat. {{ featuredArtist }}</div>
+          </div>
+          <div class="text-slate-400">{{ beatmapData.artist }}</div>
+          <div class="text-sm text-slate-500">{{ beatmapData.creator }} · {{ beatmapData.version }}</div>
+          <div class="space-y-2">
+            <div class="text-sm text-slate-300">按键映射:</div>
+            <div class="text-xl font-mono font-bold text-cyan-400">
+              {{ keyBindings.join(' · ') }}
+            </div>
+          </div>
+          <n-button type="primary" size="large" @click="startGame">
+            开始游戏
+          </n-button>
+        </div>
+      </div>
+
+      <!-- 暂停覆盖层 -->
+      <div v-if="isPaused" class="absolute inset-0 flex items-center justify-center bg-black/70 z-40">
+        <div class="text-center space-y-8">
+          <div class="text-5xl font-black text-white tracking-wider">暂停</div>
+          <div class="text-sm text-slate-400">按 ESC 或点击继续</div>
+          <div class="flex flex-col gap-3 w-52 mx-auto">
+            <n-button type="primary" size="large" block @click="resumeWithCountdown">
+              继续游戏
+            </n-button>
+            <n-button secondary type="primary" size="large" block @click="quitToList">
+              返回选曲
+            </n-button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 倒计时覆盖层 -->
+      <div v-if="isCountingDown" class="absolute inset-0 flex items-center justify-center bg-black/40 z-40 pointer-events-none">
+        <div :key="countdownValue" class="countdown-num text-[10rem] font-black text-white leading-none drop-shadow-[0_0_60px_rgba(255,255,255,0.4)]">
+          {{ countdownValue }}
+        </div>
+      </div>
+
+      <!-- 加载中 -->
+      <div v-if="isLoading" class="absolute inset-0 flex items-center justify-center bg-black/70 z-30">
+        <div class="text-center space-y-4">
+          <div class="text-xl">加载中...</div>
+        </div>
       </div>
     </div>
 
     <!-- 游戏结束弹窗 -->
-    <GameResultModal
+    <ManiaGameResultModal
       :show="showResultModal"
       :score="score"
-      :accuracy="accuracy"
+      :accuracy="Math.round(accuracy)"
       :max-combo="maxCombo"
       :stats="stats"
       :song-title="songTitleOnly"
@@ -128,12 +134,27 @@ const route = useRoute()
 const config = useRuntimeConfig()
 const baseURL = config.public.apiBase
 
+// 默认按键映射
+const DEFAULT_KEYBINDINGS = {
+  4: ['D', 'F', 'J', 'K'],
+  5: ['D', 'F', 'Space', 'J', 'K'],
+  6: ['S', 'D', 'F', 'J', 'K', 'L'],
+  7: ['S', 'D', 'F', 'Space', 'J', 'K', 'L'],
+  8: ['A', 'S', 'D', 'F', 'J', 'K', 'L', ';']
+}
+
 // 游戏组件引用
 const gameRef = ref(null)
 
 // 加载状态
 const isLoading = ref(true)
 const isPlaying = ref(false)
+
+// 暂停与倒计时
+const isPaused = ref(false)
+const isCountingDown = ref(false)
+const countdownValue = ref(3)
+let countdownTimer = null
 
 // 谱面数据
 const beatmapData = ref({
@@ -175,7 +196,7 @@ const stats = ref({
 const showResultModal = ref(false)
 const hasGameEnded = ref(false)
 
-// 计算最后一个音符的时间（用于备用结束判定）
+// 计算最后一个音符的时间
 const lastNoteTime = computed(() => {
   const notes = beatmapData.value.notes
   if (!notes.length) return 0
@@ -187,16 +208,16 @@ const lastNoteTime = computed(() => {
   return maxTime
 })
 
-// 按键配置
+// 按键配置（从 localStorage 读取）
 const keyBindings = computed(() => {
-  const maps = {
-    4: ['D', 'F', 'J', 'K'],
-    5: ['D', 'F', 'Space', 'J', 'K'],
-    6: ['S', 'D', 'F', 'J', 'K', 'L'],
-    7: ['S', 'D', 'F', 'Space', 'J', 'K', 'L'],
-    8: ['A', 'S', 'D', 'F', 'J', 'K', 'L', ';']
-  }
-  return maps[beatmapData.value.columns] || maps[4]
+  const cols = beatmapData.value.columns
+  try {
+    const stored = JSON.parse(localStorage.getItem('mania-keybindings') || '{}')
+    if (stored[cols] && Array.isArray(stored[cols]) && stored[cols].length === cols) {
+      return stored[cols]
+    }
+  } catch {}
+  return DEFAULT_KEYBINDINGS[cols] || DEFAULT_KEYBINDINGS[4]
 })
 
 const keyToColumn = computed(() => {
@@ -208,23 +229,23 @@ const keyToColumn = computed(() => {
   return mapping
 })
 
+// 开始界面显示条件
+const showStartScreen = computed(() => {
+  return !isPlaying.value && !isLoading.value && !showResultModal.value
+    && !isPaused.value && !isCountingDown.value && !hasGameEnded.value
+})
+
 // 拆分歌名中的 feat. 部分
 const songTitleOnly = computed(() => {
   const title = beatmapData.value.title
   const featIndex = title.indexOf(' feat. ')
-  if (featIndex !== -1) {
-    return title.substring(0, featIndex)
-  }
-  return title
+  return featIndex !== -1 ? title.substring(0, featIndex) : title
 })
 
 const featuredArtist = computed(() => {
   const title = beatmapData.value.title
   const featIndex = title.indexOf(' feat. ')
-  if (featIndex !== -1) {
-    return title.substring(featIndex + 7) // 7 = ' feat. '.length
-  }
-  return ''
+  return featIndex !== -1 ? title.substring(featIndex + 7) : ''
 })
 
 // 判定分数
@@ -249,15 +270,12 @@ const judgementClass = computed(() => {
 })
 
 const backgroundStyle = computed(() => {
-  if (!beatmapData.value.backgroundUrl) {
-    return {}
-  }
-  return {
-    backgroundImage: `url('${beatmapData.value.backgroundUrl}')`
-  }
+  if (!beatmapData.value.backgroundUrl) return {}
+  return { backgroundImage: `url('${beatmapData.value.backgroundUrl}')` }
 })
 
-// 加载谱面
+// ==================== 谱面加载 ====================
+
 const fetchBeatmap = async () => {
   isLoading.value = true
   try {
@@ -274,11 +292,6 @@ const fetchBeatmap = async () => {
       audioLeadIn: data.audioLeadIn || 0,
       notes: data.notes || []
     }
-    console.log('谱面加载完成:', {
-      title: beatmapData.value.title,
-      columns: beatmapData.value.columns,
-      notes: beatmapData.value.notes.length
-    })
   } catch (error) {
     console.error('加载谱面失败:', error)
   } finally {
@@ -295,21 +308,41 @@ const normalizeAssetUrl = (url) => {
   return `${baseURL}/${url.replace(/^\/+/, '')}`
 }
 
-// 开始游戏
+// ==================== 音频时间更新 ====================
+
+const startAudioTimeUpdater = () => {
+  if (audioTimeUpdater) clearInterval(audioTimeUpdater)
+  audioTimeUpdater = setInterval(() => {
+    if (!audio) return
+    audioTime.value = Math.max(0, audio.currentTime * 1000 - beatmapData.value.audioLeadIn)
+    if (!isPlaying.value || hasGameEnded.value) return
+    if (audio.ended) {
+      finishGame('ended')
+      return
+    }
+    if (Number.isFinite(audio.duration) && audio.duration > 0 && audio.currentTime >= audio.duration - 0.01) {
+      finishGame('duration')
+      return
+    }
+    if (lastNoteTime.value > 0 && audioTime.value > lastNoteTime.value + 2000) {
+      finishGame('allNotesDone')
+    }
+  }, 16)
+}
+
+// ==================== 游戏控制 ====================
+
 const startGame = async () => {
   if (isPlaying.value) return
-  if (!beatmapData.value.audioUrl) {
-    console.warn('没有音频资源')
-    return
-  }
+  if (!beatmapData.value.audioUrl) return
 
-  // 重置状态
   hasGameEnded.value = false
   showResultModal.value = false
+  isPaused.value = false
+  isCountingDown.value = false
   resetGameState()
   gameRef.value?.reset()
 
-  // 初始化音频
   if (!audio) {
     audio = new Audio(beatmapData.value.audioUrl)
     audio.crossOrigin = 'anonymous'
@@ -319,27 +352,7 @@ const startGame = async () => {
   try {
     await audio.play()
     isPlaying.value = true
-
-    // 开始更新音频时间
-    audioTimeUpdater = setInterval(() => {
-      if (!audio) return
-      audioTime.value = Math.max(0, audio.currentTime * 1000 - beatmapData.value.audioLeadIn)
-      if (!isPlaying.value || hasGameEnded.value) return
-      if (audio.ended) {
-        finishGame('ended')
-        return
-      }
-      if (Number.isFinite(audio.duration) && audio.duration > 0 && audio.currentTime >= audio.duration - 0.01) {
-        finishGame('duration')
-        return
-      }
-      // 备用结束判定：所有音符已落下并超过判定窗口后，结束游戏
-      if (lastNoteTime.value > 0 && audioTime.value > lastNoteTime.value + 2000) {
-        finishGame('allNotesDone')
-      }
-    }, 16) // ~60fps
-
-    // 添加键盘监听
+    startAudioTimeUpdater()
     window.addEventListener('keydown', onKeyDown)
     window.addEventListener('keyup', onKeyUp)
   } catch (error) {
@@ -347,9 +360,14 @@ const startGame = async () => {
   }
 }
 
-// 停止游戏
 const stopGame = () => {
   isPlaying.value = false
+  isPaused.value = false
+  isCountingDown.value = false
+  if (countdownTimer) {
+    clearInterval(countdownTimer)
+    countdownTimer = null
+  }
   if (audio) {
     audio.pause()
     audio.currentTime = 0
@@ -367,6 +385,12 @@ const finishGame = (reason) => {
   if (hasGameEnded.value) return
   hasGameEnded.value = true
   isPlaying.value = false
+  isPaused.value = false
+  isCountingDown.value = false
+  if (countdownTimer) {
+    clearInterval(countdownTimer)
+    countdownTimer = null
+  }
   if (audio && !audio.ended) {
     audio.pause()
   }
@@ -376,18 +400,59 @@ const finishGame = (reason) => {
   }
   window.removeEventListener('keydown', onKeyDown)
   window.removeEventListener('keyup', onKeyUp)
-
-  console.log('游戏结束!', {
-    reason,
-    score: score.value,
-    maxCombo: maxCombo.value,
-    accuracy: accuracy.value
-  })
-
   showResultModal.value = true
 }
 
-// 重置游戏状态
+// ==================== 暂停与恢复 ====================
+
+const pauseGame = () => {
+  isPlaying.value = false
+  isPaused.value = true
+  if (audio) audio.pause()
+  if (audioTimeUpdater) {
+    clearInterval(audioTimeUpdater)
+    audioTimeUpdater = null
+  }
+}
+
+const resumeWithCountdown = () => {
+  isPaused.value = false
+  isCountingDown.value = true
+  countdownValue.value = 3
+
+  countdownTimer = setInterval(() => {
+    countdownValue.value--
+    if (countdownValue.value <= 0) {
+      clearInterval(countdownTimer)
+      countdownTimer = null
+      resumeGame()
+    }
+  }, 1000)
+}
+
+const resumeGame = async () => {
+  isCountingDown.value = false
+  isPlaying.value = true
+  if (audio) await audio.play()
+  startAudioTimeUpdater()
+}
+
+const cancelCountdown = () => {
+  if (countdownTimer) {
+    clearInterval(countdownTimer)
+    countdownTimer = null
+  }
+  isCountingDown.value = false
+  isPaused.value = true
+}
+
+const quitToList = () => {
+  stopGame()
+  navigateTo('/mania')
+}
+
+// ==================== 游戏状态 ====================
+
 const resetGameState = () => {
   score.value = 0
   combo.value = 0
@@ -397,30 +462,44 @@ const resetGameState = () => {
   stats.value = { perfect: 0, great: 0, good: 0, bad: 0, miss: 0 }
 }
 
-// 音频结束
 const onAudioEnded = () => {
   finishGame('ended')
 }
 
-// 重新游玩
 const onRetry = () => {
   showResultModal.value = false
-  if (audio) {
-    audio.currentTime = 0
-  }
+  hasGameEnded.value = false
+  if (audio) audio.currentTime = 0
   audioTime.value = 0
-  setTimeout(() => {
-    startGame()
-  }, 100)
+  setTimeout(() => startGame(), 100)
 }
 
-// 返回选曲界面
 const onBack = () => {
+  stopGame()
   navigateTo('/mania')
 }
 
-// 键盘按下事件
+// ==================== 键盘事件 ====================
+
 const onKeyDown = (e) => {
+  if (e.key === 'Escape') {
+    e.preventDefault()
+    if (isCountingDown.value) {
+      cancelCountdown()
+      return
+    }
+    if (isPaused.value) {
+      resumeWithCountdown()
+      return
+    }
+    if (isPlaying.value && !hasGameEnded.value) {
+      pauseGame()
+    }
+    return
+  }
+
+  if (!isPlaying.value) return
+
   const key = e.key.toLowerCase()
   const column = keyToColumn.value[key]
   if (column !== undefined) {
@@ -429,8 +508,9 @@ const onKeyDown = (e) => {
   }
 }
 
-// 键盘松开事件
 const onKeyUp = (e) => {
+  if (!isPlaying.value) return
+
   const key = e.key.toLowerCase()
   const column = keyToColumn.value[key]
   if (column !== undefined) {
@@ -439,21 +519,14 @@ const onKeyUp = (e) => {
   }
 }
 
-// 音符击中
-const onNoteHit = ({ noteId, judgement, timeDiff, isHoldStart, isHoldEnd, auto }) => {
-  // 长按音符开始时不更新统计，只在结束时更新
-  if (isHoldStart) {
-    // 可以播放开始音效
-    return
-  }
-  
-  // 更新统计
-  stats.value[judgement.toLowerCase()]++
+// ==================== 计分逻辑 ====================
 
-  // 更新分数
+const onNoteHit = ({ noteId, judgement, timeDiff, isHoldStart, isHoldEnd, auto }) => {
+  if (isHoldStart) return
+
+  stats.value[judgement.toLowerCase()]++
   score.value += JUDGEMENT_SCORES[judgement]
 
-  // 更新连击
   if (judgement === 'BAD') {
     combo.value = 0
   } else {
@@ -461,14 +534,10 @@ const onNoteHit = ({ noteId, judgement, timeDiff, isHoldStart, isHoldEnd, auto }
     maxCombo.value = Math.max(maxCombo.value, combo.value)
   }
 
-  // 更新准确度
   updateAccuracy()
-
-  // 显示判定
   showJudgement(judgement)
 }
 
-// 音符 MISS
 const onNoteMiss = ({ noteId }) => {
   stats.value.miss++
   combo.value = 0
@@ -476,12 +545,8 @@ const onNoteMiss = ({ noteId }) => {
   showJudgement('MISS')
 }
 
-// 按键事件
-const onKeyPress = (column) => {
-  // 可以在这里添加按键音效
-}
+const onKeyPress = (column) => {}
 
-// 更新准确度
 const updateAccuracy = () => {
   const total = Object.values(stats.value).reduce((a, b) => a + b, 0)
   if (total === 0) {
@@ -496,7 +561,6 @@ const updateAccuracy = () => {
   accuracy.value = weighted / total
 }
 
-// 显示判定
 const showJudgement = (judgement) => {
   currentJudgement.value = judgement
   judgementKey.value++
@@ -505,7 +569,8 @@ const showJudgement = (judgement) => {
   }, 400)
 }
 
-// 生命周期
+// ==================== 生命周期 ====================
+
 onMounted(() => {
   fetchBeatmap()
 })
@@ -536,6 +601,24 @@ onBeforeUnmount(() => {
   100% {
     transform: scale(1);
     opacity: 0;
+  }
+}
+
+.countdown-num {
+  animation: countdown-pop 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes countdown-pop {
+  0% {
+    transform: scale(3);
+    opacity: 0;
+  }
+  40% {
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
   }
 }
 </style>

@@ -1,7 +1,9 @@
 <template>
-  <n-message-provider>
-    <slot />
-  </n-message-provider>
+  <div>
+    <n-message-provider>
+      <slot />
+    </n-message-provider>
+  </div>
 </template>
 
 <script setup>

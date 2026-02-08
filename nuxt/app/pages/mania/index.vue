@@ -7,6 +7,25 @@
         <p class="text-slate-400 text-sm">仅有 Osu! Mania 谱面</p>
       </div>
 
+      <!-- 按键设置 -->
+      <div class="rounded-xl border border-white/10 bg-white/5 backdrop-blur-sm overflow-hidden">
+        <button
+          class="w-full px-5 py-3.5 flex items-center justify-between text-left hover:bg-white/5 transition-colors"
+          @click="showKeySettingsModal = true"
+        >
+          <div class="flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-500 dark:text-slate-400">
+              <rect x="2" y="4" width="20" height="16" rx="2" />
+              <path d="M6 8h.01M10 8h.01M14 8h.01M18 8h.01M8 12h.01M12 12h.01M16 12h.01M7 16h10" />
+            </svg>
+            <span class="text-sm font-medium text-slate-800 dark:text-slate-200">按键设置</span>
+          </div>
+          <span class="text-xs text-slate-600 dark:text-slate-500">点击设置</span>
+        </button>
+      </div>
+
+      <ManiaKeyBindingModal v-model:show="showKeySettingsModal" />
+
       <n-spin :show="loading">
         <div v-if="!loading && beatmapSets.length === 0" class="text-center py-10 text-slate-400">
           暂无谱面
@@ -111,6 +130,7 @@ const baseURL = config.public.apiBase
 const loading = ref(true)
 const beatmapSets = ref([])
 const selectedDifficulties = ref({})
+const showKeySettingsModal = ref(false)
 
 const fetchBeatmaps = async () => {
   loading.value = true
@@ -164,5 +184,7 @@ const normalizeAssetUrl = (url) => {
   return `${baseURL}/${url.replace(/^\/+/, '')}`
 }
 
-onMounted(fetchBeatmaps)
+onMounted(() => {
+  fetchBeatmaps()
+})
 </script>

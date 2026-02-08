@@ -27,7 +27,7 @@
         <div class="grid grid-cols-2 gap-4">
           <!-- 准确度 -->
           <div class="bg-slate-800/50 rounded-lg p-4 text-center">
-            <div class="text-3xl font-bold text-cyan-400">{{ accuracy }}%</div>
+            <div class="text-3xl font-bold text-cyan-400">{{ Math.round(accuracy) }}%</div>
             <div class="text-xs text-slate-400 mt-1">准确度</div>
           </div>
           
@@ -63,7 +63,7 @@
         </div>
 
         <!-- 按钮 -->
-        <div class="flex gap-3 pt-4">
+        <div class="grid grid-cols-2 gap-3 pt-4">
           <n-button type="primary" block size="large" @click="onRetry">
             <template #icon>
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

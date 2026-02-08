@@ -79,7 +79,7 @@ const searchQuery = ref('')
 const searchInputRef = ref(null)
 
 // 热门搜索标签（可以是静态的或者从配置读取）
-const popularTags = ['Vue', 'Nuxt', 'CSharp', 'DotNet', 'Tutorial']
+const popularTags = ['Vue', 'Nuxt', 'C#', '.NET', '动漫']
 
 // 自动聚焦输入框
 watch(showModal, async (val) => {

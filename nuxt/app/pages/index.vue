@@ -178,6 +178,7 @@
 </template>
 
 <script setup>
+import { getExcerpt } from '~/utils/excerpt'
 import { useArticles } from '~/composables/useArticles'
 import '~/assets/css/components/ArticleList.styles.css'
 
@@ -454,11 +455,6 @@ const getCategoryClass = (category) => {
   return categoryClassMap[lowerCategory] || 'category-other'
 }
 
-const getExcerpt = (content) => {
-  if (!content) return ''
-  const plainText = content.replace(/<[^>]*>/g, '')
-  return plainText.length > 150 ? `${plainText.substring(0, 150)}...` : plainText
-}
 
 const clearSearch = () => {
   navigateTo({ path: '/' })
