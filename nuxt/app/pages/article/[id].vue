@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-screen flex">
     <!-- 左侧：文章主体 -->
-    <div class="flex-1 bg-gray-50 dark:bg-gray-900 rounded-xl overflow-hidden lg:rounded-l-xl lg:rounded-r-none">
+    <div class="flex-1 bg-white dark:bg-gray-900 rounded-xl overflow-hidden lg:rounded-l-xl lg:rounded-r-none">
       <!-- 加载状态 -->
       <div v-if="pending" class="flex flex-col items-center justify-center min-h-[60vh]">
         <n-spin size="large" />

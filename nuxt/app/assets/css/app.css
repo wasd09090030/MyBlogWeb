@@ -42,7 +42,7 @@ input[type="reset"],
 
 /* 主题样式 */
 .light-theme {
-  background-color: var(--bg-tertiary);
+  background-color: var(--bg-secondary);
   color: var(--text-primary);
 }
 

@@ -6,7 +6,7 @@
 }
 
 .desktop-sidebar .sidebar-content {
-  background: linear-gradient(135deg, rgba(255,255,255,0.8), rgba(248,249,250,0.9));
+  background: #ffffff;
   border-radius: 15px;
   padding: 1.5rem;
   /* box-shadow removed */

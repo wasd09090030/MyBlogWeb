@@ -1,34 +1,48 @@
 <template>
-  <div class="code-playground-mdc my-6 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+  <n-card
+    class="code-playground-mdc my-6 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden"
+    :bordered="false"
+    content-style="padding: 0;"
+    header-style="padding: 0;"
+  >
     <!-- 隐藏的原始内容容器 -->
     <div ref="slotContainer" style="display: none;">
       <slot />
     </div>
     
     <!-- 头部 -->
-    <div class="playground-header flex items-center justify-between px-4 py-2 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-      <div class="flex items-center gap-2">
-        <Icon name="code-slash" size="md" class="text-gray-600 dark:text-gray-400" />
-        <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ title }}</span>
+    <template #header>
+      <div class="playground-header flex items-center justify-between px-4 py-2 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+        <n-space align="center" size="small">
+          <Icon name="code-slash" size="md" class="text-gray-600 dark:text-gray-400" />
+          <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ title }}</span>
+        </n-space>
+        <n-space align="center" size="small">
+          <n-button
+            v-if="runnable"
+            type="success"
+            size="small"
+            @click="runCode"
+            class="px-3 py-1 text-xs font-medium bg-green-500 hover:bg-green-600 text-white rounded transition-colors"
+          >
+            <template #icon>
+              <Icon name="play" size="sm" />
+            </template>
+            运行
+          </n-button>
+          <n-button
+            size="small"
+            @click="copyCode"
+            class="px-3 py-1 text-xs font-medium bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 rounded transition-colors"
+          >
+            <template #icon>
+              <Icon name="copy" size="sm" />
+            </template>
+            复制
+          </n-button>
+        </n-space>
       </div>
-      <div class="flex items-center gap-2">
-        <button
-          v-if="runnable"
-          @click="runCode"
-          class="px-3 py-1 text-xs font-medium bg-green-500 hover:bg-green-600 text-white rounded transition-colors flex items-center gap-1"
-        >
-          <Icon name="arrow-path" size="sm" />
-          运行
-        </button>
-        <button
-          @click="copyCode"
-          class="px-3 py-1 text-xs font-medium bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 rounded transition-colors flex items-center gap-1"
-        >
-          <Icon name="copy" size="sm" />
-          复制
-        </button>
-      </div>
-    </div>
+    </template>
     
     <!-- 代码区域 -->
     <div class="playground-body">
@@ -37,15 +51,23 @@
       </div>
       
       <!-- 输出区域 -->
-      <div v-if="output" class="output-panel border-t border-gray-200 dark:border-gray-700 p-4 bg-gray-50 dark:bg-gray-800">
-        <div class="flex items-center gap-2 mb-2">
-          <Icon name="arrow-right" size="sm" class="text-gray-500 dark:text-gray-400" />
-          <span class="text-xs font-semibold text-gray-600 dark:text-gray-400">输出结果</span>
+      <n-card
+        v-if="output"
+        class="output-panel border-t border-gray-200 dark:border-gray-700"
+        :bordered="false"
+        content-style="padding: 0;"
+        size="small"
+      >
+        <div class="p-4 bg-gray-50 dark:bg-gray-800">
+          <n-space align="center" size="small" class="mb-2">
+            <Icon name="arrow-right" size="sm" class="text-gray-500 dark:text-gray-400" />
+            <span class="text-xs font-semibold text-gray-600 dark:text-gray-400">输出结果</span>
+          </n-space>
+          <pre class="text-sm text-gray-800 dark:text-gray-200 whitespace-pre-wrap bg-white dark:bg-gray-900 p-3 rounded border">{{ output }}</pre>
         </div>
-        <pre class="text-sm text-gray-800 dark:text-gray-200 whitespace-pre-wrap bg-white dark:bg-gray-900 p-3 rounded border">{{ output }}</pre>
-      </div>
+      </n-card>
     </div>
-  </div>
+  </n-card>
 </template>
 
 <script setup>

@@ -281,71 +281,71 @@ defineExpose({ refreshData: fetchArticles })
 
 /* Hero Section */
 .page-hero {
-  padding: 2rem 1rem 1rem;
-  margin-bottom: 1rem;
+  padding: 3rem 1rem 2rem;
   display: flex;
   justify-content: center;
+  background-color: transparent;
 }
 
 .tags-container {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 0.8rem;
-  max-width: 900px;
+  gap: 12px;
+  max-width: 800px;
   margin: 0 auto;
 }
 
 .filter-chip {
-  padding: 0.5rem 1.2rem;
-  border-radius: 9999px; /* Pill shape */
-  border: 1px solid rgba(var(--accent-primary-rgb), 0.15);
-  background: rgba(255, 255, 255, 0.6);
-  color: var(--text-secondary);
-  font-size: 0.95rem;
+  padding: 8px 20px;
+  border-radius: 50px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: #ffffff;
+  color: #555;
+  font-size: 0.9rem;
   font-weight: 500;
+  letter-spacing: 0.01em;
   cursor: pointer;
   white-space: nowrap;
-  backdrop-filter: blur(8px);
-  /* Pastel colors logic - simplified to soft accent */
-  background: color-mix(in srgb, var(--bg-secondary), white 40%);
-  color: color-mix(in srgb, var(--text-secondary), var(--accent-primary) 20%);
-  border-color: transparent;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.03);
-  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, color 0.2s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+  transition: all 0.3s ease;
 }
 
 .dark-theme .filter-chip {
-  background: rgba(30, 30, 30, 0.4);
-  color: var(--text-secondary);
+  background: #2a2a2a;
+  color: #aaa;
+  border-color: rgba(255, 255, 255, 0.05);
 }
 
 .filter-chip:hover {
-  background: white;
-  color: var(--accent-primary);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-  transform: scale(1.05);
+  color: #000;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .dark-theme .filter-chip:hover {
-  background: rgba(50, 50, 50, 0.6);
-  color: var(--accent-primary);
+  color: #fff;
+  background: #333;
 }
 
 .filter-chip.active {
-  background: linear-gradient(135deg, color-mix(in srgb, var(--accent-primary), white 20%), var(--accent-primary));
-  color: white;
-  box-shadow: 0 4px 12px color-mix(in srgb, var(--accent-primary), transparent 60%);
-  border-color: transparent;
-  font-weight: 600;
+  background: #000;
+  color: #fff;
+  border-color: #000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.dark-theme .filter-chip.active {
+  background: #fff;
+  color: #000;
 }
 
 .filter-chip:active {
-  transform: scale(0.97);
+  transform: scale(0.98);
 }
 
 .chip-animate {
-  animation: chip-pop 0.4s ease both;
+  animation: chip-pop 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
 @keyframes chip-pop {
@@ -394,7 +394,7 @@ defineExpose({ refreshData: fetchArticles })
   border-radius: 16px;
   overflow: hidden;
   text-decoration: none;
-  background: rgba(255, 255, 255, 0.6);
+  background: rgb(255, 255, 255);
   backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.3);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);

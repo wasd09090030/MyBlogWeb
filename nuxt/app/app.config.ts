@@ -92,6 +92,12 @@ export default defineAppConfig({
       'paper-airplane': 'heroicons:paper-airplane',
       'send': 'heroicons:paper-airplane',
       'shield-check': 'heroicons:shield-check',
+      'check': 'heroicons:check',
+      'check-lg': 'heroicons:check',
+      'play-fill': 'heroicons:play-solid',
+      'play': 'heroicons:play',
+      'terminal': 'heroicons:command-line',
+      'command-line': 'heroicons:command-line',
       
       // 用户相关
       'user-circle': 'heroicons:user-circle',

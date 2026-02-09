@@ -40,7 +40,7 @@
 :root {
   /* 背景色 */
   --bg-primary: #ffffff;
-  --bg-secondary: hsl(45, 100%, 99%);
+  --bg-secondary: #f2f6f9;
   --bg-tertiary: #dee2e6;
   --bg-hover: #e9ecef;
   --bg-active: #dee2e6;
