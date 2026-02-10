@@ -46,8 +46,9 @@
     
     <!-- 代码区域 -->
     <div class="playground-body">
-      <div class="p-4 bg-gray-900 dark:bg-gray-950">
-        <pre class="text-sm overflow-x-auto"><code :class="`language-${lang}`" class="text-gray-100">{{ displayCode }}</code></pre>
+      <div v-if="highlightedHtml" class="shiki-wrapper" v-html="highlightedHtml"></div>
+      <div v-else class="p-4 bg-gray-900">
+        <pre class="text-sm overflow-x-auto"><code class="text-gray-100">{{ displayCode }}</code></pre>
       </div>
       
       <!-- 输出区域 -->
@@ -71,6 +72,8 @@
 </template>
 
 <script setup>
+import { codeToHtml } from 'shiki'
+
 /**
  * CodePlayground 代码演示组件 - MDC 语法
  * 
@@ -106,6 +109,7 @@ const props = defineProps({
 const slotContainer = ref(null)
 const output = ref('')
 const displayCode = ref('')
+const highlightedHtml = ref('')
 
 // 在组件挂载后从 DOM 读取代码内容
 onMounted(() => {
@@ -113,6 +117,30 @@ onMounted(() => {
     displayCode.value = slotContainer.value.textContent?.trim() || ''
   }
 })
+
+// 监听代码变化，动态生成高亮 HTML
+watch(displayCode, async (newCode) => {
+  if (!newCode) {
+    highlightedHtml.value = ''
+    return
+  }
+  
+  try {
+    // 使用 Shiki 进行代码高亮
+    highlightedHtml.value = await codeToHtml(newCode, {
+      lang: props.lang,
+      theme: 'material-theme-darker', // 使用深色主题
+      // 可以根据需要添加更多配置
+      // themes: {
+      //   light: 'material-theme-lighter',
+      //   dark: 'material-theme-darker'
+      // }
+    })
+  } catch (err) {
+    console.error('代码高亮失败:', err)
+    highlightedHtml.value = ''
+  }
+}, { immediate: true })
 
 const copyCode = async () => {
   try {
@@ -173,9 +201,30 @@ const runCode = () => {
   display: block;
 }
 
+/* Shiki 生成的 HTML 样式 */
+.shiki-wrapper {
+  padding: 1rem;
+}
+
+/* 确保 Shiki 的 pre 标签有正确的样式 */
+.shiki-wrapper :deep(pre) {
+  margin: 0;
+  padding: 0;
+  background: transparent !important; /* 移除 Shiki 默认背景，使用外层背景 */
+  overflow-x: auto;
+}
+
+.shiki-wrapper :deep(code) {
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-size: 0.875rem; /* text-sm */
+  line-height: 1.5;
+  display: block;
+}
+
 .playground-body {
   max-height: 600px;
   overflow-y: auto;
+  background: rgb(23 23 23); /* bg-gray-950 - 统一背景色 */
 }
 
 /* 确保输出文字可见 */

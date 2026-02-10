@@ -193,6 +193,8 @@ export default defineAppConfig({
       'cube': 'heroicons:cube',
       'scale': 'heroicons:scale',
       'arrow-path-rounded-square': 'heroicons:arrow-path-rounded-square',
+      'hand-thumb-up': 'heroicons:hand-thumb-up',
+      'cloud-arrow-down': 'heroicons:cloud-arrow-down',
       
       // 文件树专用图标
       'folder-outline': 'heroicons:folder',
