@@ -6,7 +6,7 @@
       <div class="skeleton-line w-5/6 h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
     </div>
     
-    <div v-else-if="repoData" class="github-card p-4 bg-white dark:bg-gradient-to-br dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-md hover:shadow-lg dark:shadow-2xl transition-all duration-200 hover:-translate-y-0.5 relative overflow-hidden">
+    <div v-else-if="repoData" class="github-card p-4 bg-white dark:bg-gradient-to-br dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg transition-all duration-200 hover:-translate-y-0.5 relative overflow-hidden">
       <!-- 装饰性光晕效果 -->
       <div class="absolute inset-0 bg-gradient-to-br from-blue-50/60 via-transparent to-transparent dark:from-sky-500/10 dark:via-transparent dark:to-transparent pointer-events-none"></div>
       
@@ -176,7 +176,7 @@ watch(() => props.repo, () => {
 
 /* 保留装饰性光晕在暗色模式下的增强效果 */
 .dark .github-card:hover {
-  box-shadow: 0 20px 40px rgba(2, 8, 23, 0.7), 0 0 0 1px rgba(56, 189, 248, 0.2);
+  border-color: rgba(56, 189, 248, 0.3);
 }
 
 /* 暗色模式下仓库名称的文字发光效果 */
@@ -186,6 +186,6 @@ watch(() => props.repo, () => {
 
 /* 暗色模式下语言点的外光晕 */
 .dark .language-dot {
-  box-shadow: 0 0 0 2px rgba(17, 24, 39, 0.9), 0 0 8px rgba(148, 163, 184, 0.2);
+  border: 1px solid rgba(148, 163, 184, 0.3);
 }
 </style>

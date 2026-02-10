@@ -17,6 +17,9 @@
           <n-button @click="insertTemplate('codePlayground')" quaternary title="插入代码演示">
             💻 Code
           </n-button>
+          <n-button @click="insertTemplate('linkCard')" quaternary title="插入链接卡片">
+            🔗 Link
+          </n-button>
           <n-button @click="insertTemplate('imageComparison')" quaternary title="插入图片对比">
             🖼️ Compare
           </n-button>
@@ -243,7 +246,13 @@ const sum = (a, b) => a + b
 console.log(sum(2, 3))
 ::`,
   
+  linkCard: `::link-card{url="https://example.com" text="示例链接" icon="download"}
+::`,
+  
   imageComparison: `::image-comparison{before="/img/before.jpg" after="/img/after.jpg" aspectRatio="16/9"}
+::`,
+  
+  relatedArticles: `::related-articles{count="3"}
 ::`,
   
   webEmbed: `::web-embed{url="https://www.bilibili.com/video/BV1xx411c7mD" aspectRatio="16/9"}

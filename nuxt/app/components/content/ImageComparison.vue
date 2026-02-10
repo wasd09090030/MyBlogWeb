@@ -1,5 +1,5 @@
 <template>
-  <div class="image-comparison-mdc my-6 relative rounded-lg overflow-hidden shadow-lg" ref="containerRef">
+  <div class="image-comparison-mdc my-6 relative rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700" ref="containerRef">
     <div class="relative select-none" :style="{ aspectRatio: aspectRatio || 'auto' }">
       <!-- 后图（右侧） -->
       <div class="absolute inset-0">
@@ -20,12 +20,12 @@
       
       <!-- 滑块 -->
       <div 
-        class="slider-handle absolute top-0 bottom-0 w-1 bg-white shadow-lg cursor-ew-resize"
+        class="slider-handle absolute top-0 bottom-0 w-1 bg-white cursor-ew-resize"
         :style="{ left: `${sliderPosition}%` }"
         @mousedown="startDrag"
         @touchstart="startDrag"
       >
-        <div class="slider-button absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-white rounded-full shadow-xl flex items-center justify-center">
+        <div class="slider-button absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-white rounded-full border border-gray-300 flex items-center justify-center">
           <div class="flex gap-1">
             <Icon name="chevron-left" size="sm" class="text-gray-700" />
             <Icon name="chevron-right" size="sm" class="text-gray-700" />

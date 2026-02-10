@@ -1,5 +1,5 @@
 <template>
-  <div class="steps-mdc my-6 p-4 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-md dark:shadow-2xl relative overflow-hidden">
+  <div class="steps-mdc my-6 p-4 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 relative overflow-hidden">
     <!-- 装饰性光晕效果 -->
     <div class="absolute inset-0 bg-gradient-to-br from-blue-50/70 via-transparent to-transparent dark:from-sky-500/15 dark:via-transparent dark:to-transparent pointer-events-none"></div>
     
@@ -196,7 +196,6 @@ const onComplete = () => {
   background: #0f172a;
   border: 1px solid #334155;
   color: #e2e8f0;
-  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.12);
 }
 
 .dark .steps-mdc :deep(.n-step__line) {
@@ -207,7 +206,6 @@ const onComplete = () => {
   background: #0b1220;
   border-color: #38bdf8;
   color: #e0f2fe;
-  box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.2);
 }
 
 .dark .steps-mdc :deep(.n-step--finish .n-step__indicator) {

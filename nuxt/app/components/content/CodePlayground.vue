@@ -47,7 +47,7 @@
     <!-- 代码区域 -->
     <div class="playground-body">
       <div v-if="highlightedHtml" class="shiki-wrapper" v-html="highlightedHtml"></div>
-      <div v-else class="p-4 bg-gray-900">
+      <div v-else class="p-4">
         <pre class="text-sm overflow-x-auto"><code class="text-gray-100">{{ displayCode }}</code></pre>
       </div>
       
@@ -219,6 +219,7 @@ const runCode = () => {
   font-size: 0.875rem; /* text-sm */
   line-height: 1.5;
   display: block;
+  background: transparent !important; /* 确保 code 标签背景透明 */
 }
 
 .playground-body {
