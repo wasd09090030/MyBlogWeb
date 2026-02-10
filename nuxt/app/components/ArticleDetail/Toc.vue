@@ -169,9 +169,30 @@ function handleScroll() {
 
 // 使用 IntersectionObserver 检测活动标题
 let observer = null
+let observerRetryCount = 0
+const MAX_RETRY = 5
 
 function setupObserver() {
   if (observer) observer.disconnect()
+  
+  // 检查是否有标题需要观察
+  if (!props.headings || props.headings.length === 0) {
+    return
+  }
+  
+  // 检查 DOM 元素是否已经渲染
+  const firstHeading = document.getElementById(props.headings[0].id)
+  if (!firstHeading && observerRetryCount < MAX_RETRY) {
+    // 如果第一个标题元素还不存在，延迟重试
+    observerRetryCount++
+    setTimeout(() => {
+      setupObserver()
+    }, 200)
+    return
+  }
+  
+  // 重置重试计数
+  observerRetryCount = 0
   
   observer = new IntersectionObserver(
     (entries) => {
@@ -191,15 +212,44 @@ function setupObserver() {
     }
   )
   
+  // 观察所有标题元素
+  let observedCount = 0
   props.headings.forEach(heading => {
     const el = document.getElementById(heading.id)
-    if (el) observer.observe(el)
+    if (el) {
+      observer.observe(el)
+      observedCount++
+    }
   })
+  
+  // 如果成功观察到元素，设置初始活动标题
+  if (observedCount > 0 && !activeHeading.value) {
+    // 找到当前可见区域的第一个标题
+    nextTick(() => {
+      const scrollTop = window.pageYOffset || document.documentElement.scrollTop
+      const navbarHeight = 80
+      
+      for (const heading of props.headings) {
+        const el = document.getElementById(heading.id)
+        if (el && el.offsetTop - navbarHeight <= scrollTop + 100) {
+          activeHeading.value = heading.id
+        } else {
+          break
+        }
+      }
+      
+      // 如果没有找到，使用第一个标题
+      if (!activeHeading.value && props.headings.length > 0) {
+        activeHeading.value = props.headings[0].id
+      }
+    })
+  }
 }
 
 // 监听 headings 变化
 watch(() => props.headings, (newHeadings) => {
   if (newHeadings.length > 0) {
+    observerRetryCount = 0
     nextTick(() => {
       setTimeout(setupObserver, 100)
     })
@@ -209,6 +259,13 @@ watch(() => props.headings, (newHeadings) => {
 onMounted(() => {
   window.addEventListener('scroll', handleScroll, { passive: true })
   handleScroll()
+  
+  // 在组件挂载时也尝试初始化 observer
+  if (props.headings.length > 0) {
+    nextTick(() => {
+      setTimeout(setupObserver, 150)
+    })
+  }
 })
 
 onUnmounted(() => {

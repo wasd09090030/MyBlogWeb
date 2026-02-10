@@ -1,7 +1,10 @@
 <template>
   <NuxtLoadingIndicator color="#18a058" :height="3" :duration="2000" :throttle="200" />
   <NuxtLayout>
-    <NuxtPage :keepalive="shouldKeepAlive" :page-key="getPageKey" />
+    <NuxtPage :keepalive="shouldKeepAlive" :page-key="getPageKey" :transition="{
+      name: 'page',
+      mode: 'out-in'
+    }" />
   </NuxtLayout>
 </template>
 
@@ -128,6 +131,34 @@ body {
 .slide-up-leave-to {
   opacity: 0;
   transform: translateY(-20px);
+}
+
+/* 页面过渡动画 - 平滑的淡入淡出 + 轻微缩放 */
+.page-enter-active,
+.page-leave-active {
+  transition: all 0.25s ease-out;
+}
+
+.page-enter-from {
+  opacity: 0;
+  transform: scale(0.98) translateY(10px);
+}
+
+.page-leave-to {
+  opacity: 0;
+  transform: scale(1.02) translateY(-10px);
+}
+
+/* 确保过渡期间元素定位正确 */
+.page-enter-active,
+.page-leave-active {
+  position: relative;
+  z-index: 1;
+}
+
+.page-leave-active {
+  position: absolute;
+  width: 100%;
 }
 
 /* 自定义滚动条 */

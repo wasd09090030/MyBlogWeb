@@ -74,7 +74,7 @@
               size="large"
               :loading="submitting"
               @click="submitComment"
-              class="px-8 rounded-lg font-medium shadow-none hover:shadow-lg transition-all"
+              class="px-8 rounded-lg font-medium shadow-none hover:shadow-lg transition-all dark:shadow-none dark:bg-blue-600 dark:hover:bg-blue-700"
               color="#000"
             >
             发表评论

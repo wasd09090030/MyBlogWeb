@@ -15,11 +15,14 @@
     <!-- 从 HTML 标题中提取目录（作为备选方案仅用于 HTML 回退） -->
     <div v-if="!article.contentMarkdown" style="display: none;" ref="headingExtractor"></div>
 
+        <!-- 分割线 -->
+    <div class="h-px mt-20 bg-gray-500 dark:bg-gray-800 w-full mb-10"></div>
+
     <!-- 相关推荐 -->
     <RelatedArticles :exclude-id="article.id" :count="3" />
 
     <!-- 评论区 - 无缝衔接 -->
-    <section class="mt-12 pt-8 border-t border-gray-200 dark:border-gray-700">
+    <section class="mt-12 pt-8 border-t border-gray-500 dark:border-gray-700">
       <CommentSection :article-id="article.id" />
     </section>
 
@@ -27,7 +30,7 @@
 
     <!-- 底部返回按钮 -->
     <div class="mt-10 mb-4 text-center">
-      <n-button @click="() => $emit('go-back')" type="primary" size="large" round>
+      <n-button @click="() => $emit('go-back')" type="info" size="large">
         <template #icon>
           <Icon name="arrow-left" size="md" />
         </template>

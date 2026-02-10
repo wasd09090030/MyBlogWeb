@@ -99,7 +99,7 @@
           :page-count="totalPages"
           :page-slot="5"
           size="medium"
-          @update:page="scrollToListTop"
+          @update:page="handleScrollToTop"
         />
         <div class="pagination-info">
           第 {{ currentPage }} 页 / 共 {{ totalPages }} 页
@@ -112,6 +112,9 @@
 <script setup>
 import { getExcerpt } from '~/utils/excerpt'
 import { useArticles } from '~/composables/useArticles'
+import { formatDate, getArticlePath } from '~/functions/Tutorials/formatters'
+import { extractAvailableTags, processArticles } from '~/functions/Tutorials/filters'
+import { scrollToListTop, handleImageError } from '~/functions/Tutorials/navigation'
 
 definePageMeta({
   name: 'tutorials',
@@ -170,32 +173,12 @@ const allTutorialArticles = computed(() => {
 
 // 2. 提取所有可用标签（排除'教程'本身，因为它在所有文章中都存在）
 const availableTags = computed(() => {
-  const tags = new Set()
-  allTutorialArticles.value.forEach(article => {
-    article.tags.forEach(tag => {
-      if (tag !== '教程') tags.add(tag)
-    })
-  })
-  return Array.from(tags).sort()
+  return extractAvailableTags(allTutorialArticles.value, '教程')
 })
 
 // 3. 根据用户选择进行筛选和排序
 const processedArticles = computed(() => {
-  let result = [...allTutorialArticles.value]
-
-  // 标签筛选
-  if (selectedTag.value !== 'all') {
-    result = result.filter(article => article.tags.includes(selectedTag.value))
-  }
-
-  // 排序
-  result.sort((a, b) => {
-    const dateA = new Date(a.createdAt)
-    const dateB = new Date(b.createdAt)
-    return sortOrder.value === 'desc' ? dateB - dateA : dateA - dateB
-  })
-
-  return result
+  return processArticles(allTutorialArticles.value, selectedTag.value, sortOrder.value)
 })
 
 // 4. 分页逻辑
@@ -226,36 +209,8 @@ const resetFilters = () => {
   currentPage.value = 1
 }
 
-const scrollToListTop = () => {
-  nextTick(() => {
-    if (articleListContainer.value) {
-      window.scrollTo({
-        top: articleListContainer.value.offsetTop - 100,
-        behavior: 'smooth'
-      })
-    }
-  })
-}
-
-const handleImageError = (event) => {
-  event.target.style.display = 'none'
-  event.target.parentElement.classList.add('image-error-fallback')
-}
-
-const getArticlePath = (article) => {
-  if (!article?.id || article.id === 'null' || article.id === 'undefined') {
-    return '/'
-  }
-  return article.slug ? `/article/${article.id}-${article.slug}` : `/article/${article.id}`
-}
-
-const formatDate = (dateString) => {
-  if (!dateString) return ''
-  return new Date(dateString).toLocaleDateString('zh-CN', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit'
-  })
+const handleScrollToTop = () => {
+  scrollToListTop(articleListContainer, 100)
 }
 
 // 生命周期

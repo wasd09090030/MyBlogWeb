@@ -1,66 +1,6 @@
 <template>
   <div class="article-list-page" ref="articleListContainer">
-    <div class="category-bar">
-      <div class="category-bar-wrapper">
-        <div class="category-list" id="category-list">
-          <NuxtLink 
-            to="/" 
-            class="category-list-item"
-            :class="{ active: !route.query.category }"
-          >
-            首页
-          </NuxtLink>
-          <NuxtLink 
-            to="/?category=study" 
-            class="category-list-item"
-            :class="{ active: route.query.category === 'study' }"
-          >
-            学习
-          </NuxtLink>
-          <NuxtLink 
-            to="/?category=game" 
-            class="category-list-item"
-            :class="{ active: route.query.category === 'game' }"
-          >
-            游戏
-          </NuxtLink>
-          <NuxtLink 
-            to="/?category=work" 
-            class="category-list-item"
-            :class="{ active: route.query.category === 'work' }"
-          >
-            个人作品
-          </NuxtLink>
-          <NuxtLink 
-            to="/?category=resource" 
-            class="category-list-item"
-            :class="{ active: route.query.category === 'resource' }"
-          >
-            资源分享
-          </NuxtLink>
-        </div>
-      </div>
-      <div class="category-bar-actions">
-        <button 
-          type="button" 
-          class="view-toggle-btn"
-          :class="{ active: isListView }"
-          @click="setViewMode('list')"
-          title="列表视图"
-        >
-          <Icon name="view-stacked" size="sm" />
-        </button>
-        <button 
-          type="button" 
-          class="view-toggle-btn"
-          :class="{ active: isGridView }"
-          @click="setViewMode('grid')"
-          title="网格视图"
-        >
-          <Icon name="grid-3x3-gap-fill" size="sm" />
-        </button>
-      </div>
-    </div>
+    <ArticleListCategoryBar :view-mode="effectiveViewMode" @update:view-mode="setViewMode" />
 
     <n-alert v-if="error" type="error" title="加载失败" class="mb-4">
       加载或操作文章失败：{{ error.message }}
@@ -91,68 +31,16 @@
       name="layout-fade"
       :class="articlesContainerClasses"
     >
-      <div
+      <ArticleListArticleCard
         v-for="(article, index) in listContext.articles"
         :key="article.id"
         v-memo="[article.id, article.title, article.coverImage, article.createdAt, article.category, listContext.currentPage, effectiveViewMode]"
-        :class="[
-          'article-card',
-          {
-            'article-card-reverse': isListView && (listContext.indexOffset + index + 1) % 2 === 0,
-            'article-card-grid': isGridView
-          }
-        ]"
-      >
-        <!-- 封面图片区域 -->
-        <div class="article-image-section">
-          <img
-            v-if="article.coverImage && article.coverImage !== 'null'"
-            :src="article.coverImage"
-            :alt="article.title"
-            class="article-image lazy-image"
-            style="height: 300px; aspect-ratio: 16/9; object-fit: cover; width: 100%;"
-            @error="handleImageError"
-            @load="handleImageLoad"
-            :loading="index < 3 ? 'eager' : 'lazy'"
-            :fetchpriority="index < 3 ? 'high' : 'low'"
-          />
-          <div v-else class="article-image-placeholder">
-            <Icon name="image" size="3xl" class="text-muted" />
-          </div>
-        </div>
-
-        <!-- 内容区域 -->
-        <div class="article-content-section">
-          <div class="article-meta mb-2">
-            <span class="article-date">{{ formatDate(article.createdAt) }}</span>
-            <span :class="['article-category', getCategoryClass(article.category)]">
-              {{ getCategoryName(article.category) }}
-            </span>
-          </div>
-
-          <NuxtLink :to="getArticleDetailRoute(article.id)" class="article-title-link">
-            <h3 class="article-title">{{ article.title }}</h3>
-          </NuxtLink>
-
-          <div class="article-excerpt">
-            <div v-html="getExcerpt(article.content)" class="article-content-preview"></div>
-          </div>
-
-          <!-- 文章标签 -->
-          <div v-if="article.tags && article.tags.length > 0" class="article-tags">
-            <span v-for="tag in article.tags" :key="tag" class="article-tag">
-              {{ tag }}
-            </span>
-          </div>
-
-          <NuxtLink :to="getArticleDetailRoute(article.id)" class="learn-more learn-more-sm">
-            <span class="circle" aria-hidden="true">
-              <span class="icon arrow"></span>
-            </span>
-            <span class="button-text">阅读全文</span>
-          </NuxtLink>
-        </div>
-      </div>
+        :article="article"
+        :index="index"
+        :is-reverse="isListView && (listContext.indexOffset + index + 1) % 2 === 0"
+        :view-mode="effectiveViewMode"
+        :route-query="currentRouteQuery"
+      />
     </TransitionGroup>
 
     <n-empty v-else :description="listContext.emptyText" class="my-5">
@@ -161,25 +49,20 @@
       </template>
     </n-empty>
 
-    <div v-if="listContext.totalPages > 1" class="pagination-container mt-4">
-      <div class="d-flex justify-content-center">
-        <n-pagination
-          v-model:page="paginationPage"
-          :page-count="listContext.totalPages"
-          :page-slot="7"
-        />
-      </div>
-
-      <div class="text-center text-muted mt-3">
-        共 {{ listContext.totalCount }} 篇文章，当前 {{ listContext.currentPage }} / {{ listContext.totalPages }} 页
-      </div>
-    </div>
+    <ArticleListArticlePagination
+      :current-page="paginationPage"
+      :total-pages="listContext.totalPages"
+      :total-count="listContext.totalCount"
+      @update:page="updatePaginationPage"
+    />
   </div>
 </template>
 
 <script setup>
-import { getExcerpt } from '~/utils/excerpt'
 import { useArticles } from '~/composables/useArticles'
+import { formatDate, getCategoryName, getCategoryClass } from '~/functions/ArticleList/formatters'
+import { buildPageNumbers, syncPageFromQuery } from '~/functions/ArticleList/pagination'
+import { scrollToListTop, updatePageState, triggerViewSwitchAnimation } from '~/functions/ArticleList/navigation'
 import '~/assets/css/components/ArticleList.styles.css'
 
 // 设置页面元数据，启用 keepalive
@@ -198,7 +81,7 @@ const route = useRoute()
 const viewMode = ref('list')
 const isSwitchingView = ref(false)
 const isMobile = ref(false)
-let viewSwitchTimer = null
+const viewSwitchTimer = { timer: null }
 
 // 检测是否为移动端
 const checkMobile = () => {
@@ -272,6 +155,23 @@ const paginationPage = computed({
   }
 })
 
+// 当前路由查询参数（传递给 ArticleCard）
+const currentRouteQuery = computed(() => {
+  const query = {}
+  if (route.query.search) {
+    query.search = route.query.search
+  }
+  if (route.query.category) {
+    query.category = route.query.category
+  }
+  return query
+})
+
+// 更新分页页码的方法
+const updatePaginationPage = (page) => {
+  paginationPage.value = page
+}
+
 const isFilteredMode = computed(() => Boolean(route.query.search || route.query.category))
 const isListView = computed(() => effectiveViewMode.value === 'list')
 const isGridView = computed(() => effectiveViewMode.value === 'grid')
@@ -325,52 +225,9 @@ const paginatedFilteredArticles = computed(() => {
   return filteredArticles.value.slice(start, start + articlesPerPage)
 })
 
-const scrollToListTop = () => {
-  nextTick(() => {
-    if (articleListContainer.value) {
-      articleListContainer.value.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    }
-  })
-}
-
-const updatePageState = (targetPage, totalRef, pageRef) => {
-  if (targetPage >= 1 && targetPage <= totalRef.value) {
-    pageRef.value = targetPage
-    scrollToListTop()
-  }
-}
-
-const goToPage = (page) => updatePageState(page, totalPages, currentPage)
-const goToFilteredPage = (page) => updatePageState(page, totalFilteredPages, currentFilteredPage)
-
-const buildPageNumbers = (total, current) => {
-  const pages = []
-  if (total <= 7) {
-    for (let i = 1; i <= total; i++) {
-      pages.push(i)
-    }
-    return pages
-  }
-
-  pages.push(1)
-  if (current > 4) {
-    pages.push('...')
-  }
-
-  const start = Math.max(2, current - 1)
-  const end = Math.min(total - 1, current + 1)
-
-  for (let i = start; i <= end; i++) {
-    pages.push(i)
-  }
-
-  if (current < total - 3) {
-    pages.push('...')
-  }
-
-  pages.push(total)
-  return pages
-}
+// 分页导航函数
+const goToPage = (page) => updatePageState(page, totalPages, currentPage, articleListContainer)
+const goToFilteredPage = (page) => updatePageState(page, totalFilteredPages, currentFilteredPage, articleListContainer)
 
 const getPageNumbers = () => buildPageNumbers(totalPages.value, currentPage.value)
 const getFilteredPageNumbers = () => buildPageNumbers(totalFilteredPages.value, currentFilteredPage.value)
@@ -404,119 +261,25 @@ const listContext = computed(() => {
   }
 })
 
-const getArticlePath = (article) => {
-  if (!article?.id || article.id === 'null' || article.id === 'undefined') {
-    return '/'
-  }
-  return article.slug ? `/article/${article.id}-${article.slug}` : `/article/${article.id}`
-}
-
-const articleRoutesMap = computed(() => {
-  const query = {}
-  if (route.query.search) {
-    query.search = route.query.search
-  }
-  if (route.query.category) {
-    query.category = route.query.category
-  }
-
-  const routesMap = new Map()
-  listContext.value.articles.forEach(article => {
-    routesMap.set(article.id, {
-      path: getArticlePath(article),
-      query: { ...query }
-    })
-  })
-
-  return routesMap
-})
-
-const getCategoryName = (category) => {
-  if (!category) return '其他'
-  const lowerCategory = category.toLowerCase()
-  const categoryMap = {
-    'study': '学习笔记',
-    'game': '游戏评测',
-    'work': '个人作品',
-    'resource': '资源分享'
-  }
-  return categoryMap[lowerCategory] || '其他/杂谈'
-}
-
-const getCategoryClass = (category) => {
-  if (!category) return 'category-other'
-  const lowerCategory = category.toLowerCase()
-  const categoryClassMap = {
-    'study': 'category-study',
-    'game': 'category-game',
-    'work': 'category-work',
-    'resource': 'category-resource'
-  }
-  return categoryClassMap[lowerCategory] || 'category-other'
-}
-
 
 const clearSearch = () => {
   navigateTo({ path: '/' })
-}
-
-const triggerViewSwitchAnimation = () => {
-  isSwitchingView.value = true
-  if (viewSwitchTimer) {
-    clearTimeout(viewSwitchTimer)
-  }
-  viewSwitchTimer = setTimeout(() => {
-    isSwitchingView.value = false
-    viewSwitchTimer = null
-  }, 480)
 }
 
 const setViewMode = (mode) => {
   if (mode !== 'list' && mode !== 'grid') return
   if (viewMode.value === mode) return
   viewMode.value = mode
-  triggerViewSwitchAnimation()
+  triggerViewSwitchAnimation(isSwitchingView, viewSwitchTimer)
 }
 
-const getArticleDetailRoute = (articleId) => {
-  if (!articleId || articleId === 'null' || articleId === 'undefined') {
-    console.warn('ArticleList: 无效的 articleId:', articleId)
-    return { path: '/' }
-  }
-  return articleRoutesMap.value.get(articleId) || { path: getArticlePath({ id: articleId }), query: {} }
-}
-
-const handleImageError = (event) => {
-  event.target.style.display = 'none'
-}
-
-const handleImageLoad = (event) => {
-  event.target.classList.add('lazy-loaded')
-}
-
-function formatDate(dateString) {
-  if (!dateString) return '未知日期'
-  const date = new Date(dateString)
-  return date.toLocaleDateString('zh-CN', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
+const handleSyncPageFromQuery = (pageParam) => {
+  syncPageFromQuery(pageParam, isFilteredMode.value, {
+    currentFilteredPage,
+    totalFilteredPages,
+    currentPage,
+    totalPages
   })
-}
-
-const syncPageFromQuery = (pageParam) => {
-  const pageNum = parseInt(pageParam)
-  if (isNaN(pageNum) || pageNum <= 0) {
-    return
-  }
-
-  if (isFilteredMode.value) {
-    if (pageNum <= totalFilteredPages.value) {
-      currentFilteredPage.value = pageNum
-    }
-  } else if (pageNum <= totalPages.value) {
-    currentPage.value = pageNum
-  }
 }
 
 watch(
@@ -526,7 +289,7 @@ watch(
     currentPage.value = 1
     currentFilteredPage.value = 1
     await fetchArticles()
-    syncPageFromQuery(route.query.page)
+    handleSyncPageFromQuery(route.query.page)
   }
 )
 
@@ -575,7 +338,7 @@ onMounted(async () => {
   }
   
   await fetchArticles()
-  syncPageFromQuery(route.query.page)
+  handleSyncPageFromQuery(route.query.page)
 })
 
 onActivated(() => {
@@ -591,8 +354,8 @@ onDeactivated(() => {
 })
 
 onBeforeUnmount(() => {
-  if (viewSwitchTimer) {
-    clearTimeout(viewSwitchTimer)
+  if (viewSwitchTimer.timer) {
+    clearTimeout(viewSwitchTimer.timer)
   }
   // 移除窗口大小监听
   if (import.meta.client) {
