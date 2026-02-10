@@ -56,12 +56,10 @@ export const useAdminArticles = () => {
   // 创建文章
   const createArticle = async (articleData) => {
     try {
-      const result = await $fetch(`${baseURL}/articles`, {
+      return await authStore.authFetch('/articles', {
         method: 'POST',
-        headers: authStore.authHeaders,
         body: articleData
       })
-      return result
     } catch (error) {
       console.error('创建文章失败:', error)
       throw error
@@ -71,12 +69,10 @@ export const useAdminArticles = () => {
   // 更新文章
   const updateArticle = async (id, articleData) => {
     try {
-      const result = await $fetch(`${baseURL}/articles/${id}`, {
+      return await authStore.authFetch(`/articles/${id}`, {
         method: 'PUT',
-        headers: authStore.authHeaders,
         body: articleData
       })
-      return result
     } catch (error) {
       console.error('更新文章失败:', error)
       throw error
@@ -86,11 +82,9 @@ export const useAdminArticles = () => {
   // 删除文章
   const deleteArticle = async (id) => {
     try {
-      const result = await $fetch(`${baseURL}/articles/${id}`, {
-        method: 'DELETE',
-        headers: authStore.authHeaders
+      return await authStore.authFetch(`/articles/${id}`, {
+        method: 'DELETE'
       })
-      return result
     } catch (error) {
       console.error('删除文章失败:', error)
       throw error
@@ -100,12 +94,10 @@ export const useAdminArticles = () => {
   // 生成 AI 概要
   const generateAiSummary = async (content) => {
     try {
-      const result = await $fetch(`${baseURL}/ai/generate-summary`, {
+      return await authStore.authFetch('/ai/generate-summary', {
         method: 'POST',
-        headers: authStore.authHeaders,
         body: { content }
       })
-      return result
     } catch (error) {
       console.error('生成 AI 概要失败:', error)
       throw error

@@ -1,7 +1,5 @@
 // 图床管理 composable
 export const useImagebed = () => {
-  const config = useRuntimeConfig()
-  const baseURL = config.public.apiBase
   const authStore = useAuthStore()
 
   // ==================== 配置管理 ====================
@@ -11,10 +9,7 @@ export const useImagebed = () => {
    */
   const getConfig = async () => {
     try {
-      const result = await $fetch(`${baseURL}/imagebed/config`, {
-        headers: authStore.authHeaders
-      })
-      return result
+      return await authStore.authFetch('/imagebed/config')
     } catch (error) {
       console.error('获取图床配置失败:', error)
       throw error
@@ -27,12 +22,10 @@ export const useImagebed = () => {
    */
   const saveConfig = async (configData) => {
     try {
-      const result = await $fetch(`${baseURL}/imagebed/config`, {
+      return await authStore.authFetch('/imagebed/config', {
         method: 'POST',
-        headers: authStore.authHeaders,
         body: configData
       })
-      return result
     } catch (error) {
       console.error('保存图床配置失败:', error)
       throw error

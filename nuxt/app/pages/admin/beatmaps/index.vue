@@ -264,9 +264,8 @@ const handleUpload = async ({ file, onError, onFinish }) => {
       throw new Error('未找到 .osu 文件')
     }
 
-    await $fetch(`${baseURL}/beatmaps/import`, {
+    await authStore.authFetch('/beatmaps/import', {
       method: 'POST',
-      headers: authStore.authHeaders,
       body: {
         sourceFileName: file.file.name,
         storageKey,
@@ -296,9 +295,8 @@ const handleDelete = async () => {
   if (!setToDelete.value) return
   deleting.value = true
   try {
-    await $fetch(`${baseURL}/beatmaps/${setToDelete.value.id}`, {
-      method: 'DELETE',
-      headers: authStore.authHeaders
+    await authStore.authFetch(`/beatmaps/${setToDelete.value.id}`, {
+      method: 'DELETE'
     })
     message.success('谱面已删除')
     showDeleteModal.value = false

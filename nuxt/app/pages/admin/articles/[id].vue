@@ -341,9 +341,8 @@ const generateAiSummary = async () => {
   isGeneratingAi.value = true
   
   try {
-    const response = await $fetch(`${baseURL}/ai/summary`, {
+    const response = await authStore.authFetch('/ai/summary', {
       method: 'POST',
-      headers: authStore.authHeaders,
       body: {
         content: articleForm.value.contentMarkdown,
         title: articleForm.value.title || '未命名文章'

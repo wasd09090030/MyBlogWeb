@@ -1,16 +1,11 @@
 // Admin 评论相关 composable
 export const useAdminComments = () => {
-  const config = useRuntimeConfig()
-  const baseURL = config.public.apiBase
   const authStore = useAuthStore()
 
   // 获取所有评论
   const getAllComments = async () => {
     try {
-      const result = await $fetch(`${baseURL}/comments/admin/all`, {
-        headers: authStore.authHeaders
-      })
-      return result
+      return await authStore.authFetch('/comments/admin/all')
     } catch (error) {
       console.error('获取评论失败:', error)
       throw error
@@ -20,10 +15,7 @@ export const useAdminComments = () => {
   // 获取待审核评论
   const getPendingComments = async () => {
     try {
-      const result = await $fetch(`${baseURL}/comments/admin/pending`, {
-        headers: authStore.authHeaders
-      })
-      return result
+      return await authStore.authFetch('/comments/admin/pending')
     } catch (error) {
       console.error('获取待审核评论失败:', error)
       throw error
@@ -33,12 +25,10 @@ export const useAdminComments = () => {
   // 更新评论状态
   const updateCommentStatus = async (commentId, status) => {
     try {
-      const result = await $fetch(`${baseURL}/comments/${commentId}/status`, {
+      return await authStore.authFetch(`/comments/${commentId}/status`, {
         method: 'PATCH',
-        headers: authStore.authHeaders,
         body: { status }
       })
-      return result
     } catch (error) {
       console.error('更新评论状态失败:', error)
       throw error
@@ -48,11 +38,9 @@ export const useAdminComments = () => {
   // 删除评论
   const deleteComment = async (commentId) => {
     try {
-      const result = await $fetch(`${baseURL}/comments/${commentId}`, {
-        method: 'DELETE',
-        headers: authStore.authHeaders
+      return await authStore.authFetch(`/comments/${commentId}`, {
+        method: 'DELETE'
       })
-      return result
     } catch (error) {
       console.error('删除评论失败:', error)
       throw error
