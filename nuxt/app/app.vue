@@ -62,11 +62,12 @@ useHead({
   ]
 })
 
-// 初始化认证状态
+// 初始化认证状态（立即执行，不等待挂载）
 const authStore = useAuthStore()
-onMounted(() => {
+if (import.meta.client) {
+  // 立即初始化，不等待 onMounted
   authStore.initialize()
-})
+}
 
 // 添加路由守卫，处理从 gallery 页面离开时恢复滚动
 const router = useRouter()

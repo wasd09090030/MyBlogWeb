@@ -170,6 +170,10 @@ import AccordionGallery from '../components/gallery/AccordionGallery.vue'
 import CoverflowGallery from '../components/gallery/CoverflowGallery.vue'
 import MasonryWaterfall from '../components/gallery/MasonryWaterfall.vue'
 import GameGallerySection from '../components/gallery/GameGallerySection.vue'
+import { preloadAllImages, ensureMinLoadingTime } from '~/functions/Gallery/imageLoader'
+import { zoomIn as zoomInFn, zoomOut as zoomOutFn, resetZoom as resetZoomFn, handleWheel as handleWheelFn, createDragHandler } from '~/functions/Gallery/zoomAndDrag'
+import { initSliders, destroySliders, getGallerySlice as getSlice } from '~/functions/Gallery/sliderManager'
+import { normalizeTag, bodyScrollManager } from '~/functions/Gallery/utils'
 
 // 设置页面元数据
 useHead({
@@ -208,9 +212,10 @@ const fullscreenContent = ref(null)
 // 全屏查看相关状态
 const imageScale = ref(1)
 const imagePosition = ref({ x: 0, y: 0 })
-const isDragging = ref(false)
-const dragStart = ref({ x: 0, y: 0 })
-const lastPosition = ref({ x: 0, y: 0 })
+
+// 使用拖拽处理器
+const dragHandler = createDragHandler()
+const { isDragging } = dragHandler
 
 // 计算图片变换样式
 const imageTransformStyle = computed(() => ({
@@ -221,11 +226,6 @@ const imageTransformStyle = computed(() => ({
 // API composable
 const { getGalleries } = useGallery()
 
-const normalizeTag = (tag) => {
-  if (!tag) return 'artwork'
-  return String(tag).trim().toLowerCase()
-}
-
 const artworkGalleries = computed(() => galleries.value.filter(gallery => normalizeTag(gallery.tag) === 'artwork'))
 const gameGalleries = computed(() => galleries.value.filter(gallery => normalizeTag(gallery.tag) === 'game'))
 
@@ -234,80 +234,38 @@ const setActiveTag = (tag) => {
   activeTag.value = tag
 }
 
-// 预加载图片
-const preloadImage = (src) => {
-  return new Promise((resolve, reject) => {
-    const img = new Image()
-    img.onload = () => {
-      loadedImagesCount.value++
-      loadingProgress.value = (loadedImagesCount.value / totalImagesToLoad.value) * 100
-      resolve(img)
-    }
-    img.onerror = reject
-    img.src = src
-  })
-}
-
 // 预加载所有图片
-const preloadAllImages = async () => {
+const preloadAllImagesHandler = async () => {
   if (galleries.value.length === 0) return
 
-  // 只预加载前15张图片（用于 FadeSlideshow, AccordionGallery, CoverflowGallery）
-  // 瀑布流的图片使用浏览器原生懒加载
-  const imagesToPreload = galleries.value.slice(0, 15)
-  
-  // 设置总数（只计算需要预加载的图片）
-  totalImagesToLoad.value = imagesToPreload.length
-  loadedImagesCount.value = 0
-  loadingProgress.value = 0
-
-  // 选择前几张作为预览
-  previewImages.value = galleries.value.slice(0, 3)
+  const loadingState = {
+    loadedImagesCount,
+    totalImagesToLoad
+  }
 
   try {
-    // 并发加载图片，但限制并发数量
-    const concurrencyLimit = 5
-    const chunks = []
+    await preloadAllImages(
+      galleries.value,
+      loadingState,
+      loadingProgress,
+      previewImages,
+      15, // 预加载数量
+      5   // 并发限制
+    )
 
-    for (let i = 0; i < imagesToPreload.length; i += concurrencyLimit) {
-      chunks.push(imagesToPreload.slice(i, i + concurrencyLimit))
-    }
+    await ensureMinLoadingTime(startTime, 2000)
 
-    for (const chunk of chunks) {
-      await Promise.allSettled(
-        chunk.map(gallery => preloadImage(gallery.imageUrl))
-      )
-    }
-
-    // 确保至少显示2秒的加载动画
-    const minLoadingTime = 2000
-    const elapsedTime = Date.now() - startTime
-    if (elapsedTime < minLoadingTime) {
-      await new Promise(resolve => setTimeout(resolve, minLoadingTime - elapsedTime))
-    }
-
-    // 等待进度条到达100%的视觉效果
-    loadingProgress.value = 100
-    await new Promise(resolve => setTimeout(resolve, 300))
-
-    // 加载完成，先标记加载完成，让 Transition 处理过渡
     isInitialLoading.value = false
-    
-    // 等待 Vue 更新 DOM 和过渡动画开始
     await nextTick()
-    
-    // 延迟初始化 Slider，等待画廊内容完全渲染
     setTimeout(() => {
-      initSliders()
+      initGallerySliders()
     }, 100)
-
   } catch (error) {
     console.error('预加载图片失败:', error)
-    // 即使失败也要显示画廊
     isInitialLoading.value = false
     await nextTick()
     setTimeout(() => {
-      initSliders()
+      initGallerySliders()
     }, 100)
   }
 }
@@ -326,7 +284,7 @@ const fetchGalleries = async () => {
 
     if (galleries.value.length > 0) {
       loading.value = false
-      await preloadAllImages()
+      await preloadAllImagesHandler()
     } else {
       loading.value = false
       isInitialLoading.value = false
@@ -339,49 +297,20 @@ const fetchGalleries = async () => {
   }
 }
 
-// 获取指定范围的图片
+// 获取指定范围的图片（包装函数）
 const getGallerySlice = (start, end) => {
-  const allGalleries = artworkGalleries.value
-  if (allGalleries.length === 0) return []
-
-  // 如果图片不够，重复使用现有图片
-  const result = []
-  for (let i = start; i < end; i++) {
-    const index = i % allGalleries.length
-    result.push(allGalleries[index])
-  }
-  return result
+  return getSlice(artworkGalleries.value, start, end)
 }
 
 // 初始化所有子组件的 Slider
-const initSliders = async () => {
-  await nextTick()
-
-  if (activeTag.value === 'artwork' && artworkGalleries.value.length > 0 && !isInitialLoading.value) {
-    // 使用 requestAnimationFrame 确保 DOM 完全渲染
-    requestAnimationFrame(() => {
-      setTimeout(async () => {
-        // 按顺序初始化，先初始化主要的幻灯片
-        if (fadeSlideshowRef.value) {
-          await fadeSlideshowRef.value.initSlider()
-        }
-        
-        // 稍后初始化其他 Slider
-        setTimeout(async () => {
-          if (accordionGalleryRef.value) {
-            await accordionGalleryRef.value.initSlider()
-          }
-          if (coverflowGalleryRef.value) {
-            await coverflowGalleryRef.value.initSlider()
-          }
-          // 初始化瀑布流
-          if (masonryWaterfallRef.value) {
-            await masonryWaterfallRef.value.initLayout()
-          }
-        }, 200)
-      }, 150)
-    })
+const initGallerySliders = async () => {
+  const refs = {
+    fadeSlideshowRef,
+    accordionGalleryRef,
+    coverflowGalleryRef,
+    masonryWaterfallRef
   }
+  await initSliders(refs, activeTag.value, artworkGalleries.value.length, isInitialLoading.value)
 }
 
 // 打开全屏查看
@@ -413,136 +342,50 @@ const onGalleryVisible = () => {
 }
 
 // 缩放相关方法
-const zoomIn = () => {
-  if (imageScale.value < 3) {
-    imageScale.value = Math.min(3, imageScale.value + 0.25)
-  }
-}
-
-const zoomOut = () => {
-  if (imageScale.value > 0.5) {
-    imageScale.value = Math.max(0.5, imageScale.value - 0.25)
-    // 缩小时逐渐回到中心
-    if (imageScale.value <= 1) {
-      imagePosition.value = { x: 0, y: 0 }
-    }
-  }
-}
-
-const resetZoom = () => {
-  imageScale.value = 1
-  imagePosition.value = { x: 0, y: 0 }
-}
-
-// 滚轮缩放
-const handleWheel = (e) => {
-  const delta = e.deltaY > 0 ? -0.1 : 0.1
-  const newScale = Math.max(0.5, Math.min(3, imageScale.value + delta))
-  imageScale.value = newScale
-  
-  if (newScale <= 1) {
-    imagePosition.value = { x: 0, y: 0 }
-  }
-}
+const zoomIn = () => zoomInFn(imageScale)
+const zoomOut = () => zoomOutFn(imageScale, imagePosition)
+const resetZoom = () => resetZoomFn(imageScale, imagePosition)
+const handleWheel = (e) => handleWheelFn(e, imageScale, imagePosition)
 
 // 拖拽相关方法
-const startDrag = (e) => {
-  if (imageScale.value <= 1) return
-  
-  isDragging.value = true
-  const clientX = e.type === 'touchstart' ? e.touches[0].clientX : e.clientX
-  const clientY = e.type === 'touchstart' ? e.touches[0].clientY : e.clientY
-  
-  dragStart.value = { x: clientX, y: clientY }
-  lastPosition.value = { ...imagePosition.value }
-  
-  document.addEventListener('mousemove', onDrag)
-  document.addEventListener('mouseup', stopDrag)
-  document.addEventListener('touchmove', onDrag)
-  document.addEventListener('touchend', stopDrag)
-}
-
-const onDrag = (e) => {
-  if (!isDragging.value) return
-  
-  const clientX = e.type === 'touchmove' ? e.touches[0].clientX : e.clientX
-  const clientY = e.type === 'touchmove' ? e.touches[0].clientY : e.clientY
-  
-  const deltaX = clientX - dragStart.value.x
-  const deltaY = clientY - dragStart.value.y
-  
-  imagePosition.value = {
-    x: lastPosition.value.x + deltaX,
-    y: lastPosition.value.y + deltaY
-  }
-}
-
-const stopDrag = () => {
-  isDragging.value = false
-  document.removeEventListener('mousemove', onDrag)
-  document.removeEventListener('mouseup', stopDrag)
-  document.removeEventListener('touchmove', onDrag)
-  document.removeEventListener('touchend', stopDrag)
-}
+const startDrag = (e) => dragHandler.startDrag(e, imageScale, imagePosition)
 
 // 返回文章区域
 const goBack = () => {
-  // 在路由跳转前恢复 body 滚动
-  document.body.style.overflow = ''
-  document.body.style.removeProperty('overflow')
+  bodyScrollManager.restore()
   navigateTo('/')
 }
 
 // 销毁所有子组件的 Slider 实例
-const destroySliders = () => {
-  if (fadeSlideshowRef.value) {
-    fadeSlideshowRef.value.destroySlider()
+const destroyGallerySliders = () => {
+  const refs = {
+    fadeSlideshowRef,
+    accordionGalleryRef,
+    coverflowGalleryRef,
+    masonryWaterfallRef
   }
-  if (accordionGalleryRef.value) {
-    accordionGalleryRef.value.destroySlider()
-  }
-  if (coverflowGalleryRef.value) {
-    coverflowGalleryRef.value.destroySlider()
-  }
-  if (masonryWaterfallRef.value) {
-    masonryWaterfallRef.value.destroyLayout()
-  }
+  destroySliders(refs)
 }
 
 watch(activeTag, async (tag) => {
   if (isInitialLoading.value || galleries.value.length === 0) return
   if (tag === 'artwork') {
     await nextTick()
-    initSliders()
+    initGallerySliders()
     return
   }
-  destroySliders()
+  destroyGallerySliders()
 })
 
 // 生命周期钩子
 onMounted(async () => {
-  // 保存原始的 overflow 值
-  const originalOverflow = document.body.style.overflow
-  // 隐藏body滚动条，因为画廊组件自己处理滚动
-  document.body.style.overflow = 'hidden'
-
-  // 保存原始值到组件实例，以便恢复
-  if (!window.__galleryOriginalOverflow) {
-    window.__galleryOriginalOverflow = originalOverflow || ''
-  }
-
+  bodyScrollManager.disable()
   await fetchGalleries()
 })
 
 onUnmounted(() => {
-  destroySliders()
-  // 恢复body滚动条 - 使用多种方式确保恢复
-  document.body.style.overflow = window.__galleryOriginalOverflow || ''
-  if (!window.__galleryOriginalOverflow) {
-    document.body.style.removeProperty('overflow')
-  }
-  // 清理标记
-  delete window.__galleryOriginalOverflow
+  destroyGallerySliders()
+  bodyScrollManager.restore()
 })
 </script>
 

@@ -81,8 +81,8 @@ const login = async () => {
 }
 
 // 如果已登录，跳转到仪表板
-onMounted(() => {
-  authStore.initialize()
+onMounted(async () => {
+  await authStore.initialize()
   if (authStore.isAdmin) {
     router.push('/admin')
   }
