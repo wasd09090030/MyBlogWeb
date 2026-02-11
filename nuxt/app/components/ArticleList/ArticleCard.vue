@@ -111,11 +111,23 @@ const handleMouseEnter = async () => {
   if (preloadTriggered) return
   preloadTriggered = true
   
-  // 预加载文章详情页的组件和数据
+  // 🔥 并行：预加载路由组件 + Worker 预取文章数据
+  const articleId = props.article?.id
+  const { $workerPrefetch } = useNuxtApp()
+
   try {
-    await preloadRouteComponents(getArticlePath(props.article))
+    const tasks = [
+      preloadRouteComponents(getArticlePath(props.article)).catch(() => {})
+    ]
+
+    // 通过 Worker 预取文章数据（不阻塞主线程）
+    if ($workerPrefetch && articleId) {
+      tasks.push($workerPrefetch.prefetchArticle(String(articleId)).catch(() => {}))
+    }
+
+    await Promise.all(tasks)
   } catch (e) {
-    console.warn('预加载路由组件失败:', e)
+    // 预加载失败不影响用户体验
   }
 }
 

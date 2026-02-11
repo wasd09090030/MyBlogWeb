@@ -170,7 +170,7 @@ import AccordionGallery from '../components/gallery/AccordionGallery.vue'
 import CoverflowGallery from '../components/gallery/CoverflowGallery.vue'
 import MasonryWaterfall from '../components/gallery/MasonryWaterfall.vue'
 import GameGallerySection from '../components/gallery/GameGallerySection.vue'
-import { preloadAllImages, ensureMinLoadingTime } from '~/functions/Gallery/imageLoader'
+import { preloadAllImages, preloadAllImagesWithWorker, ensureMinLoadingTime } from '~/functions/Gallery/imageLoader'
 import { zoomIn as zoomInFn, zoomOut as zoomOutFn, resetZoom as resetZoomFn, handleWheel as handleWheelFn, createDragHandler } from '~/functions/Gallery/zoomAndDrag'
 import { initSliders, destroySliders, getGallerySlice as getSlice } from '~/functions/Gallery/sliderManager'
 import { normalizeTag, bodyScrollManager } from '~/functions/Gallery/utils'
@@ -234,7 +234,7 @@ const setActiveTag = (tag) => {
   activeTag.value = tag
 }
 
-// 预加载所有图片
+// 预加载所有图片（优先使用 Web Worker）
 const preloadAllImagesHandler = async () => {
   if (galleries.value.length === 0) return
 
@@ -244,7 +244,8 @@ const preloadAllImagesHandler = async () => {
   }
 
   try {
-    await preloadAllImages(
+    // 🔥 优先使用 Worker 并行预加载（在独立线程中 fetch + decode）
+    await preloadAllImagesWithWorker(
       galleries.value,
       loadingState,
       loadingProgress,
@@ -253,7 +254,8 @@ const preloadAllImagesHandler = async () => {
       5   // 并发限制
     )
 
-    await ensureMinLoadingTime(startTime, 2000)
+    // 最小展示时间从 2000ms 降低到 800ms，Worker 模式加载更快
+    await ensureMinLoadingTime(startTime, 800)
 
     isInitialLoading.value = false
     await nextTick()

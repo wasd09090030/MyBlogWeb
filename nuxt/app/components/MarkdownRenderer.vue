@@ -57,6 +57,10 @@
 
 <script setup>
 import { parseMarkdown } from '@nuxtjs/mdc/runtime'
+import { useMarkdownWorker } from '~/composables/useMarkdownWorker'
+
+// Worker 预处理（TOC 提取、Mermaid 检测等在 Worker 线程执行）
+const { preprocessMarkdown } = useMarkdownWorker()
 
 const props = defineProps({
   markdown: {
@@ -309,23 +313,35 @@ const parseContent = async () => {
 
   loading.value = true
   error.value = null
-  
-  // 并行：预加载 Mermaid（如果需要）
-  preloadMermaid()
 
   try {
-    const result = await parseMarkdown(props.markdown)
+    // 🔥 并行执行：Worker 预处理 + 主线程 Markdown 解析
+    // Worker 线程：TOC 提取、Mermaid 检测、文本统计（不阻塞主线程）
+    // 主线程：parseMarkdown AST 生成（必须在主线程）
+    const [preprocessed, result] = await Promise.all([
+      preprocessMarkdown(props.markdown).catch(() => null),
+      parseMarkdown(props.markdown)
+    ])
+
     ast.value = result
-    
-    // 立即向父组件发送 TOC 数据（不等待 DOM）
+
+    // Worker 预处理的 TOC 通常比 parseMarkdown 更快就绪
+    // 优先使用 parseMarkdown 的 TOC（更准确），降级到 Worker 版本
     if (result.toc) {
       emit('toc-ready', result.toc)
+    } else if (preprocessed?.toc) {
+      // Worker 提取的快速 TOC 作为后备
+      emit('toc-ready', { links: preprocessed.toc })
     }
-    
-    // 等待 DOM 更新后渲染 Mermaid（带重试机制）
-    nextTick(() => {
-      tryRenderMermaid()
-    })
+
+    // 使用 Worker 的 Mermaid 检测结果决定是否需要渲染
+    const hasMermaid = preprocessed?.codeBlocks?.hasMermaid
+      ?? props.markdown?.includes('```mermaid')
+
+    if (hasMermaid) {
+      // 使用 requestIdleCallback 延迟渲染 Mermaid，避免阻塞主线程
+      scheduleIdleTask(() => tryRenderMermaid())
+    }
   } catch (e) {
     console.error('Markdown 解析失败:', e)
     error.value = e.message || '内容解析失败'
@@ -335,10 +351,22 @@ const parseContent = async () => {
   }
 }
 
-// Mermaid 渲染重试机制
+/**
+ * 使用 requestIdleCallback 调度空闲任务
+ * 降级到 setTimeout（兼容 Safari）
+ */
+function scheduleIdleTask(callback, timeout = 2000) {
+  if (typeof requestIdleCallback === 'function') {
+    requestIdleCallback(callback, { timeout })
+  } else {
+    setTimeout(callback, 16)
+  }
+}
+
+// Mermaid 渲染重试机制（使用 requestIdleCallback 优化）
 let mermaidRetryCount = 0
-const MAX_MERMAID_RETRIES = 5
-const MERMAID_RETRY_DELAY = 200
+const MAX_MERMAID_RETRIES = 3
+const MERMAID_RETRY_DELAY = 300
 
 async function tryRenderMermaid() {
   // 检查是否有 mermaid 内容需要渲染
@@ -346,11 +374,11 @@ async function tryRenderMermaid() {
   
   const result = await renderMermaidDiagrams()
   
-  // 如果没找到图表且还有重试次数，继续尝试
+  // 如果没找到图表且还有重试次数，使用 requestIdleCallback 延迟重试
   if (result === 0 && mermaidRetryCount < MAX_MERMAID_RETRIES) {
     mermaidRetryCount++
-    console.log(`[Mermaid] 未找到图表，${MERMAID_RETRY_DELAY}ms 后重试 (${mermaidRetryCount}/${MAX_MERMAID_RETRIES})`)
-    setTimeout(tryRenderMermaid, MERMAID_RETRY_DELAY)
+    console.log(`[Mermaid] 未找到图表，空闲时重试 (${mermaidRetryCount}/${MAX_MERMAID_RETRIES})`)
+    scheduleIdleTask(tryRenderMermaid, MERMAID_RETRY_DELAY)
   } else {
     mermaidRetryCount = 0 // 重置计数
   }
@@ -371,7 +399,7 @@ watch(() => [props.markdown, props.precomputedAst], () => {
     } else if (props.precomputedAst.toc) {
       emit('toc-ready', props.precomputedAst.toc)
     }
-    nextTick(() => tryRenderMermaid())
+    nextTick(() => scheduleIdleTask(() => tryRenderMermaid()))
     return
   }
   
@@ -392,9 +420,9 @@ onMounted(() => {
       emit('toc-ready', props.precomputedAst.toc)
     }
     
-    // 仍然需要渲染 Mermaid（客户端专属）
+    // 使用 requestIdleCallback 延迟渲染 Mermaid（不阻塞首屏）
     nextTick(() => {
-      tryRenderMermaid()
+      scheduleIdleTask(() => tryRenderMermaid())
     })
     return
   }

@@ -223,8 +223,10 @@
 import { ref, watch, onBeforeUnmount } from 'vue'
 import { useMessage } from 'naive-ui'
 import imageCompression from 'browser-image-compression'
+import { useImageProcessorWorker } from '~/composables/useImageProcessorWorker'
 
 const message = useMessage()
+const { convertImage: workerConvert, checkSupport: workerCheckSupport, isAvailable: isWorkerAvailable } = useImageProcessorWorker()
 
 // Refs
 const fileInput = ref(null)
@@ -355,6 +357,14 @@ function getFileExtension(format) {
 async function checkFormatSupport(format) {
   if (format === 'png' || format === 'jpeg') return true
 
+  // 优先使用 Worker 检测（更准确，不阻塞主线程）
+  if (isWorkerAvailable()) {
+    try {
+      const support = await workerCheckSupport()
+      return support.formats[format] || false
+    } catch { /* fall through */ }
+  }
+
   const canvas = document.createElement('canvas')
   canvas.width = 1
   canvas.height = 1
@@ -362,7 +372,7 @@ async function checkFormatSupport(format) {
   return dataUrl.startsWith(`data:${getMimeType(format)}`)
 }
 
-// Convert image format
+// Convert image format（Worker 加速，自动降级）
 async function convertImage() {
   if (!sourceFile.value) return
 
@@ -378,31 +388,17 @@ async function convertImage() {
       convertSettings.value.format = 'webp'
     }
 
-    const mimeType = getMimeType(convertSettings.value.format)
     const quality = convertSettings.value.quality / 100
 
-    // Load image and draw to canvas
-    const img = new Image()
-    img.src = sourceImage.value
-
-    await new Promise((resolve) => {
-      img.onload = resolve
+    // 使用 Worker 进行格式转换（OffscreenCanvas），自动降级到主线程
+    const result = await workerConvert(sourceFile.value, {
+      format: convertSettings.value.format,
+      quality
     })
 
-    const canvas = document.createElement('canvas')
-    canvas.width = img.width
-    canvas.height = img.height
-    const ctx = canvas.getContext('2d')
-    ctx.drawImage(img, 0, 0)
-
-    // Convert to blob
-    const blob = await new Promise((resolve) => {
-      canvas.toBlob(resolve, mimeType, quality)
-    })
-
-    outputBlob.value = blob
-    outputSize.value = blob.size
-    outputImage.value = URL.createObjectURL(blob)
+    outputBlob.value = result.blob
+    outputSize.value = result.size
+    outputImage.value = URL.createObjectURL(result.blob)
 
     message.success('格式转换完成')
   } catch (error) {
@@ -468,19 +464,12 @@ async function compressImage() {
     let finalBlob = compressedFile
 
     if (compressedFile.type !== mimeType) {
-      const img = new Image()
-      img.src = URL.createObjectURL(compressedFile)
-      await new Promise(resolve => { img.onload = resolve })
-
-      const canvas = document.createElement('canvas')
-      canvas.width = img.width
-      canvas.height = img.height
-      const ctx = canvas.getContext('2d')
-      ctx.drawImage(img, 0, 0)
-
-      finalBlob = await new Promise(resolve => {
-        canvas.toBlob(resolve, mimeType, compressSettings.value.quality / 100)
+      // 使用 Worker 进行格式转换（OffscreenCanvas），自动降级
+      const result = await workerConvert(compressedFile, {
+        format: compressSettings.value.format,
+        quality: compressSettings.value.quality / 100
       })
+      finalBlob = result.blob
     }
 
     outputBlob.value = finalBlob

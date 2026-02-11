@@ -178,6 +178,10 @@ export default defineNuxtConfig({
 
   // Vite配置 - 深度优化
   vite: {
+    // Web Worker 配置
+    worker: {
+      format: 'es'
+    },
     optimizeDeps: {
       include: [
         'vue',

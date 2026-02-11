@@ -1,7 +1,12 @@
 // 全局文章数据缓存 - 消除多组件重复请求
 // 使用Nuxt的useState实现跨组件共享缓存
+// 🔥 集成 Web Worker 搜索引擎
+
+import { useSearchWorker } from '~/composables/useSearchWorker'
 
 export const useArticleCache = () => {
+  // 搜索 Worker（客户端且非 SSR 时启用）
+  const searchWorker = process.client ? useSearchWorker() : null
   // 获取 API 基础 URL 的辅助函数（确保在正确的上下文中获取）
   const getBaseURL = () => {
     const config = useRuntimeConfig()
@@ -104,6 +109,11 @@ export const useArticleCache = () => {
       articlesCache.value = allArticles
       articlesCacheTime.value = Date.now()
 
+      // 🔥 在 Worker 线程构建搜索索引（不阻塞主线程）
+      if (searchWorker && allArticles.length > 0) {
+        searchWorker.buildIndex(allArticles).catch(() => {})
+      }
+
       return allArticles
     } catch (error) {
       console.error('获取文章缓存失败:', error)
@@ -147,7 +157,7 @@ export const useArticleCache = () => {
     return articlesCache.value.filter(a => a.category === category)
   }
 
-  // 搜索文章（客户端搜索，减少API调用）
+  // 搜索文章（🔥 优先使用 Worker 线程搜索，不阻塞主线程）
   const searchArticlesLocal = (keyword) => {
     if (!articlesCache.value || !keyword) return []
     const lowerKeyword = keyword.toLowerCase()
@@ -156,6 +166,30 @@ export const useArticleCache = () => {
       article.summary?.toLowerCase().includes(lowerKeyword) ||
       article.tags?.some(tag => tag.toLowerCase().includes(lowerKeyword))
     )
+  }
+
+  // 🔥 Worker 加速搜索（异步版本，大数据量时使用）
+  const searchArticlesAsync = async (keyword) => {
+    if (!articlesCache.value || !keyword) return []
+    if (searchWorker) {
+      return searchWorker.search(articlesCache.value, keyword)
+    }
+    return searchArticlesLocal(keyword)
+  }
+
+  // 🔥 Worker 组合查询（搜索 + 过滤 + 排序）
+  const queryArticlesAsync = async (options = {}) => {
+    if (!articlesCache.value) return []
+    if (searchWorker) {
+      return searchWorker.query(articlesCache.value, options)
+    }
+    // 主线程降级
+    let result = articlesCache.value
+    if (options.keyword) result = searchArticlesLocal(options.keyword)
+    if (options.category && options.category !== 'all') {
+      result = result.filter(a => a.category === options.category)
+    }
+    return result
   }
 
   // 使缓存失效
@@ -176,6 +210,8 @@ export const useArticleCache = () => {
     getAllArticles,
     getArticlesByCategory,
     searchArticlesLocal,
+    searchArticlesAsync,
+    queryArticlesAsync,
     
     // 统计数据
     categoryStats,
