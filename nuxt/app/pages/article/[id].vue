@@ -46,6 +46,7 @@
 
 <script setup>
 import { parseMarkdown } from '@nuxtjs/mdc/runtime'
+import { consumePreloadedArticle } from '~/utils/articlePreloadCache'
 
 const route = useRoute()
 const router = useRouter()
@@ -125,7 +126,24 @@ const { data: article, pending, error } = await useAsyncData(
     // 客户端导航时重新验证
     watch: [articleId],
     // 立即加载，不延迟
-    lazy: false
+    lazy: false,
+    // 🔥 优先消费预加载缓存（useArticleNavigation 写入的数据）
+    getCachedData: (key, nuxtApp, ctx) => {
+      // 仅在客户端初始导航时使用预取缓存（不影响手动刷新）
+      if (ctx?.cause === 'refresh:manual') return undefined
+
+      // 检查 useArticleNavigation 的预加载缓存
+      if (import.meta.client) {
+        const preloaded = consumePreloadedArticle(key)
+        if (preloaded) {
+          console.log('[ArticlePage] 命中预加载缓存，跳过 fetch + parseMarkdown')
+          return preloaded
+        }
+      }
+
+      // 检查 Nuxt payload（SSR 数据 / 之前的 SWR 缓存）
+      return nuxtApp.payload?.data?.[key] ?? nuxtApp.static?.data?.[key]
+    }
   }
 )
 

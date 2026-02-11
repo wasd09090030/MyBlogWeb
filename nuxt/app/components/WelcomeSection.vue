@@ -145,9 +145,11 @@
 
 <script setup>
 import { useArticles } from '~/composables/useArticles'
+import { useArticleNavigation } from '~/composables/useArticleNavigation'
 import '~/assets/css/components/WelcomeSection.styles.css'
 
 const router = useRouter()
+const { navigateToArticle } = useArticleNavigation()
 
 // 响应式数据
 const articleCount = ref(0)
@@ -231,7 +233,7 @@ const goToRandomArticle = async () => {
 
       if (randomArticle && randomArticle.id) {
         console.log('随机跳转到文章:', randomArticle.id, '-', randomArticle.title)
-        router.push(getArticlePath(randomArticle))
+        navigateToArticle(randomArticle)
       }
     } else {
       console.warn('没有找到可用的文章')

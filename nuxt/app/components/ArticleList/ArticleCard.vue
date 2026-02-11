@@ -36,7 +36,7 @@
         </span>
       </div>
 
-      <NuxtLink :to="articleRoute" class="article-title-link" prefetch>
+      <NuxtLink :to="articleRoute" class="article-title-link" prefetch @click.prevent="handleArticleClick">
         <h3 class="article-title">{{ article.title }}</h3>
       </NuxtLink>
 
@@ -51,7 +51,7 @@
         </span>
       </div>
 
-      <NuxtLink :to="articleRoute" class="learn-more learn-more-sm" prefetch>
+      <NuxtLink :to="articleRoute" class="learn-more learn-more-sm" prefetch @click.prevent="handleArticleClick">
         <span class="circle" aria-hidden="true">
           <span class="icon arrow"></span>
         </span>
@@ -63,6 +63,9 @@
 
 <script setup>
 import { getExcerpt } from '~/utils/excerpt'
+import { useArticleNavigation } from '~/composables/useArticleNavigation'
+
+const { navigateToArticle } = useArticleNavigation()
 
 const props = defineProps({
   article: {
@@ -110,25 +113,18 @@ let preloadTriggered = false
 const handleMouseEnter = async () => {
   if (preloadTriggered) return
   preloadTriggered = true
-  
-  // 🔥 并行：预加载路由组件 + Worker 预取文章数据
-  const articleId = props.article?.id
-  const { $workerPrefetch } = useNuxtApp()
 
+  // 预加载路由组件（hover 时就开始）
   try {
-    const tasks = [
-      preloadRouteComponents(getArticlePath(props.article)).catch(() => {})
-    ]
-
-    // 通过 Worker 预取文章数据（不阻塞主线程）
-    if ($workerPrefetch && articleId) {
-      tasks.push($workerPrefetch.prefetchArticle(String(articleId)).catch(() => {}))
-    }
-
-    await Promise.all(tasks)
+    await preloadRouteComponents(getArticlePath(props.article)).catch(() => {})
   } catch (e) {
     // 预加载失败不影响用户体验
   }
+}
+
+// 🔥 拦截点击，使用无缝导航（Loading 动画 + 后台预加载 + 跳转）
+const handleArticleClick = () => {
+  navigateToArticle(props.article, { query: props.routeQuery })
 }
 
 const getCategoryName = (category) => {

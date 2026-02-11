@@ -13,6 +13,7 @@
         :key="article.id"
         :to="getArticleUrl(article)"
         class="related-article-card group block bg-white dark:bg-gray-800 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 hover:border-blue-400 dark:hover:border-blue-500 transition-all duration-300 no-underline"
+        @click.prevent="handleArticleClick(article)"
       >
         <!-- 封面图片 -->
         <div class="relative aspect-video overflow-hidden bg-gray-100 dark:bg-gray-700">
@@ -135,6 +136,12 @@ function getArticleUrl(article) {
     return `/article/${article.id}-${article.slug}`
   }
   return `/article/${article.id}`
+}
+
+// 🔥 无缝导航
+const { navigateToArticle } = useArticleNavigation()
+function handleArticleClick(article) {
+  navigateToArticle(article)
 }
 
 // 格式化日期
