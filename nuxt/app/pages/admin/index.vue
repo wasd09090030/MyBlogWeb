@@ -165,6 +165,8 @@
 
 <script setup>
 import { NButton, NTag } from 'naive-ui'
+import { useAdminArticlesFeature } from '~/features/article-admin/composables/useAdminArticlesFeature'
+import { useAdminCommentsFeature } from '~/features/article-admin/composables/useAdminCommentsFeature'
 
 definePageMeta({
   ssr: false,
@@ -176,8 +178,8 @@ const router = useRouter()
 const config = useRuntimeConfig()
 const baseURL = config.public.apiBase
 const authStore = useAuthStore()
-const { getArticles, getCategoryLabel, getCategoryType } = useAdminArticles()
-const { getAllComments, getPendingComments } = useAdminComments()
+const { getArticles, getCategoryLabel, getCategoryType } = useAdminArticlesFeature()
+const { getAllComments, getPendingComments } = useAdminCommentsFeature()
 
 const loading = ref(true)
 const articleCount = ref(0)

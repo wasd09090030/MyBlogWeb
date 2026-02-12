@@ -89,13 +89,14 @@
 
 <script setup>
 import '../assets/css/components/SideBar.styles.css';
+import { useArticlesFeature } from '~/features/article-list/composables/useArticlesFeature'
 
 const router = useRouter();
 const isCollapsed = ref(true);
 const isHydrated = ref(false);
 
 // 使用优化后的composable（带缓存）
-const { getAllArticles, categoryStats, monthStats } = useArticles();
+const { getAllArticles, categoryStats, monthStats } = useArticlesFeature();
 
 // 基础分类配置
 const categoryConfig = [

@@ -61,7 +61,7 @@
             </template>
           </n-drawer-content>
         </n-drawer>
-        <div v-if="shouldShowWelcomeSection" class="welcome-section-container"><LazyWelcomeSection /></div>
+        <div v-if="shouldShowWelcomeSection" class="welcome-section-container"><HomeWelcomeSection /></div>
         <div class="main-container">
           <div class="main-content">
             <div class="container-fluid">
@@ -156,7 +156,10 @@
 
 <script setup>
 import { darkTheme } from 'naive-ui'
+import { defineAsyncComponent } from 'vue'
 // Effects 相关组件（SakuraFalling 和 StarryNight）改用 Lazy 前缀动态加载，减少首屏 JS
+
+const HomeWelcomeSection = defineAsyncComponent(() => import('~/features/home/components/HomeWelcomeSection.vue'))
 
 const route = useRoute()
 const router = useRouter()

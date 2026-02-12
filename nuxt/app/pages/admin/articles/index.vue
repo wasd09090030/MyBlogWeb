@@ -102,6 +102,7 @@
 
 <script setup>
 import { NButton, NTag, NSpace } from 'naive-ui'
+import { useAdminArticlesFeature } from '~/features/article-admin/composables/useAdminArticlesFeature'
 
 definePageMeta({
   ssr: false,
@@ -111,7 +112,7 @@ definePageMeta({
 
 const router = useRouter()
 const message = useMessage()
-const { getArticles, deleteArticle, getCategoryLabel, getCategoryType } = useAdminArticles()
+const { getArticles, deleteArticle, getCategoryLabel, getCategoryType } = useAdminArticlesFeature()
 
 const articles = ref([])
 const loading = ref(true)

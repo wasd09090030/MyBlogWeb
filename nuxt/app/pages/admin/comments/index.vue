@@ -164,6 +164,8 @@
 </template>
 
 <script setup>
+import { useAdminCommentsFeature } from '~/features/article-admin/composables/useAdminCommentsFeature'
+
 definePageMeta({
   ssr: false,
   layout: 'admin',
@@ -171,7 +173,7 @@ definePageMeta({
 })
 
 const message = useMessage()
-const { getAllComments, getPendingComments, updateCommentStatus, deleteComment, getStatusType, getStatusText } = useAdminComments()
+const { getAllComments, getPendingComments, updateCommentStatus, deleteComment, getStatusType, getStatusText } = useAdminCommentsFeature()
 
 const comments = ref([])
 const loading = ref(true)

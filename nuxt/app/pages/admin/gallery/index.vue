@@ -384,6 +384,8 @@ https://example.com/image3.jpg"
 </template>
 
 <script setup>
+import { useAdminGalleryFeature } from '~/features/gallery-admin/composables/useAdminGalleryFeature'
+
 definePageMeta({
   ssr: false,
   layout: 'admin',
@@ -391,7 +393,7 @@ definePageMeta({
 })
 
 const message = useMessage()
-const { getAllGalleries, createGallery, updateGallery, deleteGallery, toggleActive: toggleActiveApi, batchImport, updateSort, refreshDimensions } = useAdminGallery()
+const { getAllGalleries, createGallery, updateGallery, deleteGallery, toggleActive: toggleActiveApi, batchImport, updateSort, refreshDimensions } = useAdminGalleryFeature()
 const cfConfigApi = useCfImageConfig()
 
 const galleries = ref([])

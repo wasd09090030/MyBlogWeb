@@ -7,12 +7,6 @@ type ArticleLike = {
   createdAt: string | number | Date
 }
 
-/**
- * 提取所有可用标签
- * @param articles - 文章数组
- * @param excludeTag - 需要排除的标签（默认为 '教程'）
- * @returns 排序后的标签数组
- */
 export function extractAvailableTags<T extends { tags?: string[] | null }>(
   articles: T[],
   excludeTag = '教程'
@@ -30,12 +24,6 @@ export function extractAvailableTags<T extends { tags?: string[] | null }>(
   return Array.from(tags).sort()
 }
 
-/**
- * 根据标签筛选文章
- * @param articles - 文章数组
- * @param selectedTag - 选中的标签
- * @returns 筛选后的文章数组
- */
 export function filterArticlesByTag<T extends { tags?: string[] | null }>(
   articles: T[],
   selectedTag: string
@@ -48,12 +36,6 @@ export function filterArticlesByTag<T extends { tags?: string[] | null }>(
   )
 }
 
-/**
- * 对文章进行排序
- * @param articles - 文章数组
- * @param sortOrder - 排序方式 ('desc' | 'asc')
- * @returns 排序后的文章数组
- */
 export function sortArticles<T extends ArticleLike>(
   articles: T[],
   sortOrder: 'desc' | 'asc' = 'desc'
@@ -65,13 +47,6 @@ export function sortArticles<T extends ArticleLike>(
   })
 }
 
-/**
- * 处理文章列表（筛选 + 排序）
- * @param articles - 原始文章数组
- * @param selectedTag - 选中的标签
- * @param sortOrder - 排序方式
- * @returns 处理后的文章数组
- */
 export function processArticles<T extends ArticleLike>(
   articles: T[],
   selectedTag: string,

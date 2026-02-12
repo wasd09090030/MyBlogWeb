@@ -144,7 +144,7 @@
 </template>
 
 <script setup>
-import { useArticles } from '~/composables/useArticles'
+import { useArticlesFeature } from '~/features/article-list/composables/useArticlesFeature'
 import { useArticleNavigation } from '~/composables/useArticleNavigation'
 import '~/assets/css/components/WelcomeSection.styles.css'
 
@@ -157,7 +157,7 @@ const loading = ref(false)
 const isFabExpanded = ref(false)
 
 // API composable
-const { getArticles, getAllArticles } = useArticles()
+const { getArticles, getAllArticles } = useArticlesFeature()
 
 // 页面导航功能
 const goToArticles = () => {

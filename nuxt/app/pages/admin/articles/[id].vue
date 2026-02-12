@@ -179,6 +179,8 @@
 </template>
 
 <script setup>
+import { useAdminArticlesFeature } from '~/features/article-admin/composables/useAdminArticlesFeature'
+
 definePageMeta({
   ssr: false,
   layout: 'admin',
@@ -191,7 +193,7 @@ const message = useMessage()
 const config = useRuntimeConfig()
 const baseURL = config.public.apiBase
 const authStore = useAuthStore()
-const { getArticle, createArticle, updateArticle, generateAiSummary: generateAiSummaryApi } = useAdminArticles()
+const { getArticle, createArticle, updateArticle, generateAiSummary: generateAiSummaryApi } = useAdminArticlesFeature()
 
 // 判断是创建还是编辑模式
 const isEdit = computed(() => !!route.params.id)

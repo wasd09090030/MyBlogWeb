@@ -117,7 +117,43 @@ export const useArticleDetailPage = async () => {
     throw createError(toNuxtErrorPayload(error.value, { fallback: '文章加载失败' }))
   }
 
-  const headings = ref<unknown[]>([])
+  const normalizeTocToHeadings = (toc: unknown): Array<{ id: string; text: string; level: number }> => {
+    if (!toc) return []
+
+    const tocLinks = Array.isArray(toc)
+      ? toc
+      : (toc as { links?: unknown[] })?.links || []
+
+    const convertLinks = (links: unknown[], level = 2): Array<{ id: string; text: string; level: number }> => {
+      const result: Array<{ id: string; text: string; level: number }> = []
+      for (const link of links) {
+        const item = link as { id?: string; text?: string; children?: unknown[] }
+        if (!item?.id || !item?.text) continue
+        result.push({ id: item.id, text: item.text, level })
+        if (item.children?.length) {
+          result.push(...convertLinks(item.children, level + 1))
+        }
+      }
+      return result
+    }
+
+    return convertLinks(tocLinks)
+  }
+
+  const headings = ref<Array<{ id: string; text: string; level: number }>>([])
+
+  watch(
+    () => (article.value as { _mdcToc?: unknown } | null)?._mdcToc,
+    (toc) => {
+      if (!toc) return
+      if (headings.value.length > 0) return
+      const normalized = normalizeTocToHeadings(toc)
+      if (normalized.length > 0) {
+        headings.value = normalized
+      }
+    },
+    { immediate: true }
+  )
 
   const getDescription = (content: string | undefined | null, maxLength = 160): string => {
     if (!content) return '文章详情'
@@ -211,8 +247,11 @@ export const useArticleDetailPage = async () => {
     }
   }
 
-  const onTocReady = (toc: unknown[]) => {
-    headings.value = toc
+  const onTocReady = (toc: unknown) => {
+    const normalized = normalizeTocToHeadings(toc)
+    if (normalized.length > 0) {
+      headings.value = normalized
+    }
   }
 
   return {
