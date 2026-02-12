@@ -98,7 +98,7 @@ export default defineNuxtPlugin((nuxtApp) => {
 
       // 获取画廊数据
       const apiBase = getApiBase()
-      const galleries = await $fetch(`${apiBase}/galleries`)
+      const galleries = await $fetch<Array<{ imageUrl?: string | null }>>(`${apiBase}/galleries`)
       if (galleries?.length > 0) {
         // 预缓存前 10 张图片
         const urls = galleries.slice(0, 10).map(g => g.imageUrl).filter(Boolean)

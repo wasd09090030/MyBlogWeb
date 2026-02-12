@@ -4,6 +4,20 @@ export default defineNuxtConfig({
   // 通过 NUXT_SOURCEMAP=true 按需开启 sourcemap
   sourcemap: process.env.NUXT_SOURCEMAP === 'true',
 
+  // TypeScript 迁移期配置（渐进 JS -> TS）
+  // - 不强制全量 TS：允许 app/ 内仍存在 .js 文件
+  // - 先关闭 strict，避免迁移初期被类型错误阻塞
+  typescript: {
+    strict: false,
+    // 通过 nuxt.config 扩展 Nuxt 生成的 tsconfig（不建议直接改 tsconfig.json）
+    tsConfig: {
+      compilerOptions: {
+        allowJs: true,
+        checkJs: false
+      }
+    }
+  },
+
   // CSS配置 - 使用 Tailwind Typography
   css: [
     '~/assets/css/theme-variables.css',
@@ -202,7 +216,6 @@ export default defineNuxtConfig({
     build: {
       // 改进 treeshaking 与模块预加载
       modulePreload: { polyfill: true },
-      treeshake: 'recommended',
       minify: 'terser',
       terserOptions: {
         compress: {
@@ -220,6 +233,9 @@ export default defineNuxtConfig({
       },
       // 代码分割优化 - 简化版避免循环依赖
       rollupOptions: {
+        treeshake: {
+          preset: 'recommended'
+        },
         output: {
           manualChunks(id) {
             // 仅分割不会导致循环依赖的大型库
@@ -276,12 +292,6 @@ export default defineNuxtConfig({
     defaultLocale: 'zh-CN'
   },
 
-  seoUtils: {
-    autoIcons: true,
-    fallbackTitle: true,
-    titleSeparator: '·'
-  },
-
   robots: {
     // 使用 public/robots.txt，避免第三方注入非标准指令导致校验报错
     robotsTxt: false,
@@ -316,6 +326,7 @@ export default defineNuxtConfig({
 
     head: {
       title: 'WyrmKk',
+      titleTemplate: '%s · WyrmKk',
       meta: [
         { charset: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1, viewport-fit=cover' },
@@ -353,8 +364,6 @@ export default defineNuxtConfig({
     asyncContext: true,
     // 头部优化
     headNext: true,
-    // 确保样式内联，配合 vitalizer 去除 entry 样式表
-    inlineSSRStyles: true,
     // 跨域请求fetch
     crossOriginPrefetch: true,
     // 写早期提示
@@ -477,14 +486,6 @@ export default defineNuxtConfig({
         maxAge: 60 * 60 * 24 * 365 // 1年
       }
     ]
-  },
-
-  // 兼容性
-  compatibility: {
-    // Vue 3 兼容性设置
-    vue: {
-      runtimeCompiler: false
-    }
   },
 
   // 优化Hooks
