@@ -127,6 +127,10 @@
 </template>
 
 <script setup>
+definePageMeta({
+  ssr: false
+})
+
 import { ref, computed } from 'vue'
 
 // 输入文本

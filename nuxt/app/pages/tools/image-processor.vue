@@ -19,6 +19,10 @@
 </template>
 
 <script setup>
+definePageMeta({
+  ssr: false
+})
+
 useHead({
   title: '图像处理工具 - 格式转换/压缩',
   meta: [

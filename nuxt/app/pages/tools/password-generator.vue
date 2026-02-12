@@ -155,6 +155,10 @@
 </template>
 
 <script setup>
+definePageMeta({
+  ssr: false
+})
+
 import { ref, computed, onMounted } from 'vue'
 import { useMessage } from 'naive-ui'
 

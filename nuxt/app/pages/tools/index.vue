@@ -152,6 +152,9 @@
 </template>
 
 <script setup>
+definePageMeta({
+  ssr: false
+})
 
 // SEO 优化
 useHead({
