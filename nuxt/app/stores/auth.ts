@@ -4,6 +4,39 @@ import { defineStore } from 'pinia'
 export const UserRoles = {
   GUEST: 'guest',
   ADMIN: 'admin'
+} as const
+
+export type UserRole = typeof UserRoles[keyof typeof UserRoles]
+
+type AuthHeaders = Record<string, string>
+
+type AuthState = {
+  userRole: UserRole
+  isAuthenticated: boolean
+  loginAttempts: number
+  lockoutUntil: number
+  token: string | null
+  refreshToken: string | null
+  tokenExpiresAt: string | null
+  tokenRefreshTimer: ReturnType<typeof setInterval> | null
+}
+
+type AuthApiResponse = {
+  success: boolean
+  message?: string
+  token?: string
+  refreshToken?: string
+  expiresAt?: string
+}
+
+type LogoutResponse = {
+  success: boolean
+  message?: string
+}
+
+type ChangePasswordResponse = {
+  success: boolean
+  message?: string
 }
 
 // Cookie 键名
@@ -15,7 +48,7 @@ const IS_AUTHENTICATED_KEY = 'is_authenticated'
 const LOGIN_TIME_KEY = 'login_time'
 
 export const useAuthStore = defineStore('auth', {
-  state: () => ({
+  state: (): AuthState => ({
     userRole: UserRoles.GUEST,
     isAuthenticated: false,
     loginAttempts: 0,
@@ -27,23 +60,23 @@ export const useAuthStore = defineStore('auth', {
   }),
 
   getters: {
-    isAdmin: (state) => state.userRole === UserRoles.ADMIN && state.isAuthenticated,
-    isGuest: (state) => state.userRole === UserRoles.GUEST,
-    isLocked: (state) => state.lockoutUntil > Date.now(),
+    isAdmin: (state): boolean => state.userRole === UserRoles.ADMIN && state.isAuthenticated,
+    isGuest: (state): boolean => state.userRole === UserRoles.GUEST,
+    isLocked: (state): boolean => state.lockoutUntil > Date.now(),
     // 获取认证头
-    authHeaders: (state) => {
+    authHeaders: (state): AuthHeaders => {
       if (state.token) {
         return { Authorization: `Bearer ${state.token}` }
       }
       return {}
     },
     // 检查 Token 是否即将过期（30分钟内）
-    isTokenExpiringSoon: (state) => {
+    isTokenExpiringSoon: (state): boolean => {
       if (!state.tokenExpiresAt) return false
       return new Date(state.tokenExpiresAt).getTime() - Date.now() < 30 * 60 * 1000
     },
     // 检查 Token 是否已过期
-    isTokenExpired: (state) => {
+    isTokenExpired: (state): boolean => {
       if (!state.tokenExpiresAt) return true
       return new Date(state.tokenExpiresAt).getTime() < Date.now()
     }
@@ -51,10 +84,10 @@ export const useAuthStore = defineStore('auth', {
 
   actions: {
     // 获取 Cookie 实例
-    _getCookies() {
+    _getCookies(): any {
       if (!import.meta.client) return {}
       // 注意：禁用自动 decode，避免 destr 将字符串转换为其他类型
-      const cookieOpts = (maxAge) => ({ maxAge, decode: (v) => v, encode: (v) => v })
+      const cookieOpts = (maxAge: number) => ({ maxAge, decode: (v: any) => v, encode: (v: any) => v })
       return {
         token: useCookie(TOKEN_KEY, cookieOpts(60 * 60 * 24 * 7)),
         refreshToken: useCookie(REFRESH_TOKEN_KEY, cookieOpts(60 * 60 * 24 * 30)),
@@ -66,7 +99,7 @@ export const useAuthStore = defineStore('auth', {
     },
 
     // 验证管理员密码 - 通过API调用
-    async verifyAdminPassword(password) {
+    async verifyAdminPassword(password: string): Promise<{ success: boolean; message?: string }> {
       const config = useRuntimeConfig()
       const baseURL = config.public.apiBase
 
@@ -82,7 +115,7 @@ export const useAuthStore = defineStore('auth', {
 
       try {
         // 通过API验证密码
-        const result = await $fetch(`${baseURL}/auth/login`, {
+        const result = await $fetch<AuthApiResponse>(`${baseURL}/auth/login`, {
           method: 'POST',
           body: { username: 'admin', password }
         })
@@ -90,12 +123,12 @@ export const useAuthStore = defineStore('auth', {
         if (result.success) {
           // 重置错误尝试次数
           this.loginAttempts = 0
-          
+
           // 存储 Token
-          this.token = result.token
-          this.refreshToken = result.refreshToken
-          this.tokenExpiresAt = result.expiresAt
-          
+          this.token = result.token ?? null
+          this.refreshToken = result.refreshToken ?? null
+          this.tokenExpiresAt = result.expiresAt ?? null
+
           // 使用 Cookie 存储
           if (import.meta.client) {
             const cookies = this._getCookies()
@@ -103,33 +136,33 @@ export const useAuthStore = defineStore('auth', {
             cookies.refreshToken.value = result.refreshToken
             cookies.tokenExpires.value = result.expiresAt
           }
-          
+
           // 启动后台定时器
           this.startTokenRefreshTimer()
-          
+
           return {
             success: true
           }
-        } else {
-          // 增加错误尝试次数
-          this.loginAttempts++
+        }
 
-          // 如果连续错误5次，锁定账户1分钟
-          if (this.loginAttempts >= 5) {
-            this.lockoutUntil = now + (60 * 1000) // 1分钟后解锁
-            this.loginAttempts = 0
-            return {
-              success: false,
-              message: '密码错误5次，账户已锁定1分钟'
-            }
-          }
+        // 增加错误尝试次数
+        this.loginAttempts++
 
+        // 如果连续错误5次，锁定账户1分钟
+        if (this.loginAttempts >= 5) {
+          this.lockoutUntil = now + 60 * 1000 // 1分钟后解锁
+          this.loginAttempts = 0
           return {
             success: false,
-            message: result.message || `密码错误，还有${5 - this.loginAttempts}次尝试机会`
+            message: '密码错误5次，账户已锁定1分钟'
           }
         }
-      } catch (error) {
+
+        return {
+          success: false,
+          message: result.message || `密码错误，还有${5 - this.loginAttempts}次尝试机会`
+        }
+      } catch (error: any) {
         console.error('登录验证失败:', error)
         return {
           success: false,
@@ -139,28 +172,28 @@ export const useAuthStore = defineStore('auth', {
     },
 
     // 刷新 Token
-    async refreshAccessToken() {
+    async refreshAccessToken(): Promise<boolean> {
       if (!this.refreshToken) {
         console.log('[Auth] 没有 RefreshToken，无法刷新')
         return false
       }
-      
+
       const config = useRuntimeConfig()
       const baseURL = config.public.apiBase
-      
+
       try {
         console.log('[Auth] 正在刷新 Token...')
-        const result = await $fetch(`${baseURL}/auth/refresh`, {
+        const result = await $fetch<AuthApiResponse>(`${baseURL}/auth/refresh`, {
           method: 'POST',
           body: { refreshToken: this.refreshToken }
         })
-        
+
         if (result.success) {
           console.log('[Auth] Token 刷新成功，新过期时间:', result.expiresAt)
-          this.token = result.token
-          this.refreshToken = result.refreshToken
-          this.tokenExpiresAt = result.expiresAt
-          
+          this.token = result.token ?? null
+          this.refreshToken = result.refreshToken ?? null
+          this.tokenExpiresAt = result.expiresAt ?? null
+
           if (import.meta.client) {
             const cookies = this._getCookies()
             cookies.token.value = result.token
@@ -171,10 +204,10 @@ export const useAuthStore = defineStore('auth', {
         }
         console.log('[Auth] Token 刷新失败:', result.message)
         return false
-      } catch (error) {
+      } catch (error: any) {
         console.error('[Auth] Token 刷新失败:', error)
         // 如果是 401 错误，说明 RefreshToken 也过期了，需要重新登录
-        if (error.response?.status === 401) {
+        if (error?.response?.status === 401) {
           await this.logout()
         }
         return false
@@ -182,19 +215,19 @@ export const useAuthStore = defineStore('auth', {
     },
 
     // 启动后台 Token 检查定时器
-    startTokenRefreshTimer() {
+    startTokenRefreshTimer(): void {
       if (!import.meta.client) return
-      
+
       // 清除旧的定时器
       this.stopTokenRefreshTimer()
-      
+
       // 每 10 分钟检查一次 Token 状态
       this.tokenRefreshTimer = setInterval(async () => {
         if (!this.isAuthenticated || !this.token) {
           this.stopTokenRefreshTimer()
           return
         }
-        
+
         // 如果 Token 已过期，尝试刷新
         if (this.isTokenExpired) {
           console.log('[Auth] Token 已过期，尝试刷新...')
@@ -210,12 +243,12 @@ export const useAuthStore = defineStore('auth', {
           await this.refreshAccessToken()
         }
       }, 10 * 60 * 1000) // 10 分钟
-      
+
       console.log('[Auth] Token 刷新定时器已启动')
     },
 
     // 停止后台定时器
-    stopTokenRefreshTimer() {
+    stopTokenRefreshTimer(): void {
       if (this.tokenRefreshTimer) {
         clearInterval(this.tokenRefreshTimer)
         this.tokenRefreshTimer = null
@@ -224,10 +257,10 @@ export const useAuthStore = defineStore('auth', {
     },
 
     // 带认证的 fetch 请求（自动处理 Token 刷新）
-    async authFetch(url, options = {}) {
+    async authFetch<T = any>(url: string, options: any = {}): Promise<T> {
       const config = useRuntimeConfig()
       const baseURL = config.public.apiBase
-      
+
       // 如果 Token 已过期，先刷新
       if (this.isTokenExpired && this.refreshToken) {
         console.log('[Auth] Token 已过期，请求前先刷新')
@@ -241,20 +274,20 @@ export const useAuthStore = defineStore('auth', {
         console.log('[Auth] Token 即将过期，请求前先刷新')
         await this.refreshAccessToken()
       }
-      
-      const fetchOptions = {
+
+      const fetchOptions: any = {
         ...options,
         headers: {
           ...options.headers,
           ...this.authHeaders
         }
       }
-      
+
       try {
-        return await $fetch(`${baseURL}${url}`, fetchOptions)
-      } catch (error) {
+        return (await $fetch(`${baseURL}${url}`, fetchOptions)) as unknown as T
+      } catch (error: any) {
         // 如果是 401 错误，尝试刷新 Token 并重试一次
-        if (error.response?.status === 401 && this.refreshToken) {
+        if (error?.response?.status === 401 && this.refreshToken) {
           console.log('[Auth] 收到 401 错误，尝试刷新 Token 并重试')
           const refreshed = await this.refreshAccessToken()
           if (refreshed) {
@@ -265,23 +298,22 @@ export const useAuthStore = defineStore('auth', {
             }
             // 重试请求
             try {
-              return await $fetch(`${baseURL}${url}`, fetchOptions)
+              return (await $fetch(`${baseURL}${url}`, fetchOptions)) as unknown as T
             } catch (retryError) {
               console.error('[Auth] 重试后仍然失败:', retryError)
               throw retryError
             }
-          } else {
-            console.error('[Auth] Token 刷新失败，需要重新登录')
-            await this.logout()
-            throw new Error('Token 已失效，请重新登录')
           }
+          console.error('[Auth] Token 刷新失败，需要重新登录')
+          await this.logout()
+          throw new Error('Token 已失效，请重新登录')
         }
         throw error
       }
     },
 
     // 设置用户角色
-    async setUserRole(role, password = null) {
+    async setUserRole(role: UserRole, password: string | null = null): Promise<{ success: boolean; message?: string }> {
       // 如果尝试设置为管理员角色，需要验证密码
       if (role === UserRoles.ADMIN) {
         if (!this.isAuthenticated) {
@@ -305,14 +337,14 @@ export const useAuthStore = defineStore('auth', {
             cookies.isAuthenticated.value = 'true'
             cookies.loginTime.value = Date.now().toString()
           }
-          
+
           // 启动后台定时器
           this.startTokenRefreshTimer()
         }
       }
 
       // 更新角色
-      if (Object.values(UserRoles).includes(role)) {
+      if ((Object.values(UserRoles) as string[]).includes(role)) {
         this.userRole = role
         if (import.meta.client) {
           const cookies = this._getCookies()
@@ -330,7 +362,7 @@ export const useAuthStore = defineStore('auth', {
     },
 
     // 管理员登录
-    async login(username, password) {
+    async login(username: string, password: string): Promise<{ success: boolean; message?: string }> {
       // 简单验证用户名
       if (username !== 'admin') {
         return {
@@ -344,13 +376,13 @@ export const useAuthStore = defineStore('auth', {
     },
 
     // 退出登录
-    async logout() {
+    async logout(): Promise<LogoutResponse> {
       const config = useRuntimeConfig()
       const baseURL = config.public.apiBase
-      
+
       // 停止后台定时器
       this.stopTokenRefreshTimer()
-      
+
       // 调用后端登出接口（使 RefreshToken 失效）
       if (this.token) {
         try {
@@ -362,7 +394,7 @@ export const useAuthStore = defineStore('auth', {
           console.error('登出请求失败:', error)
         }
       }
-      
+
       this.userRole = UserRoles.GUEST
       this.isAuthenticated = false
       this.loginAttempts = 0
@@ -387,40 +419,39 @@ export const useAuthStore = defineStore('auth', {
     },
 
     // 修改密码
-    async changePassword(currentPassword, newPassword) {
+    async changePassword(currentPassword: string, newPassword: string): Promise<ChangePasswordResponse> {
       const config = useRuntimeConfig()
       const baseURL = config.public.apiBase
 
       try {
-        const result = await $fetch(`${baseURL}/auth/change-password`, {
+        const result = await $fetch<ChangePasswordResponse>(`${baseURL}/auth/change-password`, {
           method: 'POST',
           headers: this.authHeaders,
           body: { currentPassword, newPassword }
         })
 
         return result
-      } catch (error) {
+      } catch (error: any) {
         console.error('修改密码失败:', error)
         return {
           success: false,
-          message: error.data?.message || '修改密码失败，请重试'
+          message: error?.data?.message || '修改密码失败，请重试'
         }
       }
     },
 
-    // 初始化状态
     // 初始化认证状态（从 Cookie 恢复）
-    async initialize() {
+    async initialize(): Promise<void> {
       if (!import.meta.client) return
 
       const cookies = this._getCookies()
-      
-      const savedRole = cookies.userRole.value
-      const savedAuth = cookies.isAuthenticated.value
-      const savedLoginTime = cookies.loginTime.value
-      const savedToken = cookies.token.value
-      const savedRefreshToken = cookies.refreshToken.value
-      const savedTokenExpires = cookies.tokenExpires.value
+
+      const savedRole = cookies.userRole.value as string | null
+      const savedAuth = cookies.isAuthenticated.value as string | null
+      const savedLoginTime = cookies.loginTime.value as string | null
+      const savedToken = cookies.token.value as string | null
+      const savedRefreshToken = cookies.refreshToken.value as string | null
+      const savedTokenExpires = cookies.tokenExpires.value as string | null
 
       // 恢复 Token
       if (savedToken) {
@@ -432,7 +463,7 @@ export const useAuthStore = defineStore('auth', {
       // 检查会话是否过期（8小时后自动退出）
       const SESSION_TIMEOUT = 8 * 60 * 60 * 1000 // 8小时，单位：毫秒
       const now = Date.now()
-      const loginTime = savedLoginTime ? parseInt(savedLoginTime) : 0
+      const loginTime = savedLoginTime ? parseInt(savedLoginTime, 10) : 0
       const isSessionExpired = now - loginTime > SESSION_TIMEOUT
 
       // 检查 Token 是否过期
@@ -463,14 +494,14 @@ export const useAuthStore = defineStore('auth', {
       // 如果之前保存的是管理员角色但没有通过认证，则重置为游客
       if (savedRole === UserRoles.ADMIN && !this.isAuthenticated) {
         this.userRole = UserRoles.GUEST
-        const cookies = this._getCookies()
-        cookies.userRole.value = UserRoles.GUEST
+        const cookies2 = this._getCookies()
+        cookies2.userRole.value = UserRoles.GUEST
       }
       // 否则恢复之前保存的角色
-      else if (savedRole && Object.values(UserRoles).includes(savedRole)) {
-        this.userRole = savedRole
+      else if (savedRole && (Object.values(UserRoles) as string[]).includes(savedRole)) {
+        this.userRole = savedRole as UserRole
       }
-      
+
       // 如果已认证，启动后台定时器
       if (this.isAuthenticated && this.token) {
         console.log('[Auth] 认证状态已恢复，启动后台定时器')

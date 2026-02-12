@@ -1,4 +1,4 @@
-export const stripMdcMarkup = (content) => {
+export function stripMdcMarkup(content?: string | null): string {
   if (!content) return ''
   let output = content
 
@@ -20,7 +20,7 @@ export const stripMdcMarkup = (content) => {
   return output
 }
 
-export const getExcerpt = (content, maxLength = 150) => {
+export function getExcerpt(content?: string | null, maxLength = 150): string {
   const plainText = stripMdcMarkup(content)
   if (!plainText) return ''
   return plainText.length > maxLength ? `${plainText.substring(0, maxLength)}...` : plainText
