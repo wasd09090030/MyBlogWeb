@@ -11,6 +11,10 @@ import type {
 
 let markdownWorkerManager: ReturnType<typeof createWorkerManager<MarkdownWorkerActionMap>> | null = null
 
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error)
+}
+
 function getManager() {
   if (markdownWorkerManager) return markdownWorkerManager
 
@@ -26,8 +30,8 @@ function getManager() {
       { timeout: 15000, singleton: true, maxRetries: 1 }
     )
     return markdownWorkerManager
-  } catch (e: any) {
-    console.warn('[useMarkdownWorker] Worker 创建失败:', e?.message)
+  } catch (e: unknown) {
+    console.warn('[useMarkdownWorker] Worker 创建失败:', getErrorMessage(e))
     return null
   }
 }
@@ -155,8 +159,8 @@ export function useMarkdownWorker() {
 
     try {
       return await manager.postTask('prefetchArticle', { apiBase, articleId }, { timeout: 10000 })
-    } catch (e: any) {
-      console.warn('[useMarkdownWorker] 预取文章失败:', e?.message)
+    } catch (e: unknown) {
+      console.warn('[useMarkdownWorker] 预取文章失败:', getErrorMessage(e))
       return null
     }
   }

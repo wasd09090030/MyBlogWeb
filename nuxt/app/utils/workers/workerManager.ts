@@ -60,6 +60,13 @@ export type WorkerManager<TMap extends WorkerActionMap = DefaultWorkerActionMap>
 const workerInstances = new Map<string, Worker>()
 let taskIdCounter = 0
 
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message
+  }
+  return String(error)
+}
+
 /**
  * 检测浏览器是否支持 Web Workers
  */
@@ -157,13 +164,13 @@ export function createWorkerManager<TMap extends WorkerActionMap = DefaultWorker
    */
   function handleMessage(event: MessageEvent): void {
     const raw = (event.data || {}) as WorkerInboundMessage<unknown, unknown>
-    const taskId = (raw as any).taskId || ''
-    const type = (raw as any).type as 'result' | 'progress' | 'error' | undefined
+    const taskId = raw.taskId || ''
+    const type = raw.type
 
     if (type === 'progress') {
       const progressCb = progressCallbacks.get(taskId)
       if (progressCb) {
-        progressCb((raw as any).data)
+        progressCb(raw.data)
       }
       return
     }
@@ -176,9 +183,9 @@ export function createWorkerManager<TMap extends WorkerActionMap = DefaultWorker
     progressCallbacks.delete(taskId)
 
     if (type === 'error') {
-      task.reject(new Error((raw as any).error || 'Worker 任务执行失败'))
+      task.reject(new Error(raw.error || 'Worker 任务执行失败'))
     } else {
-      task.resolve((raw as any).data)
+      task.resolve(raw.data)
     }
   }
 
@@ -264,13 +271,13 @@ export function createWorkerManager<TMap extends WorkerActionMap = DefaultWorker
     while (retries <= maxRetries) {
       try {
         return await postTask(action, payload, taskOptions)
-      } catch (err: any) {
+      } catch (err: unknown) {
         retries++
         if (retries > maxRetries) {
-          console.warn(`[WorkerManager] ${name} Worker 任务失败 (${retries}次)，降级到主线程:`, err?.message)
+          console.warn(`[WorkerManager] ${name} Worker 任务失败 (${retries}次)，降级到主线程:`, getErrorMessage(err))
           return fallback()
         }
-        console.warn(`[WorkerManager] ${name} Worker 任务重试 ${retries}/${maxRetries}:`, err?.message)
+        console.warn(`[WorkerManager] ${name} Worker 任务重试 ${retries}/${maxRetries}:`, getErrorMessage(err))
       }
     }
 

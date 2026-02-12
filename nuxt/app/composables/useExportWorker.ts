@@ -7,6 +7,10 @@ import type { DocxParagraph, ExportWorkerActionMap } from '~/utils/workers/types
 
 let exportWorkerManager: ReturnType<typeof createWorkerManager<ExportWorkerActionMap>> | null = null
 
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error)
+}
+
 function getManager() {
   if (exportWorkerManager) return exportWorkerManager
 
@@ -22,8 +26,8 @@ function getManager() {
       { timeout: 60000, singleton: true, maxRetries: 0 }
     )
     return exportWorkerManager
-  } catch (e: any) {
-    console.warn('[useExportWorker] Worker 创建失败:', e?.message)
+  } catch (e: unknown) {
+    console.warn('[useExportWorker] Worker 创建失败:', getErrorMessage(e))
     return null
   }
 }
@@ -52,8 +56,8 @@ export function useExportWorker() {
           }
         }
       )
-    } catch (e: any) {
-      console.warn('[useExportWorker] Worker 解析失败:', e?.message)
+    } catch (e: unknown) {
+      console.warn('[useExportWorker] Worker 解析失败:', getErrorMessage(e))
       return null
     }
   }

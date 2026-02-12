@@ -1,14 +1,20 @@
-type AuthStoreLike = {
-  authFetch: <T = unknown>(url: string, options?: Record<string, unknown>) => Promise<T>
-}
+import type {
+  AiSummaryResult,
+  ArticleCategory,
+  ArticleDetail,
+  ArticleSummary,
+  AuthFetchLike,
+  CreateArticlePayload,
+  PagedArticleResult,
+  UpdateArticlePayload
+} from '~/types/api'
 
-type ArticlePayload = Record<string, unknown>
-type CategoryKey = 'study' | 'game' | 'work' | 'resource' | 'other' | string
+type CategoryKey = ArticleCategory
 
 export const useAdminArticles = () => {
   const config = useRuntimeConfig()
   const baseURL = config.public.apiBase
-  const authStore = useAuthStore() as unknown as AuthStoreLike
+  const authStore = useAuthStore() as AuthFetchLike
 
   const categoryLabels: Record<string, string> = {
     study: '学习',
@@ -35,10 +41,10 @@ export const useAdminArticles = () => {
 
   const getArticles = async (
     options: { summary?: boolean; page?: number; limit?: number } = {}
-  ): Promise<unknown> => {
+  ): Promise<ArticleSummary[] | ArticleDetail[] | PagedArticleResult> => {
     const { summary = false, page = 1, limit = 1000 } = options
     try {
-      return await $fetch(`${baseURL}/articles`, {
+      return await $fetch<ArticleSummary[] | ArticleDetail[] | PagedArticleResult>(`${baseURL}/articles`, {
         params: { summary, page, limit }
       })
     } catch (error) {
@@ -47,18 +53,18 @@ export const useAdminArticles = () => {
     }
   }
 
-  const getArticle = async (id: string | number): Promise<unknown> => {
+  const getArticle = async (id: string | number): Promise<ArticleDetail> => {
     try {
-      return await $fetch(`${baseURL}/articles/${id}`)
+      return await $fetch<ArticleDetail>(`${baseURL}/articles/${id}`)
     } catch (error) {
       console.error('获取文章失败:', error)
       throw error
     }
   }
 
-  const createArticle = async (articleData: ArticlePayload): Promise<unknown> => {
+  const createArticle = async (articleData: CreateArticlePayload): Promise<ArticleDetail> => {
     try {
-      return await authStore.authFetch('/articles', {
+      return await authStore.authFetch<ArticleDetail>('/articles', {
         method: 'POST',
         body: articleData
       })
@@ -68,9 +74,12 @@ export const useAdminArticles = () => {
     }
   }
 
-  const updateArticle = async (id: string | number, articleData: ArticlePayload): Promise<unknown> => {
+  const updateArticle = async (
+    id: string | number,
+    articleData: UpdateArticlePayload
+  ): Promise<ArticleDetail> => {
     try {
-      return await authStore.authFetch(`/articles/${id}`, {
+      return await authStore.authFetch<ArticleDetail>(`/articles/${id}`, {
         method: 'PUT',
         body: articleData
       })
@@ -80,9 +89,9 @@ export const useAdminArticles = () => {
     }
   }
 
-  const deleteArticle = async (id: string | number): Promise<unknown> => {
+  const deleteArticle = async (id: string | number): Promise<void> => {
     try {
-      return await authStore.authFetch(`/articles/${id}`, {
+      await authStore.authFetch<void>(`/articles/${id}`, {
         method: 'DELETE'
       })
     } catch (error) {
@@ -91,9 +100,9 @@ export const useAdminArticles = () => {
     }
   }
 
-  const generateAiSummary = async (content: string): Promise<unknown> => {
+  const generateAiSummary = async (content: string): Promise<AiSummaryResult> => {
     try {
-      return await authStore.authFetch('/ai/generate-summary', {
+      return await authStore.authFetch<AiSummaryResult>('/ai/generate-summary', {
         method: 'POST',
         body: { content }
       })

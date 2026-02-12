@@ -1,7 +1,9 @@
 // 画廊相关的Composable
 // 使用useState实现全局缓存，避免重复请求
 
-type GalleryItem = Record<string, any>
+import type { AdminGallery } from '~/types/api'
+
+type GalleryItem = AdminGallery
 
 export const useGallery = () => {
   const config = useRuntimeConfig()

@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import type { Ref } from 'vue'
 
 // 用户角色枚举
 export const UserRoles = {
@@ -37,6 +38,36 @@ type LogoutResponse = {
 type ChangePasswordResponse = {
   success: boolean
   message?: string
+}
+
+type CookieRef = Ref<string | null>
+
+type AuthCookies = {
+  token: CookieRef
+  refreshToken: CookieRef
+  tokenExpires: CookieRef
+  userRole: CookieRef
+  isAuthenticated: CookieRef
+  loginTime: CookieRef
+}
+
+type AuthFetchOptions = {
+} & NonNullable<Parameters<typeof $fetch>[1]>
+
+type FetchErrorLike = {
+  response?: { status?: number }
+  data?: { message?: string }
+}
+
+function getErrorMessage(error: unknown, fallback = '请求失败'): string {
+  if (error instanceof Error && error.message) {
+    return error.message
+  }
+  return fallback
+}
+
+function isFetchErrorLike(error: unknown): error is FetchErrorLike {
+  return typeof error === 'object' && error !== null
 }
 
 // Cookie 键名
@@ -84,10 +115,10 @@ export const useAuthStore = defineStore('auth', {
 
   actions: {
     // 获取 Cookie 实例
-    _getCookies(): any {
-      if (!import.meta.client) return {}
+    _getCookies(): AuthCookies | null {
+      if (!import.meta.client) return null
       // 注意：禁用自动 decode，避免 destr 将字符串转换为其他类型
-      const cookieOpts = (maxAge: number) => ({ maxAge, decode: (v: any) => v, encode: (v: any) => v })
+      const cookieOpts = (maxAge: number) => ({ maxAge, decode: (v: string) => v, encode: (v: string) => v })
       return {
         token: useCookie(TOKEN_KEY, cookieOpts(60 * 60 * 24 * 7)),
         refreshToken: useCookie(REFRESH_TOKEN_KEY, cookieOpts(60 * 60 * 24 * 30)),
@@ -162,7 +193,7 @@ export const useAuthStore = defineStore('auth', {
           success: false,
           message: result.message || `密码错误，还有${5 - this.loginAttempts}次尝试机会`
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('登录验证失败:', error)
         return {
           success: false,
@@ -204,10 +235,10 @@ export const useAuthStore = defineStore('auth', {
         }
         console.log('[Auth] Token 刷新失败:', result.message)
         return false
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('[Auth] Token 刷新失败:', error)
         // 如果是 401 错误，说明 RefreshToken 也过期了，需要重新登录
-        if (error?.response?.status === 401) {
+        if (isFetchErrorLike(error) && error.response?.status === 401) {
           await this.logout()
         }
         return false
@@ -257,9 +288,10 @@ export const useAuthStore = defineStore('auth', {
     },
 
     // 带认证的 fetch 请求（自动处理 Token 刷新）
-    async authFetch<T = any>(url: string, options: any = {}): Promise<T> {
+    async authFetch<T = unknown>(url: string, options: AuthFetchOptions = {}): Promise<T> {
       const config = useRuntimeConfig()
       const baseURL = config.public.apiBase
+      const request = $fetch as <R>(requestUrl: string, requestOptions?: AuthFetchOptions) => Promise<R>
 
       // 如果 Token 已过期，先刷新
       if (this.isTokenExpired && this.refreshToken) {
@@ -275,7 +307,7 @@ export const useAuthStore = defineStore('auth', {
         await this.refreshAccessToken()
       }
 
-      const fetchOptions: any = {
+      const fetchOptions: AuthFetchOptions = {
         ...options,
         headers: {
           ...options.headers,
@@ -284,10 +316,10 @@ export const useAuthStore = defineStore('auth', {
       }
 
       try {
-        return (await $fetch(`${baseURL}${url}`, fetchOptions)) as unknown as T
-      } catch (error: any) {
+        return await request<T>(`${baseURL}${url}`, fetchOptions)
+      } catch (error: unknown) {
         // 如果是 401 错误，尝试刷新 Token 并重试一次
-        if (error?.response?.status === 401 && this.refreshToken) {
+        if (isFetchErrorLike(error) && error.response?.status === 401 && this.refreshToken) {
           console.log('[Auth] 收到 401 错误，尝试刷新 Token 并重试')
           const refreshed = await this.refreshAccessToken()
           if (refreshed) {
@@ -298,7 +330,7 @@ export const useAuthStore = defineStore('auth', {
             }
             // 重试请求
             try {
-              return (await $fetch(`${baseURL}${url}`, fetchOptions)) as unknown as T
+              return await request<T>(`${baseURL}${url}`, fetchOptions)
             } catch (retryError) {
               console.error('[Auth] 重试后仍然失败:', retryError)
               throw retryError
@@ -431,11 +463,13 @@ export const useAuthStore = defineStore('auth', {
         })
 
         return result
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('修改密码失败:', error)
         return {
           success: false,
-          message: error?.data?.message || '修改密码失败，请重试'
+          message: isFetchErrorLike(error)
+            ? (error.data?.message || '修改密码失败，请重试')
+            : getErrorMessage(error, '修改密码失败，请重试')
         }
       }
     },

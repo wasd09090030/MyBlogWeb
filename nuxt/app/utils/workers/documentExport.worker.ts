@@ -37,7 +37,7 @@ function parseMarkdownToDocxStructure(markdown: string, options: Record<string, 
         paragraphs.push({
           type: 'codeBlock',
           language: codeLanguage,
-          lines: [...codeBlockLines] as unknown as DocxRun[]
+          lines: codeBlockLines.map((text): DocxRun => ({ text, code: true }))
         })
         codeBlockLines = []
         codeLanguage = ''
@@ -142,7 +142,7 @@ function parseMarkdownToDocxStructure(markdown: string, options: Record<string, 
     paragraphs.push({
       type: 'codeBlock',
       language: codeLanguage,
-      lines: codeBlockLines as unknown as DocxRun[]
+      lines: codeBlockLines.map((text): DocxRun => ({ text, code: true }))
     })
   }
   if (tableLines.length > 0) {

@@ -12,6 +12,10 @@ import type {
 
 let imageWorkerManager: ReturnType<typeof createWorkerManager<ImagePreloadWorkerActionMap>> | null = null
 
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error)
+}
+
 function getManager() {
   if (imageWorkerManager) return imageWorkerManager
 
@@ -27,8 +31,8 @@ function getManager() {
       { timeout: 60000, singleton: true, maxRetries: 1 }
     )
     return imageWorkerManager
-  } catch (e: any) {
-    console.warn('[useImagePreloadWorker] Worker 创建失败:', e?.message)
+  } catch (e: unknown) {
+    console.warn('[useImagePreloadWorker] Worker 创建失败:', getErrorMessage(e))
     return null
   }
 }
@@ -69,7 +73,7 @@ async function batchPreloadFallback(
         results.push(result.value)
       } else {
         failed++
-        results.push({ url: chunk[j], error: (result.reason as any)?.message })
+        results.push({ url: chunk[j], error: getErrorMessage(result.reason) })
       }
 
       if (onProgress) {
@@ -111,8 +115,8 @@ export function useImagePreloadWorker() {
           onProgress
         }
       )
-    } catch (e: any) {
-      console.warn('[useImagePreloadWorker] Worker 预加载失败，降级到主线程:', e?.message)
+    } catch (e: unknown) {
+      console.warn('[useImagePreloadWorker] Worker 预加载失败，降级到主线程:', getErrorMessage(e))
       return batchPreloadFallback(urls, concurrency, onProgress)
     }
   }

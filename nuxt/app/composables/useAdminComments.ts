@@ -1,33 +1,32 @@
-type AuthStoreLike = {
-  authFetch: <T = unknown>(url: string, options?: Record<string, unknown>) => Promise<T>
-}
-
-type CommentStatus = 'pending' | 'approved' | 'rejected' | string
+import type { AdminComment, AuthFetchLike, CommentStatus } from '~/types/api'
 
 export const useAdminComments = () => {
-  const authStore = useAuthStore() as unknown as AuthStoreLike
+  const authStore = useAuthStore() as AuthFetchLike
 
-  const getAllComments = async (): Promise<unknown> => {
+  const getAllComments = async (): Promise<AdminComment[]> => {
     try {
-      return await authStore.authFetch('/comments/admin/all')
+      return await authStore.authFetch<AdminComment[]>('/comments/admin/all')
     } catch (error) {
       console.error('获取评论失败:', error)
       throw error
     }
   }
 
-  const getPendingComments = async (): Promise<unknown> => {
+  const getPendingComments = async (): Promise<AdminComment[]> => {
     try {
-      return await authStore.authFetch('/comments/admin/pending')
+      return await authStore.authFetch<AdminComment[]>('/comments/admin/pending')
     } catch (error) {
       console.error('获取待审核评论失败:', error)
       throw error
     }
   }
 
-  const updateCommentStatus = async (commentId: string | number, status: CommentStatus): Promise<unknown> => {
+  const updateCommentStatus = async (
+    commentId: string | number,
+    status: CommentStatus | string
+  ): Promise<AdminComment> => {
     try {
-      return await authStore.authFetch(`/comments/${commentId}/status`, {
+      return await authStore.authFetch<AdminComment>(`/comments/${commentId}/status`, {
         method: 'PATCH',
         body: { status }
       })
@@ -37,9 +36,9 @@ export const useAdminComments = () => {
     }
   }
 
-  const deleteComment = async (commentId: string | number): Promise<unknown> => {
+  const deleteComment = async (commentId: string | number): Promise<void> => {
     try {
-      return await authStore.authFetch(`/comments/${commentId}`, {
+      await authStore.authFetch<void>(`/comments/${commentId}`, {
         method: 'DELETE'
       })
     } catch (error) {
@@ -48,7 +47,7 @@ export const useAdminComments = () => {
     }
   }
 
-  const getStatusType = (status: CommentStatus): string => {
+  const getStatusType = (status: CommentStatus | string): string => {
     const types: Record<string, string> = {
       pending: 'warning',
       approved: 'success',
@@ -57,7 +56,7 @@ export const useAdminComments = () => {
     return types[status] || 'default'
   }
 
-  const getStatusText = (status: CommentStatus): string => {
+  const getStatusText = (status: CommentStatus | string): string => {
     const texts: Record<string, string> = {
       pending: '待审核',
       approved: '已通过',

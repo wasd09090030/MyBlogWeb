@@ -13,6 +13,7 @@
  */
 
 import { parseMarkdown } from '@nuxtjs/mdc/runtime'
+import type { LocationQueryRaw } from 'vue-router'
 import { setPreloadedArticle } from '~/utils/articlePreloadCache'
 
 type ArticleNavInput = {
@@ -22,15 +23,23 @@ type ArticleNavInput = {
 
 type NavigateToArticleOptions = {
   minAnimationMs?: number
-  query?: Record<string, any>
+  query?: LocationQueryRaw
 }
 
-type ArticleApiResponse = Record<string, any> & {
+type ArticleApiResponse = Record<string, unknown> & {
   id?: string | number
   slug?: string | null
   contentMarkdown?: string | null
   _mdcAst?: unknown
   _mdcToc?: unknown
+}
+
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : '未知错误'
+}
+
+function hasToc(value: unknown): value is { toc: unknown } {
+  return typeof value === 'object' && value !== null && 'toc' in value
 }
 
 // 防止并发预加载同一篇文章
@@ -121,9 +130,9 @@ export function useArticleNavigation() {
               }
             })
             response._mdcAst = ast as unknown
-            response._mdcToc = (ast as any).toc
-          } catch (e: any) {
-            console.warn('[ArticleNav] Markdown 解析失败，页面将回退处理:', e?.message)
+            response._mdcToc = hasToc(ast) ? ast.toc : undefined
+          } catch (e: unknown) {
+            console.warn('[ArticleNav] Markdown 解析失败，页面将回退处理:', getErrorMessage(e))
             // 解析失败不阻塞导航
           }
         }
@@ -143,8 +152,8 @@ export function useArticleNavigation() {
 
       // 5. 导航到文章页（useAsyncData 将从缓存读取，瞬间完成）
       await navigateTo({ path: articlePath, query })
-    } catch (error: any) {
-      console.warn('[ArticleNav] 预加载失败，降级直跳:', error?.message)
+    } catch (error: unknown) {
+      console.warn('[ArticleNav] 预加载失败，降级直跳:', getErrorMessage(error))
       // 降级：直接导航，走标准加载流程
       await navigateTo({ path: articlePath, query })
     } finally {

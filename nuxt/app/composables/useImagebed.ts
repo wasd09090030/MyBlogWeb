@@ -1,20 +1,11 @@
-type AuthStoreLike = {
-  authFetch: <T = unknown>(url: string, options?: Record<string, unknown>) => Promise<T>
-}
-
-type ImagebedConfig = {
-  domain: string
-  apiToken: string
-  uploadFolder?: string
-}
-
-type UploadResult = {
-  success: boolean
-  src?: string
-  url?: string
-  fileName?: string
-  error?: string
-}
+import type {
+  ApiOperationResult,
+  AuthFetchLike,
+  ImagebedConfig,
+  ImagebedFileItem,
+  ImagebedListResponse,
+  ImagebedUploadResult
+} from '~/types/api'
 
 type FileListOptions = {
   domain: string
@@ -24,15 +15,6 @@ type FileListOptions = {
   search?: string
   dir?: string
   recursive?: boolean
-}
-
-type FileListItem = {
-  name: string
-  size: number
-  type: string
-  channel: string
-  timestamp: string
-  url: string
 }
 
 type DeleteMultipleResult = {
@@ -63,20 +45,20 @@ function getErrorMessage(error: unknown): string {
 }
 
 export const useImagebed = () => {
-  const authStore = useAuthStore() as unknown as AuthStoreLike
+  const authStore = useAuthStore() as AuthFetchLike
 
-  const getConfig = async (): Promise<unknown> => {
+  const getConfig = async (): Promise<ImagebedConfig> => {
     try {
-      return await authStore.authFetch('/imagebed/config')
+      return await authStore.authFetch<ImagebedConfig>('/imagebed/config')
     } catch (error) {
       console.error('获取图床配置失败:', error)
       throw error
     }
   }
 
-  const saveConfig = async (configData: ImagebedConfig): Promise<unknown> => {
+  const saveConfig = async (configData: ImagebedConfig): Promise<ImagebedConfig> => {
     try {
-      return await authStore.authFetch('/imagebed/config', {
+      return await authStore.authFetch<ImagebedConfig>('/imagebed/config', {
         method: 'POST',
         body: configData
       })
@@ -92,7 +74,7 @@ export const useImagebed = () => {
     return `${domainUrl}${path}`
   }
 
-  const uploadImage = async (file: File, options: ImagebedConfig): Promise<UploadResult> => {
+  const uploadImage = async (file: File, options: ImagebedConfig): Promise<ImagebedUploadResult> => {
     const { domain, apiToken, uploadFolder } = options
     const formData = new FormData()
     formData.append('file', file)
@@ -143,9 +125,9 @@ export const useImagebed = () => {
   const uploadMultipleImages = async (
     files: File[],
     options: ImagebedConfig,
-    onProgress?: (index: number, total: number, result: UploadResult) => void
-  ): Promise<{ results: UploadResult[]; errors: Array<{ file: string; error: string }> }> => {
-    const results: UploadResult[] = []
+    onProgress?: (index: number, total: number, result: ImagebedUploadResult) => void
+  ): Promise<{ results: ImagebedUploadResult[]; errors: Array<{ file: string; error: string }> }> => {
+    const results: ImagebedUploadResult[] = []
     const errors: Array<{ file: string; error: string }> = []
 
     for (let i = 0; i < files.length; i++) {
@@ -168,7 +150,7 @@ export const useImagebed = () => {
   }
 
   const getFileList = async (options: FileListOptions): Promise<{
-    files: FileListItem[]
+    files: ImagebedFileItem[]
     directories: string[]
     totalCount: number
     returnedCount: number
@@ -200,12 +182,7 @@ export const useImagebed = () => {
         throw new Error(`List failed: ${response.status} - ${errorText}`)
       }
 
-      const result = await response.json() as {
-        files?: Array<{ name: string; metadata?: Record<string, string> }>
-        directories?: string[]
-        totalCount?: number
-        returnedCount?: number
-      }
+      const result = await response.json() as ImagebedListResponse
 
       return {
         files: (result.files || []).map((file) => ({
@@ -261,7 +238,7 @@ export const useImagebed = () => {
     }
   }
 
-  const deleteFile = async (options: DeleteFileOptions): Promise<Record<string, unknown>> => {
+  const deleteFile = async (options: DeleteFileOptions): Promise<ApiOperationResult> => {
     const { domain, apiToken, filePath } = options
 
     try {
@@ -278,14 +255,14 @@ export const useImagebed = () => {
         throw new Error(`Delete failed: ${response.status} - ${errorText}`)
       }
 
-      return await response.json() as Record<string, unknown>
+      return await response.json() as ApiOperationResult
     } catch (error) {
       console.error('Delete error:', error)
       throw error
     }
   }
 
-  const deleteFolder = async (options: DeleteFolderOptions): Promise<Record<string, unknown>> => {
+  const deleteFolder = async (options: DeleteFolderOptions): Promise<ApiOperationResult> => {
     const { domain, apiToken, folderPath } = options
 
     try {
@@ -302,7 +279,7 @@ export const useImagebed = () => {
         throw new Error(`Delete folder failed: ${response.status} - ${errorText}`)
       }
 
-      return await response.json() as Record<string, unknown>
+      return await response.json() as ApiOperationResult
     } catch (error) {
       console.error('Delete folder error:', error)
       throw error

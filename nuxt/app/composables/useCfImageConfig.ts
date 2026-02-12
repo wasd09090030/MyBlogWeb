@@ -1,24 +1,20 @@
-type AuthStoreLike = {
-  authFetch: <T = unknown>(url: string, options?: Record<string, unknown>) => Promise<T>
-}
-
-type CfImageConfigPayload = Record<string, unknown>
+import type { AuthFetchLike, CfImageConfig } from '~/types/api'
 
 export const useCfImageConfig = () => {
-  const authStore = useAuthStore() as unknown as AuthStoreLike
+  const authStore = useAuthStore() as AuthFetchLike
 
-  const getConfig = async (): Promise<unknown> => {
+  const getConfig = async (): Promise<CfImageConfig> => {
     try {
-      return await authStore.authFetch('/cf-image-config')
+      return await authStore.authFetch<CfImageConfig>('/cf-image-config')
     } catch (error) {
       console.error('获取 Cloudflare 缩略图配置失败:', error)
       throw error
     }
   }
 
-  const saveConfig = async (configData: CfImageConfigPayload): Promise<unknown> => {
+  const saveConfig = async (configData: CfImageConfig): Promise<CfImageConfig> => {
     try {
-      return await authStore.authFetch('/cf-image-config', {
+      return await authStore.authFetch<CfImageConfig>('/cf-image-config', {
         method: 'POST',
         body: configData
       })

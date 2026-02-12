@@ -11,6 +11,10 @@ import type {
 
 let searchWorkerManager: ReturnType<typeof createWorkerManager<SearchWorkerActionMap>> | null = null
 
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error)
+}
+
 function getManager() {
   if (searchWorkerManager) return searchWorkerManager
 
@@ -26,8 +30,8 @@ function getManager() {
       { timeout: 10000, singleton: true, maxRetries: 1 }
     )
     return searchWorkerManager
-  } catch (e: any) {
-    console.warn('[useSearchWorker] Worker 创建失败:', e?.message)
+  } catch (e: unknown) {
+    console.warn('[useSearchWorker] Worker 创建失败:', getErrorMessage(e))
     return null
   }
 }
@@ -87,8 +91,8 @@ export function useSearchWorker() {
       await manager.postTask('buildIndex', { articles })
       indexBuilt.value = true
       console.log(`[SearchWorker] 索引构建完成，共 ${articles.length} 篇文章`)
-    } catch (e: any) {
-      console.warn('[SearchWorker] 索引构建失败:', e?.message)
+    } catch (e: unknown) {
+      console.warn('[SearchWorker] 索引构建失败:', getErrorMessage(e))
     }
   }
 

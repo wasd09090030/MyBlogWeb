@@ -8,11 +8,19 @@ import type {
   BatchConvertProgress,
   ImageConvertResult,
   ImageProcessOptions,
-  ImageProcessorWorkerActionMap
+  ImageProcessorWorkerActionMap,
+  ResultOf
 } from '~/utils/workers/types'
 
 let workerInstance: ReturnType<typeof createWorkerManager<ImageProcessorWorkerActionMap>> | null = null
 let refCount = 0
+
+type FormatSupport = ResultOf<ImageProcessorWorkerActionMap, 'checkSupport'>
+type BatchConvertResult = ResultOf<ImageProcessorWorkerActionMap, 'batchConvert'>
+
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error)
+}
 
 function getWorker() {
   if (!workerInstance && isWorkerSupported()) {
@@ -34,7 +42,7 @@ function getWorker() {
 
 export function useImageProcessorWorker() {
   const worker = process.client ? getWorker() : null
-  const formatSupport = ref<any>(null)
+  const formatSupport = ref<FormatSupport | null>(null)
 
   onUnmounted(() => {
     refCount--
@@ -90,8 +98,8 @@ export function useImageProcessorWorker() {
           imageBlob: imageBlob as Blob,
           options
         })
-      } catch (e) {
-        console.warn('[useImageProcessorWorker] Worker 转换失败，降级到主线程:', e)
+      } catch (e: unknown) {
+        console.warn('[useImageProcessorWorker] Worker 转换失败，降级到主线程:', getErrorMessage(e))
       }
     }
 
@@ -102,7 +110,7 @@ export function useImageProcessorWorker() {
     images: Array<File | Blob>,
     options: ImageProcessOptions,
     onProgress?: (progress: BatchConvertProgress) => void
-  ) {
+  ): Promise<BatchConvertResult> {
     if (!process.client) return []
 
     if (worker) {
@@ -146,7 +154,7 @@ export function useImageProcessorWorker() {
 async function convertImageMainThread(imageBlob: File | Blob, options: ImageProcessOptions): Promise<ImageConvertResult> {
   const { format, quality = 0.85, maxWidth, maxHeight } = options
 
-  return new Promise<{ blob: Blob; width: number; height: number; size: number; format: string; mimeType: string }>((resolve, reject) => {
+  return new Promise<ImageConvertResult>((resolve, reject) => {
     const img = new Image()
     const url = URL.createObjectURL(imageBlob)
 
@@ -175,13 +183,13 @@ async function convertImageMainThread(imageBlob: File | Blob, options: ImageProc
       }
       ctx.drawImage(img, 0, 0, width, height)
 
-      const mimeTypes: Record<string, string> = {
+      const mimeTypes: Record<ImageProcessOptions['format'], string> = {
         png: 'image/png',
         jpeg: 'image/jpeg',
         webp: 'image/webp',
         avif: 'image/avif'
       }
-      const mimeType = mimeTypes[format] || 'image/png'
+      const mimeType = mimeTypes[format]
 
       canvas.toBlob(
         (blob) => {
@@ -209,14 +217,14 @@ async function batchConvertMainThread(
   images: Array<File | Blob>,
   options: ImageProcessOptions,
   onProgress?: (progress: BatchConvertProgress) => void
-) {
-  const results: any[] = []
+): Promise<BatchConvertResult> {
+  const results: BatchConvertResult = []
   for (let i = 0; i < images.length; i++) {
     try {
       const result = await convertImageMainThread(images[i], options)
       results.push({ index: i, ...result })
-    } catch (e: any) {
-      results.push({ index: i, error: e.message })
+    } catch (e: unknown) {
+      results.push({ index: i, error: getErrorMessage(e) })
     }
     if (onProgress) {
       onProgress({
