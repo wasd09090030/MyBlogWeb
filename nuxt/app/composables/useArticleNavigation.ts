@@ -12,9 +12,7 @@
  * 降级策略：预加载失败时直接跳转，走标准 SSR/CSR 流程
  */
 
-import { parseMarkdown } from '@nuxtjs/mdc/runtime'
 import type { LocationQueryRaw } from 'vue-router'
-import { createApiClient } from '~/shared/api/client'
 import { setPreloadedArticle } from '~/utils/articlePreloadCache'
 
 type ArticleNavInput = {
@@ -23,7 +21,6 @@ type ArticleNavInput = {
 }
 
 type NavigateToArticleOptions = {
-  minAnimationMs?: number
   query?: LocationQueryRaw
 }
 
@@ -39,17 +36,12 @@ function getErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : '未知错误'
 }
 
-function hasToc(value: unknown): value is { toc: unknown } {
-  return typeof value === 'object' && value !== null && 'toc' in value
-}
-
 // 防止并发预加载同一篇文章
 const pendingNavigations = new Set<string>()
 
 export function useArticleNavigation() {
   const loadingIndicator = useLoadingIndicator()
   const router = useRouter()
-  const api = createApiClient()
 
   void router // 保留：后续可能用于更精细的导航控制
 
@@ -78,7 +70,7 @@ export function useArticleNavigation() {
    * 核心方法：无缝导航到文章
    */
   async function navigateToArticle(article: ArticleNavInput, options: NavigateToArticleOptions = {}): Promise<void> {
-    const { minAnimationMs = 500, query = {} } = options
+    const { query = {} } = options
 
     if (!article?.id) {
       await navigateTo('/')
@@ -97,55 +89,23 @@ export function useArticleNavigation() {
     loadingIndicator.start({ force: true })
 
     try {
-      // 2. 并行执行：数据加载 + 最小动画时间
-      const minAnimation = new Promise<void>((resolve) => setTimeout(resolve, minAnimationMs))
-
-      const loadData = async (): Promise<ArticleApiResponse> => {
-        // 获取文章 API 数据
-        const response = await api.get<ArticleApiResponse>(`/articles/${articleId}`)
-
-        if (!response) throw new Error('文章不存在')
-
-        // Markdown 预解析（重操作，但在 loading 动画播放期间完成）
-        if (response.contentMarkdown) {
-          try {
-            const ast = await parseMarkdown(response.contentMarkdown, {
-              highlight: {
-                theme: {
-                  default: 'material-theme-lighter',
-                  dark: 'material-theme-darker'
-                }
-              },
-              toc: {
-                depth: 4,
-                searchDepth: 4
-              }
-            })
-            response._mdcAst = ast as unknown
-            response._mdcToc = hasToc(ast) ? ast.toc : undefined
-          } catch (e: unknown) {
-            console.warn('[ArticleNav] Markdown 解析失败，页面将回退处理:', getErrorMessage(e))
-            // 解析失败不阻塞导航
-          }
-        }
-
-        return response
-      }
-
-      const [articleData] = await Promise.all([loadData(), minAnimation])
-
-      // 3. 写入预加载缓存（供 [id].vue 的 getCachedData 消费）
-      if (cacheKey && articleData) {
-        setPreloadedArticle(cacheKey, articleData)
-      }
-
-      // 4. 进度设到接近完成
-      loadingIndicator.set(80)
-
-      // 5. 导航到文章页（useAsyncData 将从缓存读取，瞬间完成）
+      // 2. 先跳转：不再等待数据预加载，保证导航不阻塞
       await navigateTo({ path: articlePath, query })
+
+      // 3. 后台预加载（不阻塞当前导航）
+      if (cacheKey) {
+        void $fetch<ArticleApiResponse>(`/api/articles/${articleId}`)
+          .then((articleData) => {
+            if (!articleData) return
+            setPreloadedArticle(cacheKey, articleData)
+            loadingIndicator.set(80)
+          })
+          .catch((error: unknown) => {
+            console.warn('[ArticleNav] 后台预加载失败（已降级，不影响浏览）:', getErrorMessage(error))
+          })
+      }
     } catch (error: unknown) {
-      console.warn('[ArticleNav] 预加载失败，降级直跳:', getErrorMessage(error))
+      console.warn('[ArticleNav] 跳转失败，降级直跳:', getErrorMessage(error))
       // 降级：直接导航，走标准加载流程
       await navigateTo({ path: articlePath, query })
     } finally {

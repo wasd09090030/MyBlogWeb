@@ -1,4 +1,3 @@
-import { parseMarkdown } from '@nuxtjs/mdc/runtime'
 import { consumePreloadedArticle } from '~/utils/articlePreloadCache'
 import { createArticleDetailRepository } from '~/features/article-detail/services/articleDetail.repository'
 import { logAppError, toNuxtErrorPayload } from '~/shared/errors'
@@ -38,40 +37,11 @@ export const useArticleDetailPage = async () => {
         throw createError(toNuxtErrorPayload({ statusCode: 404, statusMessage: '文章不存在' }))
       }
 
-      if (response.contentMarkdown) {
-        try {
-          const ast = await parseMarkdown(String(response.contentMarkdown), {
-            highlight: {
-              theme: {
-                default: 'material-theme-lighter',
-                dark: 'material-theme-darker'
-              }
-            },
-            toc: {
-              depth: 4,
-              searchDepth: 4
-            }
-          })
-
-          response._mdcAst = ast
-          response._mdcToc = ast.toc
-
-          if (process.server) {
-            console.log('[SSR] Markdown 预解析成功，TOC:', ast.toc?.links?.length || 0, '项')
-          } else {
-            console.log('[Client] Markdown 解析成功，TOC:', ast.toc?.links?.length || 0, '项')
-          }
-        } catch (e) {
-          const markdownError = e as Error
-          console.error('[Markdown] 解析失败:', markdownError.message)
-        }
-      }
-
       return response
     },
     {
       watch: [articleId],
-      lazy: false,
+      lazy: true,
       getCachedData: (key, nuxtApp, ctx) => {
         if (ctx?.cause === 'refresh:manual') return undefined
 
@@ -109,9 +79,22 @@ export const useArticleDetailPage = async () => {
     return `${baseSiteUrl.value}/${value}`
   }
 
-  if ((article.value as { slug?: string } | null)?.slug && routeSlug.value !== (article.value as { slug?: string }).slug) {
-    await navigateTo({ path: canonicalPath.value, query: route.query }, { redirectCode: 301 })
+  let isRedirectingToCanonical = false
+  const ensureCanonicalSlug = async () => {
+    const slug = (article.value as { slug?: string } | null)?.slug
+    if (!slug || routeSlug.value === slug || isRedirectingToCanonical) return
+    isRedirectingToCanonical = true
+    try {
+      await navigateTo({ path: canonicalPath.value, query: route.query }, { redirectCode: 301 })
+    } finally {
+      isRedirectingToCanonical = false
+    }
   }
+
+  await ensureCanonicalSlug()
+  watch([articleId, () => (article.value as { slug?: string } | null)?.slug], () => {
+    void ensureCanonicalSlug()
+  })
 
   if (error.value) {
     throw createError(toNuxtErrorPayload(error.value, { fallback: '文章加载失败' }))
