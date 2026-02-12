@@ -1,9 +1,13 @@
-// Admin 画廊相关 composable
-export const useAdminGallery = () => {
-  const authStore = useAuthStore()
+type AuthStoreLike = {
+  authFetch: <T = unknown>(url: string, options?: Record<string, unknown>) => Promise<T>
+}
 
-  // 获取所有画廊（管理员）
-  const getAllGalleries = async () => {
+type GalleryPayload = Record<string, unknown>
+
+export const useAdminGallery = () => {
+  const authStore = useAuthStore() as unknown as AuthStoreLike
+
+  const getAllGalleries = async (): Promise<unknown> => {
     try {
       return await authStore.authFetch('/gallery/admin')
     } catch (error) {
@@ -12,8 +16,7 @@ export const useAdminGallery = () => {
     }
   }
 
-  // 创建画廊
-  const createGallery = async (galleryData) => {
+  const createGallery = async (galleryData: GalleryPayload): Promise<unknown> => {
     try {
       return await authStore.authFetch('/gallery', {
         method: 'POST',
@@ -25,8 +28,7 @@ export const useAdminGallery = () => {
     }
   }
 
-  // 更新画廊
-  const updateGallery = async (id, galleryData) => {
+  const updateGallery = async (id: string | number, galleryData: GalleryPayload): Promise<unknown> => {
     try {
       return await authStore.authFetch(`/gallery/${id}`, {
         method: 'PATCH',
@@ -38,8 +40,7 @@ export const useAdminGallery = () => {
     }
   }
 
-  // 删除画廊
-  const deleteGallery = async (id) => {
+  const deleteGallery = async (id: string | number): Promise<unknown> => {
     try {
       return await authStore.authFetch(`/gallery/${id}`, {
         method: 'DELETE'
@@ -50,8 +51,7 @@ export const useAdminGallery = () => {
     }
   }
 
-  // 切换显示状态
-  const toggleActive = async (id) => {
+  const toggleActive = async (id: string | number): Promise<unknown> => {
     try {
       return await authStore.authFetch(`/gallery/${id}/toggle-active`, {
         method: 'PATCH'
@@ -62,8 +62,7 @@ export const useAdminGallery = () => {
     }
   }
 
-  // 批量导入
-  const batchImport = async (data) => {
+  const batchImport = async (data: GalleryPayload): Promise<unknown> => {
     try {
       return await authStore.authFetch('/gallery/batch/import', {
         method: 'POST',
@@ -75,8 +74,7 @@ export const useAdminGallery = () => {
     }
   }
 
-  // 更新排序
-  const updateSort = async (sortData) => {
+  const updateSort = async (sortData: GalleryPayload): Promise<unknown> => {
     try {
       return await authStore.authFetch('/gallery/batch/sort-order', {
         method: 'PATCH',
@@ -88,8 +86,7 @@ export const useAdminGallery = () => {
     }
   }
 
-  // 刷新图片宽高
-  const refreshDimensions = async () => {
+  const refreshDimensions = async (): Promise<unknown> => {
     try {
       return await authStore.authFetch('/gallery/refresh-dimensions', {
         method: 'POST'

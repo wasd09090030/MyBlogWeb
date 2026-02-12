@@ -1,24 +1,28 @@
 /**
  * 图片处理 Worker 组合式函数
- *
- * 提供 OffscreenCanvas Worker 接口用于图片格式转换，
- * 当 Worker 不可用时自动降级为主线程 Canvas 操作。
  */
+
 import { ref, onUnmounted } from 'vue'
 import { createWorkerManager, isWorkerSupported } from '~/utils/workers/workerManager'
+import type {
+  BatchConvertProgress,
+  ImageConvertResult,
+  ImageProcessOptions,
+  ImageProcessorWorkerActionMap
+} from '~/utils/workers/types'
 
-let workerInstance = null
+let workerInstance: ReturnType<typeof createWorkerManager<ImageProcessorWorkerActionMap>> | null = null
 let refCount = 0
 
 function getWorker() {
   if (!workerInstance && isWorkerSupported()) {
     try {
-      workerInstance = createWorkerManager(
+      workerInstance = createWorkerManager<ImageProcessorWorkerActionMap>(
         'imageProcessor',
-        () => new Worker(new URL('~/utils/workers/imageProcessor.worker.js', import.meta.url), {
+        () => new Worker(new URL('~/utils/workers/imageProcessor.worker.ts', import.meta.url), {
           type: 'module'
         }),
-        { maxRetries: 1, taskTimeout: 30000 }
+        { maxRetries: 1, timeout: 30000 }
       )
     } catch (e) {
       console.warn('[useImageProcessorWorker] Worker 创建失败:', e)
@@ -30,7 +34,7 @@ function getWorker() {
 
 export function useImageProcessorWorker() {
   const worker = process.client ? getWorker() : null
-  const formatSupport = ref(null)
+  const formatSupport = ref<any>(null)
 
   onUnmounted(() => {
     refCount--
@@ -41,28 +45,24 @@ export function useImageProcessorWorker() {
     }
   })
 
-  /**
-   * 检查 OffscreenCanvas 和格式支持
-   */
   async function checkSupport() {
     if (formatSupport.value) return formatSupport.value
 
     if (worker) {
       try {
-        const result = await worker.postTask({ action: 'checkSupport' })
+        const result = await worker.postTask('checkSupport', {})
         formatSupport.value = result
         return result
-      } catch { /* fall through */ }
+      } catch {
+      }
     }
 
-    // SSR 环境下返回基础支持信息
     if (!process.client) {
       const result = { offscreenCanvas: false, formats: { png: true, jpeg: true, webp: false, avif: false } }
       formatSupport.value = result
       return result
     }
 
-    // 降级：主线程检测
     const canvas = document.createElement('canvas')
     canvas.width = 1
     canvas.height = 1
@@ -72,67 +72,54 @@ export function useImageProcessorWorker() {
         png: true,
         jpeg: true,
         webp: canvas.toDataURL('image/webp').startsWith('data:image/webp'),
-        avif: false // 主线程 Canvas 通常不支持 AVIF 导出
+        avif: false
       }
     }
     formatSupport.value = result
     return result
   }
 
-  /**
-   * 在 Worker 中转换图片格式
-   * @param {File|Blob} imageBlob - 图片 Blob
-   * @param {Object} options - { format, quality, maxWidth, maxHeight }
-   * @returns {Promise<{ blob: Blob, width: number, height: number, size: number }>}
-   */
-  async function convertImage(imageBlob, options) {
-    // SSR 环境下不执行图片转换
+  async function convertImage(imageBlob: File | Blob, options: ImageProcessOptions): Promise<ImageConvertResult> {
     if (!process.client) {
       throw new Error('图片转换仅在客户端可用')
     }
 
-    // 尝试 Worker 转换
     if (worker) {
       try {
-        const result = await worker.postTask({
-          action: 'convert',
-          imageBlob,
+        return await worker.postTask('convert', {
+          imageBlob: imageBlob as Blob,
           options
         })
-        return result
       } catch (e) {
         console.warn('[useImageProcessorWorker] Worker 转换失败，降级到主线程:', e)
       }
     }
 
-    // 降级：主线程 Canvas 转换
     return await convertImageMainThread(imageBlob, options)
   }
 
-  /**
-   * 批量转换图片
-   */
-  async function batchConvert(images, options, onProgress) {
-    // SSR 环境下不执行批量转换
+  async function batchConvert(
+    images: Array<File | Blob>,
+    options: ImageProcessOptions,
+    onProgress?: (progress: BatchConvertProgress) => void
+  ) {
     if (!process.client) return []
 
     if (worker) {
       try {
-        const result = await worker.postTaskWithFallback(
-          { action: 'batchConvert', images, options },
+        return await worker.postTaskWithFallback(
+          'batchConvert',
+          { images: images as Blob[], options },
           () => batchConvertMainThread(images, options, onProgress),
-          { onProgress: onProgress ? (prog) => onProgress(prog) : undefined }
+          { onProgress }
         )
-        return result
-      } catch { /* fall through */ }
+      } catch {
+      }
     }
 
     return await batchConvertMainThread(images, options, onProgress)
   }
 
-  /**
-   * Worker 是否可用
-   */
   function isAvailable() {
     return !!(worker && typeof OffscreenCanvas !== 'undefined')
   }
@@ -156,14 +143,10 @@ export function useImageProcessorWorker() {
   }
 }
 
-// =========================================================
-// 主线程降级实现
-// =========================================================
-
-async function convertImageMainThread(imageBlob, options) {
+async function convertImageMainThread(imageBlob: File | Blob, options: ImageProcessOptions): Promise<ImageConvertResult> {
   const { format, quality = 0.85, maxWidth, maxHeight } = options
 
-  return new Promise((resolve, reject) => {
+  return new Promise<{ blob: Blob; width: number; height: number; size: number; format: string; mimeType: string }>((resolve, reject) => {
     const img = new Image()
     const url = URL.createObjectURL(imageBlob)
 
@@ -186,13 +169,17 @@ async function convertImageMainThread(imageBlob, options) {
       canvas.width = width
       canvas.height = height
       const ctx = canvas.getContext('2d')
+      if (!ctx) {
+        reject(new Error('无法获取 Canvas 2D 上下文'))
+        return
+      }
       ctx.drawImage(img, 0, 0, width, height)
 
-      const mimeTypes = {
-        'png': 'image/png',
-        'jpeg': 'image/jpeg',
-        'webp': 'image/webp',
-        'avif': 'image/avif'
+      const mimeTypes: Record<string, string> = {
+        png: 'image/png',
+        jpeg: 'image/jpeg',
+        webp: 'image/webp',
+        avif: 'image/avif'
       }
       const mimeType = mimeTypes[format] || 'image/png'
 
@@ -218,13 +205,17 @@ async function convertImageMainThread(imageBlob, options) {
   })
 }
 
-async function batchConvertMainThread(images, options, onProgress) {
-  const results = []
+async function batchConvertMainThread(
+  images: Array<File | Blob>,
+  options: ImageProcessOptions,
+  onProgress?: (progress: BatchConvertProgress) => void
+) {
+  const results: any[] = []
   for (let i = 0; i < images.length; i++) {
     try {
       const result = await convertImageMainThread(images[i], options)
       results.push({ index: i, ...result })
-    } catch (e) {
+    } catch (e: any) {
       results.push({ index: i, error: e.message })
     }
     if (onProgress) {

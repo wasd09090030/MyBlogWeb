@@ -9,43 +9,46 @@
  * 5. 预取文章 API 数据
  */
 
+import type {
+  ActionName,
+  MarkdownPreprocessResult,
+  MarkdownStats,
+  MarkdownWorkerActionMap,
+  ResultOf,
+  TocItem,
+  WorkerInboundMessage,
+  WorkerTaskUnion
+} from './types'
+
 // =========================================================
 // TOC 提取
 // =========================================================
 
-/**
- * 从 Markdown 原始文本中提取标题结构
- * @param {string} markdown
- * @returns {Array} TOC 链接树
- */
-function extractToc(markdown) {
+function extractToc(markdown: string): TocItem[] {
   if (!markdown) return []
 
   const lines = markdown.split('\n')
-  const headings = []
+  const headings: Array<{ id: string; text: string; level: number }> = []
 
   let inCodeBlock = false
 
   for (const line of lines) {
-    // 跟踪代码块状态
     if (line.trimStart().startsWith('```')) {
       inCodeBlock = !inCodeBlock
       continue
     }
     if (inCodeBlock) continue
 
-    // 匹配 ATX 标题 (# ~ ######)
     const match = line.match(/^(#{1,6})\s+(.+?)(?:\s+#*)?$/)
     if (match) {
       const level = match[1].length
       const text = match[2]
-        .replace(/\*\*(.*?)\*\*/g, '$1') // 移除粗体
-        .replace(/\*(.*?)\*/g, '$1')     // 移除斜体
-        .replace(/`(.*?)`/g, '$1')       // 移除行内代码
-        .replace(/\[(.*?)\]\(.*?\)/g, '$1') // 移除链接
+        .replace(/\*\*(.*?)\*\*/g, '$1')
+        .replace(/\*(.*?)\*/g, '$1')
+        .replace(/`(.*?)`/g, '$1')
+        .replace(/\[(.*?)\]\(.*?\)/g, '$1')
         .trim()
 
-      // 生成 slug ID
       const id = text
         .toLowerCase()
         .replace(/[^\w\u4e00-\u9fff\s-]/g, '')
@@ -57,28 +60,23 @@ function extractToc(markdown) {
     }
   }
 
-  // 构建嵌套树结构
   return buildTocTree(headings)
 }
 
-/**
- * 将扁平标题列表构建为嵌套树
- */
-function buildTocTree(headings) {
+function buildTocTree(headings: TocItem[]): TocItem[] {
   if (headings.length === 0) return []
 
-  const root = { children: [] }
-  const stack = [{ node: root, level: 0 }]
+  const root: { children: TocItem[] } = { children: [] }
+  const stack: Array<{ node: { children: TocItem[] }; level: number }> = [{ node: root, level: 0 }]
 
   for (const heading of headings) {
     const item = {
       id: heading.id,
       text: heading.text,
       level: heading.level,
-      children: []
+      children: [] as TocItem[]
     }
 
-    // 找到正确的父节点
     while (stack.length > 1 && stack[stack.length - 1].level >= heading.level) {
       stack.pop()
     }
@@ -90,24 +88,15 @@ function buildTocTree(headings) {
   return root.children
 }
 
-// =========================================================
-// 代码块分析
-// =========================================================
-
-/**
- * 检测 Markdown 中的代码块信息
- * @param {string} markdown
- * @returns {Object} { languages: string[], hasMermaid: boolean, codeBlockCount: number }
- */
-function analyzeCodeBlocks(markdown) {
+function analyzeCodeBlocks(markdown: string) {
   if (!markdown) return { languages: [], hasMermaid: false, codeBlockCount: 0 }
 
-  const languages = new Set()
+  const languages = new Set<string>()
   let hasMermaid = false
   let codeBlockCount = 0
 
   const codeBlockRegex = /```(\w+)?/g
-  let match
+  let match: RegExpExecArray | null
   let isOpening = true
 
   while ((match = codeBlockRegex.exec(markdown)) !== null) {
@@ -131,56 +120,28 @@ function analyzeCodeBlocks(markdown) {
   }
 }
 
-// =========================================================
-// 文本统计
-// =========================================================
-
-/**
- * 计算文本统计
- * @param {string} markdown
- * @returns {Object} { charCount, wordCount, readingTime }
- */
-function computeTextStats(markdown) {
+function computeTextStats(markdown: string): MarkdownStats {
   if (!markdown) return { charCount: 0, wordCount: 0, readingTime: 0 }
 
-  // 移除代码块
   let text = markdown.replace(/```[\s\S]*?```/g, '')
-  // 移除行内代码
   text = text.replace(/`[^`]+`/g, '')
-  // 移除 Markdown 标记
   text = text.replace(/[#*_~\[\]()>|\\-]/g, '')
-  // 移除多余空白
   text = text.replace(/\s+/g, ' ').trim()
 
   const charCount = text.length
-
-  // 中文字数（CJK 字符）
   const cjkChars = (text.match(/[\u4e00-\u9fff\u3400-\u4dbf\uf900-\ufaff]/g) || []).length
-  // 英文单词数
   const englishWords = text
     .replace(/[\u4e00-\u9fff\u3400-\u4dbf\uf900-\ufaff]/g, ' ')
     .split(/\s+/)
-    .filter(w => w.length > 0).length
+    .filter((w) => w.length > 0).length
 
   const wordCount = cjkChars + englishWords
-
-  // 阅读时间（中文 300 字/分钟，英文 200 词/分钟）
   const readingTime = Math.max(1, Math.ceil(cjkChars / 300 + englishWords / 200))
 
   return { charCount, wordCount, readingTime }
 }
 
-// =========================================================
-// 数据预取
-// =========================================================
-
-/**
- * 在 Worker 中预取文章数据
- * @param {string} apiBase - API 基础 URL
- * @param {string|number} articleId - 文章 ID
- * @returns {Promise<Object>} 文章数据
- */
-async function prefetchArticle(apiBase, articleId) {
+async function prefetchArticle(apiBase: string, articleId: string | number) {
   const response = await fetch(`${apiBase}/articles/${articleId}`)
   if (!response.ok) {
     throw new Error(`HTTP ${response.status}: ${response.statusText}`)
@@ -188,64 +149,68 @@ async function prefetchArticle(apiBase, articleId) {
   return response.json()
 }
 
-// =========================================================
-// Worker 消息处理
-// =========================================================
+type MarkdownAction = ActionName<MarkdownWorkerActionMap>
+type MarkdownResult = ResultOf<MarkdownWorkerActionMap, MarkdownAction>
+type MarkdownTask = WorkerTaskUnion<MarkdownWorkerActionMap>
 
-self.onmessage = async function (event) {
-  const { taskId, action, ...payload } = event.data
+const workerSelf = self as {
+  onmessage: ((event: MessageEvent<MarkdownTask>) => void) | null
+  postMessage: (message: WorkerInboundMessage<MarkdownResult>) => void
+}
+
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : 'Worker 执行失败'
+}
+
+workerSelf.onmessage = async function (event: MessageEvent<MarkdownTask>) {
+  const message = event.data
+  const { taskId, action } = message
 
   try {
-    let result
+    let result: MarkdownResult
 
     switch (action) {
       case 'extractToc': {
-        result = extractToc(payload.markdown)
+        result = extractToc(message.markdown)
         break
       }
-
       case 'analyzeCodeBlocks': {
-        result = analyzeCodeBlocks(payload.markdown)
+        result = analyzeCodeBlocks(message.markdown)
         break
       }
-
       case 'computeTextStats': {
-        result = computeTextStats(payload.markdown)
+        result = computeTextStats(message.markdown)
         break
       }
-
       case 'preprocess': {
-        // 组合预处理：一次性执行所有分析
-        const markdown = payload.markdown
+        const markdown = message.markdown
         const toc = extractToc(markdown)
         const codeBlocks = analyzeCodeBlocks(markdown)
         const stats = computeTextStats(markdown)
 
-        result = { toc, codeBlocks, stats }
+        result = { toc, codeBlocks, stats } satisfies MarkdownPreprocessResult
         break
       }
-
       case 'prefetchArticle': {
-        result = await prefetchArticle(payload.apiBase, payload.articleId)
+        const article = await prefetchArticle(message.apiBase, message.articleId) as Record<string, unknown>
 
-        // 如果返回了 Markdown 内容，顺带做预处理
-        if (result.contentMarkdown) {
-          const markdown = result.contentMarkdown
-          result._workerPreprocessed = {
+        if (typeof article.contentMarkdown === 'string') {
+          const markdown = article.contentMarkdown
+          article._workerPreprocessed = {
             toc: extractToc(markdown),
             codeBlocks: analyzeCodeBlocks(markdown),
             stats: computeTextStats(markdown)
           }
         }
+        result = article
         break
       }
-
       default:
         throw new Error(`未知的 Worker 动作: ${action}`)
     }
 
-    self.postMessage({ taskId, type: 'result', data: result })
-  } catch (error) {
-    self.postMessage({ taskId, type: 'error', error: error.message })
+    workerSelf.postMessage({ taskId, type: 'result', data: result })
+  } catch (error: unknown) {
+    workerSelf.postMessage({ taskId, type: 'error', error: getErrorMessage(error) })
   }
 }

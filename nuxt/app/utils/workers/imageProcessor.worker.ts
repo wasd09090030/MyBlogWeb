@@ -1,23 +1,21 @@
 /**
  * 图片处理 Worker（增强版）
- *
- * 使用 OffscreenCanvas 在 Worker 线程中执行图片格式转换，
- * 完全不阻塞主线程。
- *
- * 支持：
- * 1. 格式转换（PNG/JPEG/WebP/AVIF）
- * 2. 尺寸调整（等比缩放）
- * 3. 质量压缩
- *
- * 注：需要浏览器支持 OffscreenCanvas（Chrome 69+, Firefox 105+, Safari 16.4+）
  */
+
+import type {
+  ActionName,
+  BatchConvertProgress,
+  ImageProcessOptions,
+  ImageProcessorWorkerActionMap,
+  ProgressOf,
+  ResultOf,
+  WorkerInboundMessage,
+  WorkerTaskUnion
+} from './types'
 
 const supportsOffscreenCanvas = typeof OffscreenCanvas !== 'undefined'
 
-/**
- * 检测格式支持
- */
-async function checkFormatSupport(format) {
+async function checkFormatSupport(format: 'png' | 'jpeg' | 'webp' | 'avif'): Promise<boolean> {
   if (format === 'png' || format === 'jpeg') return true
 
   if (!supportsOffscreenCanvas) return false
@@ -31,34 +29,23 @@ async function checkFormatSupport(format) {
   }
 }
 
-/**
- * 获取 MIME 类型
- */
-function getMimeType(format) {
-  const mimeTypes = {
-    'png': 'image/png',
-    'jpeg': 'image/jpeg',
-    'webp': 'image/webp',
-    'avif': 'image/avif'
+function getMimeType(format: 'png' | 'jpeg' | 'webp' | 'avif'): string {
+  const mimeTypes: Record<'png' | 'jpeg' | 'webp' | 'avif', string> = {
+    png: 'image/png',
+    jpeg: 'image/jpeg',
+    webp: 'image/webp',
+    avif: 'image/avif'
   }
-  return mimeTypes[format] || 'image/png'
+  return mimeTypes[format]
 }
 
-/**
- * 在 Worker 中转换图片格式
- * @param {Blob} imageBlob - 原始图片 Blob
- * @param {Object} options - 转换选项
- * @returns {Promise<Object>} { blob, width, height, size, format }
- */
-async function convertImage(imageBlob, options) {
+async function convertImage(imageBlob: Blob, options: ImageProcessOptions) {
   const { format, quality = 0.85, maxWidth, maxHeight } = options
 
-  // 解码图片
   const bitmap = await createImageBitmap(imageBlob)
   let targetWidth = bitmap.width
   let targetHeight = bitmap.height
 
-  // 计算缩放尺寸
   if (maxWidth && targetWidth > maxWidth) {
     targetHeight = Math.round((maxWidth / targetWidth) * targetHeight)
     targetWidth = maxWidth
@@ -68,13 +55,15 @@ async function convertImage(imageBlob, options) {
     targetHeight = maxHeight
   }
 
-  // 使用 OffscreenCanvas 绘制
   const canvas = new OffscreenCanvas(targetWidth, targetHeight)
   const ctx = canvas.getContext('2d')
+  if (!ctx) {
+    bitmap.close()
+    throw new Error('无法获取 2D Canvas 上下文')
+  }
   ctx.drawImage(bitmap, 0, 0, targetWidth, targetHeight)
   bitmap.close()
 
-  // 转换为目标格式
   const mimeType = getMimeType(format)
   const blob = await canvas.convertToBlob({
     type: mimeType,
@@ -91,45 +80,57 @@ async function convertImage(imageBlob, options) {
   }
 }
 
-/**
- * 批量转换图片
- */
-async function batchConvert(taskId, images, options) {
-  const results = []
+async function batchConvert(taskId: string, images: Blob[], options: ImageProcessOptions) {
+  const results: ResultOf<ImageProcessorWorkerActionMap, 'batchConvert'> = []
   const total = images.length
 
   for (let i = 0; i < images.length; i++) {
     try {
       const result = await convertImage(images[i], options)
       results.push({ index: i, ...result })
-    } catch (e) {
-      results.push({ index: i, error: e.message })
+    } catch (e: unknown) {
+      results.push({
+        index: i,
+        error: e instanceof Error ? e.message : '转换失败'
+      })
     }
 
-    // 报告进度
-    self.postMessage({
+    const progress: BatchConvertProgress = {
+      processed: i + 1,
+      total,
+      percentage: Math.round(((i + 1) / total) * 100)
+    }
+
+    workerSelf.postMessage({
       taskId,
       type: 'progress',
-      data: {
-        processed: i + 1,
-        total,
-        percentage: Math.round(((i + 1) / total) * 100)
-      }
+      data: progress
     })
   }
 
   return results
 }
 
-// =========================================================
-// Worker 消息处理
-// =========================================================
+type ImageProcessorAction = ActionName<ImageProcessorWorkerActionMap>
+type ImageProcessorResult = ResultOf<ImageProcessorWorkerActionMap, ImageProcessorAction>
+type ImageProcessorProgress = ProgressOf<ImageProcessorWorkerActionMap, ImageProcessorAction>
+type ImageProcessorTask = WorkerTaskUnion<ImageProcessorWorkerActionMap>
 
-self.onmessage = async function (event) {
-  const { taskId, action, ...payload } = event.data
+const workerSelf = self as {
+  onmessage: ((event: MessageEvent<ImageProcessorTask>) => void) | null
+  postMessage: (message: WorkerInboundMessage<ImageProcessorResult, ImageProcessorProgress>) => void
+}
+
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : 'Worker 执行失败'
+}
+
+workerSelf.onmessage = async function (event: MessageEvent<ImageProcessorTask>) {
+  const message = event.data
+  const { taskId, action } = message
 
   try {
-    let result
+    let result: ImageProcessorResult
 
     switch (action) {
       case 'checkSupport': {
@@ -144,30 +145,26 @@ self.onmessage = async function (event) {
         }
         break
       }
-
       case 'convert': {
         if (!supportsOffscreenCanvas) {
           throw new Error('浏览器不支持 OffscreenCanvas')
         }
-        result = await convertImage(payload.imageBlob, payload.options)
-        // Blob 通过结构化克隆传输
+        result = await convertImage(message.imageBlob, message.options)
         break
       }
-
       case 'batchConvert': {
         if (!supportsOffscreenCanvas) {
           throw new Error('浏览器不支持 OffscreenCanvas')
         }
-        result = await batchConvert(taskId, payload.images, payload.options)
+        result = await batchConvert(taskId, message.images, message.options)
         break
       }
-
       default:
         throw new Error(`未知的 Worker 动作: ${action}`)
     }
 
-    self.postMessage({ taskId, type: 'result', data: result })
-  } catch (error) {
-    self.postMessage({ taskId, type: 'error', error: error.message })
+    workerSelf.postMessage({ taskId, type: 'result', data: result })
+  } catch (error: unknown) {
+    workerSelf.postMessage({ taskId, type: 'error', error: getErrorMessage(error) })
   }
 }

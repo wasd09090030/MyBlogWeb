@@ -1,11 +1,16 @@
-// Admin 文章相关 composable
+type AuthStoreLike = {
+  authFetch: <T = unknown>(url: string, options?: Record<string, unknown>) => Promise<T>
+}
+
+type ArticlePayload = Record<string, unknown>
+type CategoryKey = 'study' | 'game' | 'work' | 'resource' | 'other' | string
+
 export const useAdminArticles = () => {
   const config = useRuntimeConfig()
   const baseURL = config.public.apiBase
-  const authStore = useAuthStore()
+  const authStore = useAuthStore() as unknown as AuthStoreLike
 
-  // 类别映射
-  const categoryLabels = {
+  const categoryLabels: Record<string, string> = {
     study: '学习',
     game: '游戏',
     work: '个人作品',
@@ -13,12 +18,12 @@ export const useAdminArticles = () => {
     other: '其他'
   }
 
-  const getCategoryLabel = (category) => {
+  const getCategoryLabel = (category: CategoryKey): string => {
     return categoryLabels[category] || category || '未分类'
   }
 
-  const getCategoryType = (category) => {
-    const types = {
+  const getCategoryType = (category: CategoryKey): string => {
+    const types: Record<string, string> = {
       study: 'info',
       game: 'success',
       work: 'warning',
@@ -28,33 +33,30 @@ export const useAdminArticles = () => {
     return types[category] || 'default'
   }
 
-  // 获取所有文章
-  const getArticles = async (options = {}) => {
+  const getArticles = async (
+    options: { summary?: boolean; page?: number; limit?: number } = {}
+  ): Promise<unknown> => {
     const { summary = false, page = 1, limit = 1000 } = options
     try {
-      const result = await $fetch(`${baseURL}/articles`, {
+      return await $fetch(`${baseURL}/articles`, {
         params: { summary, page, limit }
       })
-      return result
     } catch (error) {
       console.error('获取文章列表失败:', error)
       throw error
     }
   }
 
-  // 获取单个文章
-  const getArticle = async (id) => {
+  const getArticle = async (id: string | number): Promise<unknown> => {
     try {
-      const result = await $fetch(`${baseURL}/articles/${id}`)
-      return result
+      return await $fetch(`${baseURL}/articles/${id}`)
     } catch (error) {
       console.error('获取文章失败:', error)
       throw error
     }
   }
 
-  // 创建文章
-  const createArticle = async (articleData) => {
+  const createArticle = async (articleData: ArticlePayload): Promise<unknown> => {
     try {
       return await authStore.authFetch('/articles', {
         method: 'POST',
@@ -66,8 +68,7 @@ export const useAdminArticles = () => {
     }
   }
 
-  // 更新文章
-  const updateArticle = async (id, articleData) => {
+  const updateArticle = async (id: string | number, articleData: ArticlePayload): Promise<unknown> => {
     try {
       return await authStore.authFetch(`/articles/${id}`, {
         method: 'PUT',
@@ -79,8 +80,7 @@ export const useAdminArticles = () => {
     }
   }
 
-  // 删除文章
-  const deleteArticle = async (id) => {
+  const deleteArticle = async (id: string | number): Promise<unknown> => {
     try {
       return await authStore.authFetch(`/articles/${id}`, {
         method: 'DELETE'
@@ -91,8 +91,7 @@ export const useAdminArticles = () => {
     }
   }
 
-  // 生成 AI 概要
-  const generateAiSummary = async (content) => {
+  const generateAiSummary = async (content: string): Promise<unknown> => {
     try {
       return await authStore.authFetch('/ai/generate-summary', {
         method: 'POST',

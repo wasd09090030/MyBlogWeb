@@ -1,57 +1,49 @@
-// 全局文章数据缓存 - 消除多组件重复请求
-// 使用Nuxt的useState实现跨组件共享缓存
-// 🔥 集成 Web Worker 搜索引擎
-
 import { useSearchWorker } from '~/composables/useSearchWorker'
+import type { ArticleLike, SearchQueryOptions } from '~/utils/workers/types'
+
+type ArticleListResponse =
+  | ArticleLike[]
+  | {
+    data?: ArticleLike[]
+    total?: number
+    pageSize?: number
+  }
 
 export const useArticleCache = () => {
-  // 搜索 Worker（客户端且非 SSR 时启用）
   const searchWorker = process.client ? useSearchWorker() : null
-  // 获取 API 基础 URL 的辅助函数（确保在正确的上下文中获取）
-  const getBaseURL = () => {
+
+  const getBaseURL = (): string => {
     const config = useRuntimeConfig()
     const apiBase = config.public.apiBase
-    
-    // 如果环境变量已配置，直接使用
+
     if (apiBase) {
-      // SSR 阶段：如果是相对路径，转换为内网完整地址
       if (process.server && apiBase.startsWith('/')) {
-        return 'http://127.0.0.1:5000' + apiBase
+        return `http://127.0.0.1:5000${apiBase}`
       }
       return apiBase
     }
-    
-    // Fallback：生产环境走反向代理，开发环境走本地后端
-    return process.env.NODE_ENV === 'production'
-      ? '/api'
-      : 'http://localhost:5000/api'
+
+    return process.env.NODE_ENV === 'production' ? '/api' : 'http://localhost:5000/api'
   }
 
-  // 全局缓存状态 - 所有组件共享
-  const articlesCache = useState('articles-cache', () => null)
-  const articlesCacheTime = useState('articles-cache-time', () => 0)
-  const isLoadingArticles = useState('articles-loading', () => false)
-  
-  // 缓存有效期（5分钟）
+  const articlesCache = useState<ArticleLike[] | null>('articles-cache', () => null)
+  const articlesCacheTime = useState<number>('articles-cache-time', () => 0)
+  const isLoadingArticles = useState<boolean>('articles-loading', () => false)
+
   const CACHE_DURATION = 5 * 60 * 1000
 
-  // 检查缓存是否有效
-  const isCacheValid = () => {
+  const isCacheValid = (): boolean => {
     if (!articlesCache.value) return false
     return Date.now() - articlesCacheTime.value < CACHE_DURATION
   }
 
-  // 获取所有文章（带缓存）
-  const getAllArticles = async (forceRefresh = false) => {
-    // 如果缓存有效且不强制刷新，直接返回缓存
+  const getAllArticles = async (forceRefresh = false): Promise<ArticleLike[] | null> => {
     if (!forceRefresh && isCacheValid()) {
       return articlesCache.value
     }
 
-    // 如果正在加载中，等待加载完成
     if (isLoadingArticles.value) {
-      // 等待其他请求完成
-      await new Promise(resolve => {
+      await new Promise<void>((resolve) => {
         const checkCache = setInterval(() => {
           if (!isLoadingArticles.value) {
             clearInterval(checkCache)
@@ -65,51 +57,50 @@ export const useArticleCache = () => {
     isLoadingArticles.value = true
 
     try {
-      // 使用单次大批量请求获取所有文章
       const baseURL = getBaseURL()
-      const result = await $fetch(`${baseURL}/articles`, {
+      const result = await $fetch<ArticleListResponse>(`${baseURL}/articles`, {
         params: { summary: true, page: 1, limit: 100 }
       })
 
-      let allArticles = []
+      let allArticles: ArticleLike[] = []
 
       if (Array.isArray(result)) {
         allArticles = result
       } else if (result.data) {
-        const { data, total, pageSize } = result
+        const { data, total = 0, pageSize = 100 } = result
         allArticles = [...data]
-        
-        // 如果还有更多页面，并行获取
+
         const totalPages = Math.ceil(total / pageSize)
         if (totalPages > 1) {
-          const promises = []
+          const promises: Array<Promise<ArticleListResponse>> = []
           for (let page = 2; page <= totalPages; page++) {
             promises.push(
-              $fetch(`${baseURL}/articles`, {
+              $fetch<ArticleListResponse>(`${baseURL}/articles`, {
                 params: { summary: true, page, limit: 100 }
               })
             )
           }
-          
+
           const results = await Promise.all(promises)
-          results.forEach(res => {
-            if (res.data) {
-              allArticles.push(...res.data)
-            } else if (Array.isArray(res)) {
+          results.forEach((res) => {
+            if (Array.isArray(res)) {
               allArticles.push(...res)
+            } else if (res.data) {
+              allArticles.push(...res.data)
             }
           })
         }
       }
 
-      // 按ID降序排序（最新的在前）
-      allArticles.sort((a, b) => (parseInt(b.id) || 0) - (parseInt(a.id) || 0))
+      allArticles.sort((a, b) => {
+        const left = Number.parseInt(String(b.id ?? ''), 10) || 0
+        const right = Number.parseInt(String(a.id ?? ''), 10) || 0
+        return left - right
+      })
 
-      // 更新缓存
       articlesCache.value = allArticles
       articlesCacheTime.value = Date.now()
 
-      // 🔥 在 Worker 线程构建搜索索引（不阻塞主线程）
       if (searchWorker && allArticles.length > 0) {
         searchWorker.buildIndex(allArticles).catch(() => {})
       }
@@ -123,12 +114,11 @@ export const useArticleCache = () => {
     }
   }
 
-  // 预计算的分类统计
-  const categoryStats = computed(() => {
+  const categoryStats = computed<Record<string, number>>(() => {
     if (!articlesCache.value) return {}
-    
-    const stats = { study: 0, game: 0, work: 0, resource: 0 }
-    articlesCache.value.forEach(article => {
+
+    const stats: Record<string, number> = { study: 0, game: 0, work: 0, resource: 0 }
+    articlesCache.value.forEach((article) => {
       if (article.category && stats[article.category] !== undefined) {
         stats[article.category]++
       }
@@ -136,12 +126,11 @@ export const useArticleCache = () => {
     return stats
   })
 
-  // 预计算的月份统计
-  const monthStats = computed(() => {
+  const monthStats = computed<Record<string, number>>(() => {
     if (!articlesCache.value) return {}
-    
-    const stats = {}
-    articlesCache.value.forEach(article => {
+
+    const stats: Record<string, number> = {}
+    articlesCache.value.forEach((article) => {
       if (article.createdAt) {
         const date = new Date(article.createdAt)
         const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
@@ -151,25 +140,22 @@ export const useArticleCache = () => {
     return stats
   })
 
-  // 按分类筛选文章
-  const getArticlesByCategory = (category) => {
+  const getArticlesByCategory = (category: string): ArticleLike[] => {
     if (!articlesCache.value) return []
-    return articlesCache.value.filter(a => a.category === category)
+    return articlesCache.value.filter((article) => article.category === category)
   }
 
-  // 搜索文章（🔥 优先使用 Worker 线程搜索，不阻塞主线程）
-  const searchArticlesLocal = (keyword) => {
+  const searchArticlesLocal = (keyword: string): ArticleLike[] => {
     if (!articlesCache.value || !keyword) return []
     const lowerKeyword = keyword.toLowerCase()
-    return articlesCache.value.filter(article => 
+    return articlesCache.value.filter((article) =>
       article.title?.toLowerCase().includes(lowerKeyword) ||
       article.summary?.toLowerCase().includes(lowerKeyword) ||
-      article.tags?.some(tag => tag.toLowerCase().includes(lowerKeyword))
+      article.tags?.some((tag) => tag.toLowerCase().includes(lowerKeyword))
     )
   }
 
-  // 🔥 Worker 加速搜索（异步版本，大数据量时使用）
-  const searchArticlesAsync = async (keyword) => {
+  const searchArticlesAsync = async (keyword: string): Promise<ArticleLike[]> => {
     if (!articlesCache.value || !keyword) return []
     if (searchWorker) {
       return searchWorker.search(articlesCache.value, keyword)
@@ -177,52 +163,42 @@ export const useArticleCache = () => {
     return searchArticlesLocal(keyword)
   }
 
-  // 🔥 Worker 组合查询（搜索 + 过滤 + 排序）
-  const queryArticlesAsync = async (options = {}) => {
+  const queryArticlesAsync = async (options: SearchQueryOptions = {}): Promise<ArticleLike[]> => {
     if (!articlesCache.value) return []
     if (searchWorker) {
       return searchWorker.query(articlesCache.value, options)
     }
-    // 主线程降级
-    let result = articlesCache.value
+
+    let result: ArticleLike[] = articlesCache.value
     if (options.keyword) result = searchArticlesLocal(options.keyword)
     if (options.category && options.category !== 'all') {
-      result = result.filter(a => a.category === options.category)
+      result = result.filter((article) => article.category === options.category)
     }
     return result
   }
 
-  // 使缓存失效
-  const invalidateCache = () => {
+  const invalidateCache = (): void => {
     articlesCache.value = null
     articlesCacheTime.value = 0
   }
 
-  // 预加载缓存（可在app启动时调用）
-  const preloadCache = async () => {
+  const preloadCache = async (): Promise<void> => {
     if (!isCacheValid()) {
       await getAllArticles()
     }
   }
 
   return {
-    // 数据获取
     getAllArticles,
     getArticlesByCategory,
     searchArticlesLocal,
     searchArticlesAsync,
     queryArticlesAsync,
-    
-    // 统计数据
     categoryStats,
     monthStats,
-    
-    // 缓存管理
     isCacheValid,
     invalidateCache,
     preloadCache,
-    
-    // 状态
     isLoading: isLoadingArticles,
     cachedArticles: articlesCache
   }

@@ -1,13 +1,71 @@
-// 图床管理 composable
-export const useImagebed = () => {
-  const authStore = useAuthStore()
+type AuthStoreLike = {
+  authFetch: <T = unknown>(url: string, options?: Record<string, unknown>) => Promise<T>
+}
 
-  // ==================== 配置管理 ====================
-  
-  /**
-   * 获取图床配置
-   */
-  const getConfig = async () => {
+type ImagebedConfig = {
+  domain: string
+  apiToken: string
+  uploadFolder?: string
+}
+
+type UploadResult = {
+  success: boolean
+  src?: string
+  url?: string
+  fileName?: string
+  error?: string
+}
+
+type FileListOptions = {
+  domain: string
+  apiToken: string
+  start?: number
+  count?: number
+  search?: string
+  dir?: string
+  recursive?: boolean
+}
+
+type FileListItem = {
+  name: string
+  size: number
+  type: string
+  channel: string
+  timestamp: string
+  url: string
+}
+
+type DeleteMultipleResult = {
+  success: string[]
+  failed: Array<{ filePath: string; error: string }>
+}
+
+type DeleteFileOptions = {
+  domain: string
+  apiToken: string
+  filePath: string
+}
+
+type DeleteFolderOptions = {
+  domain: string
+  apiToken: string
+  folderPath: string
+}
+
+type DeleteMultipleOptions = {
+  domain: string
+  apiToken: string
+  filePaths: string[]
+}
+
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : '未知错误'
+}
+
+export const useImagebed = () => {
+  const authStore = useAuthStore() as unknown as AuthStoreLike
+
+  const getConfig = async (): Promise<unknown> => {
     try {
       return await authStore.authFetch('/imagebed/config')
     } catch (error) {
@@ -16,11 +74,7 @@ export const useImagebed = () => {
     }
   }
 
-  /**
-   * 保存图床配置
-   * @param {Object} configData - { domain, apiToken, uploadFolder }
-   */
-  const saveConfig = async (configData) => {
+  const saveConfig = async (configData: ImagebedConfig): Promise<unknown> => {
     try {
       return await authStore.authFetch('/imagebed/config', {
         method: 'POST',
@@ -32,14 +86,13 @@ export const useImagebed = () => {
     }
   }
 
-  // ==================== 上传模块 ====================
+  const getFullUrl = (domain: string, src: string): string => {
+    const domainUrl = domain.replace(/\/$/, '')
+    const path = src.startsWith('/') ? src : `/${src}`
+    return `${domainUrl}${path}`
+  }
 
-  /**
-   * 上传图片到图床
-   * @param {File} file - 图片文件
-   * @param {Object} options - { domain, apiToken, uploadFolder }
-   */
-  const uploadImage = async (file, options) => {
+  const uploadImage = async (file: File, options: ImagebedConfig): Promise<UploadResult> => {
     const { domain, apiToken, uploadFolder } = options
     const formData = new FormData()
     formData.append('file', file)
@@ -48,7 +101,7 @@ export const useImagebed = () => {
       uploadChannel: 'cfr2',
       returnFormat: 'default'
     })
-    
+
     if (uploadFolder) {
       params.append('uploadFolder', uploadFolder)
     }
@@ -58,7 +111,7 @@ export const useImagebed = () => {
       const response = await fetch(`${domainUrl}/upload?${params.toString()}`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${apiToken}`
+          Authorization: `Bearer ${apiToken}`
         },
         body: formData
       })
@@ -68,10 +121,9 @@ export const useImagebed = () => {
         throw new Error(`Upload failed: ${response.status} - ${errorText}`)
       }
 
-      const result = await response.json()
-      
+      const result = await response.json() as Array<{ src?: string }>
+
       if (Array.isArray(result) && result.length > 0 && result[0].src) {
-        // 自动添加域名前缀
         const fullUrl = getFullUrl(domain, result[0].src)
         return {
           success: true,
@@ -79,24 +131,22 @@ export const useImagebed = () => {
           url: fullUrl,
           fileName: file.name
         }
-      } else {
-        throw new Error('Invalid response format')
       }
+
+      throw new Error('Invalid response format')
     } catch (error) {
       console.error('Upload error:', error)
       throw error
     }
   }
 
-  /**
-   * 批量上传图片
-   * @param {File[]} files - 图片文件数组
-   * @param {Object} options - { domain, apiToken, uploadFolder }
-   * @param {Function} onProgress - 进度回调函数 (index, total, result)
-   */
-  const uploadMultipleImages = async (files, options, onProgress) => {
-    const results = []
-    const errors = []
+  const uploadMultipleImages = async (
+    files: File[],
+    options: ImagebedConfig,
+    onProgress?: (index: number, total: number, result: UploadResult) => void
+  ): Promise<{ results: UploadResult[]; errors: Array<{ file: string; error: string }> }> => {
+    const results: UploadResult[] = []
+    const errors: Array<{ file: string; error: string }> = []
 
     for (let i = 0; i < files.length; i++) {
       try {
@@ -106,9 +156,10 @@ export const useImagebed = () => {
           onProgress(i + 1, files.length, result)
         }
       } catch (error) {
-        errors.push({ file: files[i].name, error: error.message })
+        const errorMessage = getErrorMessage(error)
+        errors.push({ file: files[i].name, error: errorMessage })
         if (onProgress) {
-          onProgress(i + 1, files.length, { success: false, error: error.message })
+          onProgress(i + 1, files.length, { success: false, error: errorMessage })
         }
       }
     }
@@ -116,13 +167,12 @@ export const useImagebed = () => {
     return { results, errors }
   }
 
-  // ==================== 列表模块 ====================
-
-  /**
-   * 获取文件列表
-   * @param {Object} options - { domain, apiToken, start, count, search, dir, recursive }
-   */
-  const getFileList = async (options) => {
+  const getFileList = async (options: FileListOptions): Promise<{
+    files: FileListItem[]
+    directories: string[]
+    totalCount: number
+    returnedCount: number
+  }> => {
     const { domain, apiToken, start = 0, count = 50, search = '', dir = '', recursive = false } = options
 
     const params = new URLSearchParams({
@@ -132,22 +182,16 @@ export const useImagebed = () => {
       fileType: 'image'
     })
 
-    if (search) {
-      params.append('search', search)
-    }
-    if (dir) {
-      params.append('dir', dir)
-    }
-    if (recursive) {
-      params.append('recursive', 'true')
-    }
+    if (search) params.append('search', search)
+    if (dir) params.append('dir', dir)
+    if (recursive) params.append('recursive', 'true')
 
     try {
       const domainUrl = domain.replace(/\/$/, '')
       const response = await fetch(`${domainUrl}/api/manage/list?${params.toString()}`, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${apiToken}`
+          Authorization: `Bearer ${apiToken}`
         }
       })
 
@@ -156,12 +200,17 @@ export const useImagebed = () => {
         throw new Error(`List failed: ${response.status} - ${errorText}`)
       }
 
-      const result = await response.json()
-      
+      const result = await response.json() as {
+        files?: Array<{ name: string; metadata?: Record<string, string> }>
+        directories?: string[]
+        totalCount?: number
+        returnedCount?: number
+      }
+
       return {
-        files: (result.files || []).map(file => ({
+        files: (result.files || []).map((file) => ({
           name: file.name,
-          size: file.metadata?.['File-Size'] || 0,
+          size: Number.parseInt(file.metadata?.['File-Size'] || '0', 10) || 0,
           type: file.metadata?.['File-Mime'] || 'unknown',
           channel: file.metadata?.Channel || 'unknown',
           timestamp: file.metadata?.TimeStamp || '',
@@ -177,11 +226,7 @@ export const useImagebed = () => {
     }
   }
 
-  /**
-   * 获取文件总数统计
-   * @param {Object} options - { domain, apiToken, dir }
-   */
-  const getFileCount = async (options) => {
+  const getFileCount = async (options: { domain: string; apiToken: string; dir?: string }): Promise<number> => {
     const { domain, apiToken, dir = '' } = options
 
     const params = new URLSearchParams({
@@ -200,7 +245,7 @@ export const useImagebed = () => {
       const response = await fetch(`${domainUrl}/api/manage/list?${params.toString()}`, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${apiToken}`
+          Authorization: `Bearer ${apiToken}`
         }
       })
 
@@ -208,7 +253,7 @@ export const useImagebed = () => {
         throw new Error(`Count failed: ${response.status}`)
       }
 
-      const result = await response.json()
+      const result = await response.json() as { sum?: number }
       return result.sum || 0
     } catch (error) {
       console.error('Count error:', error)
@@ -216,13 +261,7 @@ export const useImagebed = () => {
     }
   }
 
-  // ==================== 删除模块 ====================
-
-  /**
-   * 删除单个文件
-   * @param {Object} options - { domain, apiToken, filePath }
-   */
-  const deleteFile = async (options) => {
+  const deleteFile = async (options: DeleteFileOptions): Promise<Record<string, unknown>> => {
     const { domain, apiToken, filePath } = options
 
     try {
@@ -230,7 +269,7 @@ export const useImagebed = () => {
       const response = await fetch(`${domainUrl}/api/manage/delete/${encodeURIComponent(filePath)}`, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${apiToken}`
+          Authorization: `Bearer ${apiToken}`
         }
       })
 
@@ -239,19 +278,14 @@ export const useImagebed = () => {
         throw new Error(`Delete failed: ${response.status} - ${errorText}`)
       }
 
-      const result = await response.json()
-      return result
+      return await response.json() as Record<string, unknown>
     } catch (error) {
       console.error('Delete error:', error)
       throw error
     }
   }
 
-  /**
-   * 删除文件夹（递归删除）
-   * @param {Object} options - { domain, apiToken, folderPath }
-   */
-  const deleteFolder = async (options) => {
+  const deleteFolder = async (options: DeleteFolderOptions): Promise<Record<string, unknown>> => {
     const { domain, apiToken, folderPath } = options
 
     try {
@@ -259,7 +293,7 @@ export const useImagebed = () => {
       const response = await fetch(`${domainUrl}/api/manage/delete/${encodeURIComponent(folderPath)}?folder=true`, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${apiToken}`
+          Authorization: `Bearer ${apiToken}`
         }
       })
 
@@ -268,96 +302,61 @@ export const useImagebed = () => {
         throw new Error(`Delete folder failed: ${response.status} - ${errorText}`)
       }
 
-      const result = await response.json()
-      return result
+      return await response.json() as Record<string, unknown>
     } catch (error) {
       console.error('Delete folder error:', error)
       throw error
     }
   }
 
-  /**
-   * 批量删除文件
-   * @param {Object} options - { domain, apiToken, filePaths }
-   */
-  const deleteMultipleFiles = async (options) => {
+  const deleteMultipleFiles = async (options: DeleteMultipleOptions): Promise<DeleteMultipleResult> => {
     const { domain, apiToken, filePaths } = options
-    const results = {
+    const results: DeleteMultipleResult = {
       success: [],
       failed: []
     }
 
     for (const filePath of filePaths) {
       try {
-        const result = await deleteFile({ domain, apiToken, filePath })
+        const result = await deleteFile({ domain, apiToken, filePath }) as { success?: boolean; error?: string }
         if (result.success) {
           results.success.push(filePath)
         } else {
           results.failed.push({ filePath, error: result.error || 'Unknown error' })
         }
       } catch (error) {
-        results.failed.push({ filePath, error: error.message })
+        results.failed.push({ filePath, error: getErrorMessage(error) })
       }
     }
 
     return results
   }
 
-  // ==================== 工具函数 ====================
-
-  /**
-   * 获取带域名的完整URL
-   * @param {String} domain - 图床域名
-   * @param {String} src - 相对路径
-   */
-  const getFullUrl = (domain, src) => {
-    const domainUrl = domain.replace(/\/$/, '')
-    const path = src.startsWith('/') ? src : `/${src}`
-    return `${domainUrl}${path}`
-  }
-
-  /**
-   * 格式化文件大小
-   * @param {Number} bytes - 字节数
-   */
-  const formatFileSize = (bytes) => {
-    bytes = parseInt(bytes) || 0
-    if (bytes === 0) return '0 B'
-    const k = 1024
+  const formatFileSize = (bytes: string | number): string => {
+    const normalizedBytes = Number.parseInt(String(bytes), 10) || 0
+    if (normalizedBytes === 0) return '0 B'
+    const unit = 1024
     const sizes = ['B', 'KB', 'MB', 'GB']
-    const i = Math.floor(Math.log(bytes) / Math.log(k))
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
+    const index = Math.floor(Math.log(normalizedBytes) / Math.log(unit))
+    return `${Number.parseFloat((normalizedBytes / Math.pow(unit, index)).toFixed(2))} ${sizes[index]}`
   }
 
-  /**
-   * 格式化时间戳
-   * @param {String} timestamp - 时间戳字符串
-   */
-  const formatTimestamp = (timestamp) => {
+  const formatTimestamp = (timestamp: string): string => {
     if (!timestamp) return '-'
-    const date = new Date(parseInt(timestamp))
+    const date = new Date(Number.parseInt(timestamp, 10))
     return date.toLocaleString('zh-CN')
   }
 
   return {
-    // 配置管理
     getConfig,
     saveConfig,
-    
-    // 上传模块
     uploadImage,
     uploadMultipleImages,
-    
-    // 列表模块
     getFileList,
     getFileCount,
-    
-    // 删除模块
     deleteFile,
     deleteFolder,
     deleteMultipleFiles,
-    
-    // 工具函数
     getFullUrl,
     formatFileSize,
     formatTimestamp

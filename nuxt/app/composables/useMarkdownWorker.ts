@@ -1,55 +1,42 @@
 /**
  * Markdown Worker Composable
- *
- * 封装 Markdown 预处理 Worker 的通信逻辑，提供：
- * - preprocessMarkdown(): 预处理 Markdown（TOC + 代码分析 + 文本统计）
- * - prefetchArticle(): 在 Worker 中预取文章数据
- * - extractToc(): 仅提取 TOC
- *
- * 自动降级：Worker 不可用时在主线程执行
  */
 
 import { createWorkerManager, isWorkerSupported } from '~/utils/workers/workerManager'
+import type {
+  MarkdownPreprocessResult,
+  MarkdownWorkerActionMap,
+  TocItem
+} from '~/utils/workers/types'
 
-// Worker 管理器单例（模块级别，所有组件共享）
-let markdownWorkerManager = null
+let markdownWorkerManager: ReturnType<typeof createWorkerManager<MarkdownWorkerActionMap>> | null = null
 
-/**
- * 获取或创建 Markdown Worker 管理器
- */
 function getManager() {
   if (markdownWorkerManager) return markdownWorkerManager
 
   if (!isWorkerSupported() || !process.client) return null
 
   try {
-    markdownWorkerManager = createWorkerManager(
+    markdownWorkerManager = createWorkerManager<MarkdownWorkerActionMap>(
       'markdown-processor',
       () => new Worker(
-        new URL('~/utils/workers/markdownProcessor.worker.js', import.meta.url),
+        new URL('~/utils/workers/markdownProcessor.worker.ts', import.meta.url),
         { type: 'module' }
       ),
       { timeout: 15000, singleton: true, maxRetries: 1 }
     )
     return markdownWorkerManager
-  } catch (e) {
-    console.warn('[useMarkdownWorker] Worker 创建失败:', e.message)
+  } catch (e: any) {
+    console.warn('[useMarkdownWorker] Worker 创建失败:', e?.message)
     return null
   }
 }
 
-// =========================================================
-// 主线程降级函数
-// =========================================================
-
-/**
- * 主线程版 TOC 提取（降级用）
- */
-function extractTocFallback(markdown) {
+function extractTocFallback(markdown: string): TocItem[] {
   if (!markdown) return []
 
   const lines = markdown.split('\n')
-  const headings = []
+  const headings: TocItem[] = []
   let inCodeBlock = false
 
   for (const line of lines) {
@@ -83,17 +70,14 @@ function extractTocFallback(markdown) {
   return headings
 }
 
-/**
- * 主线程版预处理（降级用）
- */
-function preprocessFallback(markdown) {
+function preprocessFallback(markdown: string): MarkdownPreprocessResult {
   const toc = extractTocFallback(markdown)
   const hasMermaid = markdown?.includes('```mermaid') || false
 
   const codeBlockRegex = /```(\w+)?/g
-  const languages = new Set()
+  const languages = new Set<string>()
   let codeBlockCount = 0
-  let match
+  let match: RegExpExecArray | null
   let isOpening = true
 
   while ((match = codeBlockRegex.exec(markdown || '')) !== null) {
@@ -104,7 +88,6 @@ function preprocessFallback(markdown) {
     isOpening = !isOpening
   }
 
-  // 简化的文字统计
   const text = (markdown || '')
     .replace(/```[\s\S]*?```/g, '')
     .replace(/[#*_~\[\]()>|\\-]/g, '')
@@ -112,7 +95,7 @@ function preprocessFallback(markdown) {
     .trim()
 
   const cjkChars = (text.match(/[\u4e00-\u9fff]/g) || []).length
-  const words = text.split(/\s+/).filter(w => w.length > 0).length
+  const words = text.split(/\s+/).filter((w) => w.length > 0).length
   const wordCount = cjkChars + words
   const readingTime = Math.max(1, Math.ceil(wordCount / 275))
 
@@ -131,18 +114,15 @@ function preprocessFallback(markdown) {
   }
 }
 
-// =========================================================
-// Composable
-// =========================================================
-
 export function useMarkdownWorker() {
-  /**
-   * 预处理 Markdown（TOC + 代码分析 + 文本统计）
-   * @param {string} markdown - 原始 Markdown 文本
-   * @returns {Promise<{ toc, codeBlocks, stats }>}
-   */
-  async function preprocessMarkdown(markdown) {
-    if (!markdown) return { toc: [], codeBlocks: { languages: [], hasMermaid: false, codeBlockCount: 0 }, stats: { charCount: 0, wordCount: 0, readingTime: 0 } }
+  async function preprocessMarkdown(markdown: string): Promise<MarkdownPreprocessResult> {
+    if (!markdown) {
+      return {
+        toc: [],
+        codeBlocks: { languages: [], hasMermaid: false, codeBlockCount: 0 },
+        stats: { charCount: 0, wordCount: 0, readingTime: 0 }
+      }
+    }
 
     const manager = getManager()
     if (!manager) {
@@ -156,12 +136,7 @@ export function useMarkdownWorker() {
     )
   }
 
-  /**
-   * 仅提取 TOC
-   * @param {string} markdown
-   * @returns {Promise<Array>}
-   */
-  async function extractToc(markdown) {
+  async function extractToc(markdown: string): Promise<TocItem[]> {
     const manager = getManager()
     if (!manager) {
       return extractTocFallback(markdown)
@@ -174,38 +149,23 @@ export function useMarkdownWorker() {
     )
   }
 
-  /**
-   * 在 Worker 中预取文章数据
-   * @param {string} apiBase - API 基础 URL
-   * @param {string|number} articleId - 文章 ID
-   * @returns {Promise<Object|null>} 文章数据，失败返回 null
-   */
-  async function prefetchArticle(apiBase, articleId) {
+  async function prefetchArticle(apiBase: string, articleId: string | number): Promise<Record<string, unknown> | null> {
     const manager = getManager()
     if (!manager) return null
 
     try {
-      return await manager.postTask('prefetchArticle', {
-        apiBase,
-        articleId
-      }, { timeout: 10000 })
-    } catch (e) {
-      console.warn('[useMarkdownWorker] 预取文章失败:', e.message)
+      return await manager.postTask('prefetchArticle', { apiBase, articleId }, { timeout: 10000 })
+    } catch (e: any) {
+      console.warn('[useMarkdownWorker] 预取文章失败:', e?.message)
       return null
     }
   }
 
-  /**
-   * 获取 Worker 状态
-   */
   function isAvailable() {
     const manager = getManager()
     return manager?.isAvailable() || false
   }
 
-  /**
-   * 销毁 Worker
-   */
   function dispose() {
     if (markdownWorkerManager) {
       markdownWorkerManager.terminate()

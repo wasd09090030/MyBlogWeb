@@ -1,9 +1,13 @@
-// Admin 评论相关 composable
-export const useAdminComments = () => {
-  const authStore = useAuthStore()
+type AuthStoreLike = {
+  authFetch: <T = unknown>(url: string, options?: Record<string, unknown>) => Promise<T>
+}
 
-  // 获取所有评论
-  const getAllComments = async () => {
+type CommentStatus = 'pending' | 'approved' | 'rejected' | string
+
+export const useAdminComments = () => {
+  const authStore = useAuthStore() as unknown as AuthStoreLike
+
+  const getAllComments = async (): Promise<unknown> => {
     try {
       return await authStore.authFetch('/comments/admin/all')
     } catch (error) {
@@ -12,8 +16,7 @@ export const useAdminComments = () => {
     }
   }
 
-  // 获取待审核评论
-  const getPendingComments = async () => {
+  const getPendingComments = async (): Promise<unknown> => {
     try {
       return await authStore.authFetch('/comments/admin/pending')
     } catch (error) {
@@ -22,8 +25,7 @@ export const useAdminComments = () => {
     }
   }
 
-  // 更新评论状态
-  const updateCommentStatus = async (commentId, status) => {
+  const updateCommentStatus = async (commentId: string | number, status: CommentStatus): Promise<unknown> => {
     try {
       return await authStore.authFetch(`/comments/${commentId}/status`, {
         method: 'PATCH',
@@ -35,8 +37,7 @@ export const useAdminComments = () => {
     }
   }
 
-  // 删除评论
-  const deleteComment = async (commentId) => {
+  const deleteComment = async (commentId: string | number): Promise<unknown> => {
     try {
       return await authStore.authFetch(`/comments/${commentId}`, {
         method: 'DELETE'
@@ -47,9 +48,8 @@ export const useAdminComments = () => {
     }
   }
 
-  // 状态相关方法
-  const getStatusType = (status) => {
-    const types = {
+  const getStatusType = (status: CommentStatus): string => {
+    const types: Record<string, string> = {
       pending: 'warning',
       approved: 'success',
       rejected: 'error'
@@ -57,8 +57,8 @@ export const useAdminComments = () => {
     return types[status] || 'default'
   }
 
-  const getStatusText = (status) => {
-    const texts = {
+  const getStatusText = (status: CommentStatus): string => {
+    const texts: Record<string, string> = {
       pending: '待审核',
       approved: '已通过',
       rejected: '已拒绝'

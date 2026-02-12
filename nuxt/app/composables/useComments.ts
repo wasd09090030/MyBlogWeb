@@ -1,23 +1,21 @@
-// 评论相关的Composable - 适配Nuxt 3
+type CommentSubmitPayload = Record<string, unknown>
+
 export const useComments = () => {
   const config = useRuntimeConfig()
   const baseURL = config.public.apiBase
 
-  // 获取文章评论
-  const getCommentsByArticle = async (articleId) => {
+  const getCommentsByArticle = async (articleId: string | number): Promise<unknown> => {
     return await $fetch(`${baseURL}/comments/article/${articleId}`)
   }
 
-  // 提交评论
-  const submitComment = async (commentData) => {
+  const submitComment = async (commentData: CommentSubmitPayload): Promise<unknown> => {
     return await $fetch(`${baseURL}/comments`, {
       method: 'POST',
       body: commentData
     })
   }
 
-  // 点赞评论
-  const likeComment = async (commentId) => {
+  const likeComment = async (commentId: string | number): Promise<unknown> => {
     return await $fetch(`${baseURL}/comments/${commentId}/like`, {
       method: 'POST'
     })

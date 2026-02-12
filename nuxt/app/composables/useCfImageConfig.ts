@@ -1,8 +1,13 @@
-// Cloudflare 图片转换配置 composable
-export const useCfImageConfig = () => {
-  const authStore = useAuthStore()
+type AuthStoreLike = {
+  authFetch: <T = unknown>(url: string, options?: Record<string, unknown>) => Promise<T>
+}
 
-  const getConfig = async () => {
+type CfImageConfigPayload = Record<string, unknown>
+
+export const useCfImageConfig = () => {
+  const authStore = useAuthStore() as unknown as AuthStoreLike
+
+  const getConfig = async (): Promise<unknown> => {
     try {
       return await authStore.authFetch('/cf-image-config')
     } catch (error) {
@@ -11,7 +16,7 @@ export const useCfImageConfig = () => {
     }
   }
 
-  const saveConfig = async (configData) => {
+  const saveConfig = async (configData: CfImageConfigPayload): Promise<unknown> => {
     try {
       return await authStore.authFetch('/cf-image-config', {
         method: 'POST',

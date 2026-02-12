@@ -1,70 +1,68 @@
 /**
  * 文章搜索 Worker Composable
- *
- * 封装 Article Search Worker 的通信逻辑，提供：
- * - buildIndex(): 构建倒排索引
- * - search(): 全文搜索
- * - query(): 组合查询（搜索 + 过滤 + 排序）
- *
- * 自动降级：Worker 不可用时在主线程执行
  */
 
 import { createWorkerManager, isWorkerSupported } from '~/utils/workers/workerManager'
+import type {
+  ArticleLike,
+  SearchQueryOptions,
+  SearchWorkerActionMap
+} from '~/utils/workers/types'
 
-// Worker 管理器单例
-let searchWorkerManager = null
+let searchWorkerManager: ReturnType<typeof createWorkerManager<SearchWorkerActionMap>> | null = null
 
-/**
- * 获取或创建 Search Worker 管理器
- */
 function getManager() {
   if (searchWorkerManager) return searchWorkerManager
 
   if (!isWorkerSupported() || !process.client) return null
 
   try {
-    searchWorkerManager = createWorkerManager(
+    searchWorkerManager = createWorkerManager<SearchWorkerActionMap>(
       'article-search',
       () => new Worker(
-        new URL('~/utils/workers/articleSearch.worker.js', import.meta.url),
+        new URL('~/utils/workers/articleSearch.worker.ts', import.meta.url),
         { type: 'module' }
       ),
       { timeout: 10000, singleton: true, maxRetries: 1 }
     )
     return searchWorkerManager
-  } catch (e) {
-    console.warn('[useSearchWorker] Worker 创建失败:', e.message)
+  } catch (e: any) {
+    console.warn('[useSearchWorker] Worker 创建失败:', e?.message)
     return null
   }
 }
 
-// =========================================================
-// 主线程降级函数
-// =========================================================
-
-function searchFallback(articles, keyword) {
+function searchFallback(articles: ArticleLike[] | null | undefined, keyword: string): ArticleLike[] {
   if (!articles || !keyword) return []
   const lower = keyword.toLowerCase()
-  return articles.filter(article =>
+  return articles.filter((article) =>
     article.title?.toLowerCase().includes(lower) ||
     article.summary?.toLowerCase().includes(lower) ||
-    article.tags?.some(tag => tag.toLowerCase().includes(lower))
+    article.tags?.some((tag) => tag.toLowerCase().includes(lower))
   )
 }
 
-function filterFallback(articles, category, tag) {
+function filterFallback(
+  articles: ArticleLike[] | null | undefined,
+  category?: string,
+  tag?: string
+): ArticleLike[] {
   let result = articles || []
   if (category && category !== 'all') {
-    result = result.filter(a => a.category === category)
+    result = result.filter((a) => a.category === category)
   }
   if (tag) {
     const lower = tag.toLowerCase()
-    result = result.filter(a => a.tags?.some(t => t.toLowerCase() === lower))
+    result = result.filter((a) => a.tags?.some((t) => t.toLowerCase() === lower))
   }
   return result
 }
 
-function sortFallback(articles, sortBy = 'date', order = 'desc') {
+function sortFallback(
+  articles: ArticleLike[] | null | undefined,
+  sortBy: 'date' | 'title' | 'id' = 'date',
+  order: 'asc' | 'desc' = 'desc'
+): ArticleLike[] {
   const sorted = [...(articles || [])]
   if (sortBy === 'date') {
     sorted.sort((a, b) => {
@@ -76,18 +74,10 @@ function sortFallback(articles, sortBy = 'date', order = 'desc') {
   return sorted
 }
 
-// =========================================================
-// Composable
-// =========================================================
-
 export function useSearchWorker() {
   const indexBuilt = ref(false)
 
-  /**
-   * 构建倒排索引（后台执行，不阻塞 UI）
-   * @param {Array} articles - 文章数组
-   */
-  async function buildIndex(articles) {
+  async function buildIndex(articles: ArticleLike[] | null | undefined): Promise<void> {
     if (!articles || articles.length === 0) return
 
     const manager = getManager()
@@ -97,18 +87,12 @@ export function useSearchWorker() {
       await manager.postTask('buildIndex', { articles })
       indexBuilt.value = true
       console.log(`[SearchWorker] 索引构建完成，共 ${articles.length} 篇文章`)
-    } catch (e) {
-      console.warn('[SearchWorker] 索引构建失败:', e.message)
+    } catch (e: any) {
+      console.warn('[SearchWorker] 索引构建失败:', e?.message)
     }
   }
 
-  /**
-   * 搜索文章
-   * @param {Array} articles - 文章数组
-   * @param {string} keyword - 搜索关键词
-   * @returns {Promise<Array>} 搜索结果
-   */
-  async function search(articles, keyword) {
+  async function search(articles: ArticleLike[] | null | undefined, keyword: string): Promise<ArticleLike[]> {
     if (!keyword) return articles || []
 
     const manager = getManager()
@@ -118,23 +102,12 @@ export function useSearchWorker() {
 
     return manager.postTaskWithFallback(
       'search',
-      { articles, keyword },
+      { articles: articles || [], keyword },
       () => searchFallback(articles, keyword)
     )
   }
 
-  /**
-   * 组合查询（搜索 + 过滤 + 排序）
-   * @param {Array} articles - 文章数组
-   * @param {Object} options - 查询选项
-   * @param {string} options.keyword - 搜索关键词
-   * @param {string} options.category - 分类
-   * @param {string} options.tag - 标签
-   * @param {string} options.sortBy - 排序字段 (date/title/id)
-   * @param {string} options.order - 排序方向 (asc/desc)
-   * @returns {Promise<Array>} 查询结果
-   */
-  async function query(articles, options = {}) {
+  async function query(articles: ArticleLike[] | null | undefined, options: SearchQueryOptions = {}): Promise<ArticleLike[]> {
     const manager = getManager()
     if (!manager) {
       let result = articles || []
@@ -146,7 +119,7 @@ export function useSearchWorker() {
 
     return manager.postTaskWithFallback(
       'query',
-      { articles, options },
+      { articles: articles || [], options },
       () => {
         let result = articles || []
         if (options.keyword) result = searchFallback(result, options.keyword)
@@ -157,9 +130,6 @@ export function useSearchWorker() {
     )
   }
 
-  /**
-   * 销毁 Worker
-   */
   function dispose() {
     if (searchWorkerManager) {
       searchWorkerManager.terminate()
