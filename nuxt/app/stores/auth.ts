@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import type { Ref } from 'vue'
+import { createApiClient } from '~/shared/api/client'
 
 // 用户角色枚举
 export const UserRoles = {
@@ -131,8 +132,7 @@ export const useAuthStore = defineStore('auth', {
 
     // 验证管理员密码 - 通过API调用
     async verifyAdminPassword(password: string): Promise<{ success: boolean; message?: string }> {
-      const config = useRuntimeConfig()
-      const baseURL = config.public.apiBase
+      const api = createApiClient()
 
       // 检查是否在锁定时间内
       const now = Date.now()
@@ -146,10 +146,7 @@ export const useAuthStore = defineStore('auth', {
 
       try {
         // 通过API验证密码
-        const result = await $fetch<AuthApiResponse>(`${baseURL}/auth/login`, {
-          method: 'POST',
-          body: { username: 'admin', password }
-        })
+        const result = await api.post<AuthApiResponse>('/auth/login', { username: 'admin', password })
 
         if (result.success) {
           // 重置错误尝试次数
@@ -209,15 +206,11 @@ export const useAuthStore = defineStore('auth', {
         return false
       }
 
-      const config = useRuntimeConfig()
-      const baseURL = config.public.apiBase
+      const api = createApiClient()
 
       try {
         console.log('[Auth] 正在刷新 Token...')
-        const result = await $fetch<AuthApiResponse>(`${baseURL}/auth/refresh`, {
-          method: 'POST',
-          body: { refreshToken: this.refreshToken }
-        })
+        const result = await api.post<AuthApiResponse>('/auth/refresh', { refreshToken: this.refreshToken })
 
         if (result.success) {
           console.log('[Auth] Token 刷新成功，新过期时间:', result.expiresAt)
@@ -289,9 +282,10 @@ export const useAuthStore = defineStore('auth', {
 
     // 带认证的 fetch 请求（自动处理 Token 刷新）
     async authFetch<T = unknown>(url: string, options: AuthFetchOptions = {}): Promise<T> {
-      const config = useRuntimeConfig()
-      const baseURL = config.public.apiBase
-      const request = $fetch as <R>(requestUrl: string, requestOptions?: AuthFetchOptions) => Promise<R>
+      const api = createApiClient()
+      const request = async <R>(requestUrl: string, requestOptions?: AuthFetchOptions): Promise<R> => {
+        return await api.request<R>(requestUrl, requestOptions)
+      }
 
       // 如果 Token 已过期，先刷新
       if (this.isTokenExpired && this.refreshToken) {
@@ -316,7 +310,7 @@ export const useAuthStore = defineStore('auth', {
       }
 
       try {
-        return await request<T>(`${baseURL}${url}`, fetchOptions)
+        return await request<T>(url, fetchOptions)
       } catch (error: unknown) {
         // 如果是 401 错误，尝试刷新 Token 并重试一次
         if (isFetchErrorLike(error) && error.response?.status === 401 && this.refreshToken) {
@@ -330,7 +324,7 @@ export const useAuthStore = defineStore('auth', {
             }
             // 重试请求
             try {
-              return await request<T>(`${baseURL}${url}`, fetchOptions)
+              return await request<T>(url, fetchOptions)
             } catch (retryError) {
               console.error('[Auth] 重试后仍然失败:', retryError)
               throw retryError

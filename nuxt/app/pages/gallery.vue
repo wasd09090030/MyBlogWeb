@@ -165,15 +165,16 @@
 </template>
 
 <script setup>
-import FadeSlideshow from '../components/gallery/FadeSlideshow.vue'
-import AccordionGallery from '../components/gallery/AccordionGallery.vue'
-import CoverflowGallery from '../components/gallery/CoverflowGallery.vue'
-import MasonryWaterfall from '../components/gallery/MasonryWaterfall.vue'
-import GameGallerySection from '../components/gallery/GameGallerySection.vue'
-import { preloadAllImages, preloadAllImagesWithWorker, ensureMinLoadingTime } from '~/functions/Gallery/imageLoader'
-import { zoomIn as zoomInFn, zoomOut as zoomOutFn, resetZoom as resetZoomFn, handleWheel as handleWheelFn, createDragHandler } from '~/functions/Gallery/zoomAndDrag'
-import { initSliders, destroySliders, getGallerySlice as getSlice } from '~/functions/Gallery/sliderManager'
-import { normalizeTag, bodyScrollManager } from '~/functions/Gallery/utils'
+import FadeSlideshow from '~/features/gallery-public/components/FadeSlideshow.vue'
+import AccordionGallery from '~/features/gallery-public/components/AccordionGallery.vue'
+import CoverflowGallery from '~/features/gallery-public/components/CoverflowGallery.vue'
+import MasonryWaterfall from '~/features/gallery-public/components/MasonryWaterfall.vue'
+import GameGallerySection from '~/features/gallery-public/components/GameGallerySection.vue'
+import { preloadAllImages, preloadAllImagesWithWorker, ensureMinLoadingTime } from '~/features/gallery-public/utils/imageLoader'
+import { zoomIn as zoomInFn, zoomOut as zoomOutFn, resetZoom as resetZoomFn, handleWheel as handleWheelFn, createDragHandler } from '~/features/gallery-public/utils/zoomAndDrag'
+import { initSliders, destroySliders, getGallerySlice as getSlice } from '~/features/gallery-public/utils/sliderManager'
+import { normalizeTag, bodyScrollManager } from '~/features/gallery-public/utils/utils'
+import { logAppError, mapErrorToUserMessage } from '~/shared/errors'
 
 // 设置页面元数据
 useHead({
@@ -292,8 +293,8 @@ const fetchGalleries = async () => {
       isInitialLoading.value = false
     }
   } catch (err) {
-    console.error('获取画廊数据失败:', err)
-    error.value = '获取画廊数据失败，请稍后重试'
+    logAppError('gallery-page', '获取画廊数据', err)
+    error.value = mapErrorToUserMessage(err, '获取画廊数据失败，请稍后重试')
     loading.value = false
     isInitialLoading.value = false
   }

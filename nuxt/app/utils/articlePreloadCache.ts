@@ -10,13 +10,10 @@
  * - 仅客户端有效（调用方负责确保只在 client 侧写入）
  */
 
-type CacheEntry = {
-  data: unknown
-  timestamp: number
-}
+import { createTimedMapCache } from '~/shared/cache'
 
-const cache = new Map<string, CacheEntry>()
 const CACHE_TTL = 5 * 60 * 1000 // 5 分钟
+const preloadCache = createTimedMapCache<unknown>(CACHE_TTL)
 
 /**
  * 存入预加载数据
@@ -24,10 +21,7 @@ const CACHE_TTL = 5 * 60 * 1000 // 5 分钟
  * @param data - 完整文章数据（含 _mdcAst, _mdcToc）
  */
 export function setPreloadedArticle<T>(key: string, data: T): void {
-  cache.set(key, {
-    data,
-    timestamp: Date.now()
-  })
+  preloadCache.set(key, data)
 }
 
 /**
@@ -36,36 +30,24 @@ export function setPreloadedArticle<T>(key: string, data: T): void {
  * @returns 文章数据，未命中返回 undefined
  */
 export function consumePreloadedArticle<T = unknown>(key: string): T | undefined {
-  const entry = cache.get(key)
-  if (!entry) return undefined
-
-  // 过期检查
-  if (Date.now() - entry.timestamp > CACHE_TTL) {
-    cache.delete(key)
-    return undefined
-  }
+  const data = preloadCache.get(key)
+  if (data === undefined) return undefined
 
   // 一次性消费
-  cache.delete(key)
-  return entry.data as T
+  preloadCache.delete(key)
+  return data as T
 }
 
 /**
  * 检查是否有预加载数据
  */
 export function hasPreloadedArticle(key: string): boolean {
-  const entry = cache.get(key)
-  if (!entry) return false
-  if (Date.now() - entry.timestamp > CACHE_TTL) {
-    cache.delete(key)
-    return false
-  }
-  return true
+  return preloadCache.has(key)
 }
 
 /**
  * 清除所有预加载缓存
  */
 export function clearPreloadCache(): void {
-  cache.clear()
+  preloadCache.clear()
 }

@@ -14,6 +14,7 @@
 
 import { parseMarkdown } from '@nuxtjs/mdc/runtime'
 import type { LocationQueryRaw } from 'vue-router'
+import { createApiClient } from '~/shared/api/client'
 import { setPreloadedArticle } from '~/utils/articlePreloadCache'
 
 type ArticleNavInput = {
@@ -47,19 +48,10 @@ const pendingNavigations = new Set<string>()
 
 export function useArticleNavigation() {
   const loadingIndicator = useLoadingIndicator()
-  const config = useRuntimeConfig()
   const router = useRouter()
+  const api = createApiClient()
 
   void router // 保留：后续可能用于更精细的导航控制
-
-  /**
-   * 获取 API baseURL
-   */
-  function getApiBase(): string {
-    const apiBase = config.public.apiBase
-    if (apiBase) return apiBase
-    return process.env.NODE_ENV === 'production' ? '/api' : 'http://localhost:5000/api'
-  }
 
   /**
    * 获取文章路由路径
@@ -110,7 +102,7 @@ export function useArticleNavigation() {
 
       const loadData = async (): Promise<ArticleApiResponse> => {
         // 获取文章 API 数据
-        const response = await $fetch<ArticleApiResponse>(`${getApiBase()}/articles/${articleId}`)
+        const response = await api.get<ArticleApiResponse>(`/articles/${articleId}`)
 
         if (!response) throw new Error('文章不存在')
 

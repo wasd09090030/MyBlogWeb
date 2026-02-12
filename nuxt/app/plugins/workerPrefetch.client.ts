@@ -10,23 +10,19 @@
  * 3. 预加载完成后数据存入全局缓存，页面组件直接使用
  */
 
+import { createApiClient } from '~/shared/api/client'
+import { createTimedMapCache, withInFlightDedup } from '~/shared/cache'
+
 export default defineNuxtPlugin((nuxtApp) => {
   // 仅客户端执行
   if (!process.client) return
 
   const router = useRouter()
-  const config = useRuntimeConfig()
+  const client = createApiClient()
 
   // 预取缓存（避免重复预取）
-  const prefetchCache = new Map()
   const PREFETCH_CACHE_TTL = 5 * 60 * 1000 // 5 分钟
-
-  /**
-   * 获取 API 基础 URL
-   */
-  function getApiBase() {
-    return config.public.apiBase || '/api'
-  }
+  const prefetchCache = createTimedMapCache<unknown>(PREFETCH_CACHE_TTL)
 
   /**
    * 检查路由是否是文章页
@@ -44,45 +40,35 @@ export default defineNuxtPlugin((nuxtApp) => {
   }
 
   /**
-   * 检查缓存是否有效
-   */
-  function isCacheValid(key) {
-    const cached = prefetchCache.get(key)
-    if (!cached) return false
-    return Date.now() - cached.timestamp < PREFETCH_CACHE_TTL
-  }
-
-  /**
    * 预取文章数据（在 Worker 线程中执行）
    */
   async function prefetchArticleData(articleId) {
     const cacheKey = `article-${articleId}`
-    if (isCacheValid(cacheKey)) return
+    if (prefetchCache.has(cacheKey)) return
 
-    try {
-      const { useMarkdownWorker } = await import('~/composables/useMarkdownWorker')
-      const { prefetchArticle } = useMarkdownWorker()
+    await withInFlightDedup(`worker-prefetch:article:${articleId}`, async () => {
+      try {
+        const { useMarkdownWorker } = await import('~/composables/useMarkdownWorker')
+        const { prefetchArticle } = useMarkdownWorker()
 
-      const result = await prefetchArticle(getApiBase(), articleId)
-      if (result) {
-        prefetchCache.set(cacheKey, {
-          data: result,
-          timestamp: Date.now()
-        })
+        const result = await prefetchArticle(client.baseURL, articleId)
+        if (result) {
+          prefetchCache.set(cacheKey, result)
 
-        // 将预取结果存入全局缓存供 useAsyncData 使用
-        const nuxtData = nuxtApp.payload?.data || {}
-        const routeKey = result.slug
-          ? `article-${articleId}-${result.slug}`
-          : `article-${articleId}`
-        if (!nuxtData[routeKey]) {
-          console.log(`[WorkerPrefetch] 文章 ${articleId} 数据已预取并缓存`)
+          // 将预取结果存入全局缓存供 useAsyncData 使用
+          const nuxtData = nuxtApp.payload?.data || {}
+          const routeKey = result.slug
+            ? `article-${articleId}-${result.slug}`
+            : `article-${articleId}`
+          if (!nuxtData[routeKey]) {
+            console.log(`[WorkerPrefetch] 文章 ${articleId} 数据已预取并缓存`)
+          }
         }
+      } catch (e) {
+        // 预取失败不影响正常导航
+        console.warn('[WorkerPrefetch] 文章预取失败:', e.message)
       }
-    } catch (e) {
-      // 预取失败不影响正常导航
-      console.warn('[WorkerPrefetch] 文章预取失败:', e.message)
-    }
+    })
   }
 
   /**
@@ -90,26 +76,27 @@ export default defineNuxtPlugin((nuxtApp) => {
    */
   async function prefetchGalleryImages() {
     const cacheKey = 'gallery-images'
-    if (isCacheValid(cacheKey)) return
+    if (prefetchCache.has(cacheKey)) return
 
-    try {
-      const { useImagePreloadWorker } = await import('~/composables/useImagePreloadWorker')
-      const { quickCacheImages } = useImagePreloadWorker()
+    await withInFlightDedup('worker-prefetch:gallery-images', async () => {
+      try {
+        const { useImagePreloadWorker } = await import('~/composables/useImagePreloadWorker')
+        const { quickCacheImages } = useImagePreloadWorker()
 
-      // 获取画廊数据
-      const apiBase = getApiBase()
-      const galleries = await $fetch<Array<{ imageUrl?: string | null }>>(`${apiBase}/galleries`)
-      if (galleries?.length > 0) {
-        // 预缓存前 10 张图片
-        const urls = galleries.slice(0, 10).map(g => g.imageUrl).filter(Boolean)
-        await quickCacheImages(urls)
+        // 获取画廊数据
+        const galleries = await client.get<Array<{ imageUrl?: string | null }>>('/galleries')
+        if (galleries?.length > 0) {
+          // 预缓存前 10 张图片
+          const urls = galleries.slice(0, 10).map(g => g.imageUrl).filter(Boolean)
+          await quickCacheImages(urls)
 
-        prefetchCache.set(cacheKey, { timestamp: Date.now() })
-        console.log(`[WorkerPrefetch] 画廊前 ${urls.length} 张图片已预缓存`)
+          prefetchCache.set(cacheKey, true)
+          console.log(`[WorkerPrefetch] 画廊前 ${urls.length} 张图片已预缓存`)
+        }
+      } catch (e) {
+        // 静默失败
       }
-    } catch (e) {
-      // 静默失败
-    }
+    })
   }
 
   // =========================================================
@@ -154,10 +141,7 @@ export default defineNuxtPlugin((nuxtApp) => {
          */
         getCachedArticle(articleId) {
           const cached = prefetchCache.get(`article-${articleId}`)
-          if (cached && Date.now() - cached.timestamp < PREFETCH_CACHE_TTL) {
-            return cached.data
-          }
-          return null
+          return cached ?? null
         },
 
         /**

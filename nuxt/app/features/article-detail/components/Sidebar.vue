@@ -27,6 +27,8 @@
 </template>
 
 <script setup>
+import ArticleDetailToc from '~/features/article-detail/components/Toc.vue'
+
 defineProps({
   article: {
     type: Object,

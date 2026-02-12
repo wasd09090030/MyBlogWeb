@@ -60,9 +60,12 @@
 
 <script setup>
 import { useArticles } from '~/composables/useArticles'
-import { formatDate, getCategoryName, getCategoryClass } from '~/functions/ArticleList/formatters'
-import { buildPageNumbers, syncPageFromQuery } from '~/functions/ArticleList/pagination'
-import { scrollToListTop, updatePageState, triggerViewSwitchAnimation } from '~/functions/ArticleList/navigation'
+import ArticleListCategoryBar from '~/features/article-list/components/CategoryBar.vue'
+import ArticleListArticleCard from '~/features/article-list/components/ArticleCard.vue'
+import ArticleListArticlePagination from '~/features/article-list/components/ArticlePagination.vue'
+import { formatDate, getCategoryName, getCategoryClass } from '~/features/article-list/utils/formatters'
+import { buildPageNumbers, syncPageFromQuery } from '~/features/article-list/utils/pagination'
+import { scrollToListTop, updatePageState, triggerViewSwitchAnimation } from '~/features/article-list/utils/navigation'
 import '~/assets/css/components/ArticleList.styles.css'
 
 // 设置页面元数据，启用 keepalive
