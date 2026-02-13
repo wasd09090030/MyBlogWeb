@@ -41,7 +41,7 @@ namespace BlogApi.Services
             }
 
             var baseUrl = NormalizeBaseUrl(config.Domain);
-            var query = new Dictionary<string, string>
+            var query = new Dictionary<string, string?>
             {
                 ["uploadChannel"] = "cfr2",
                 ["returnFormat"] = "default"

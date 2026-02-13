@@ -4,6 +4,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using BlogApi.Data;
 using BlogApi.Services;
+using BlogApi.Services.Beatmaps;
 using System.Text.Json.Serialization;
 using BlogApi.Utils;
 using BlogApi.Models;
@@ -38,6 +39,10 @@ builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<DeepSeekService>();
 builder.Services.AddScoped<ImagebedService>();
 builder.Services.AddScoped<CfImageConfigService>();
+builder.Services.AddScoped<IBeatmapValidationService, BeatmapValidationService>();
+builder.Services.AddScoped<IBeatmapParsingService, BeatmapParsingService>();
+builder.Services.AddScoped<IBeatmapMappingService, BeatmapMappingService>();
+builder.Services.AddScoped<IBeatmapPersistenceService, BeatmapPersistenceService>();
 builder.Services.AddScoped<BeatmapService>();
 
 // JWT 认证配置
@@ -113,16 +118,3 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
-
-
-static void TryAddColumn(BlogDbContext dbContext, string sql)
-{
-    try
-    {
-        dbContext.Database.ExecuteSqlRaw(sql);
-    }
-    catch
-    {
-        // Ignore if the column already exists.
-    }
-}

@@ -188,13 +188,15 @@ namespace BlogApi.Controllers
             }
 
             var safe = relativePath.Replace("\\", "/").TrimStart('/');
-            var host = Request?.Host.Value;
+            var request = Request;
+            var host = request?.Host.Value;
             if (string.IsNullOrWhiteSpace(host))
             {
                 return $"/api/beatmaps/asset/{storageKey}/{safe}";
             }
 
-            return $"{Request.Scheme}://{host}/api/beatmaps/asset/{storageKey}/{safe}";
+            var scheme = string.IsNullOrWhiteSpace(request?.Scheme) ? "https" : request!.Scheme;
+            return $"{scheme}://{host}/api/beatmaps/asset/{storageKey}/{safe}";
         }
 
         private class BeatmapServiceManiaData
