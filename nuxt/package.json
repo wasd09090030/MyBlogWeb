@@ -8,6 +8,8 @@
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "typecheck": "nuxt typecheck",
+    "css:audit": "node ./scripts/check-hardcoded-colors.mjs",
+    "css:imports:audit": "node ./scripts/check-duplicate-style-imports.mjs",
     "postinstall": "nuxt prepare"
   },
   "dependencies": {

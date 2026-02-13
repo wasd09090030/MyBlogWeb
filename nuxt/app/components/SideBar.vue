@@ -88,7 +88,6 @@
 </template>
 
 <script setup>
-import '../assets/css/components/SideBar.styles.css';
 import { useArticlesFeature } from '~/features/article-list/composables/useArticlesFeature'
 
 const router = useRouter();

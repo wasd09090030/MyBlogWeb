@@ -28,7 +28,9 @@ input[type="reset"],
 }
 
 /* 移除暗色主题的渐变背景覆盖 - 使用主题变量 */
-.dark-theme body {
+:root.dark body,
+:root.dark-theme body,
+:root[data-theme="dark"] body {
   background-color: var(--bg-tertiary);
 }
 
@@ -40,12 +42,13 @@ input[type="reset"],
   min-height: 100vh;
 }
 
-/* 主题样式 */
+/* 主题样式（兼容期） */
 .light-theme {
   background-color: var(--bg-secondary);
   color: var(--text-primary);
 }
 
+.dark,
 .dark-theme {
   background-color: var(--bg-tertiary);
   color: var(--text-primary);
@@ -126,7 +129,7 @@ input[type="reset"],
   left: 50%;
   width: 0;
   height: 0;
-  background: radial-gradient(circle, rgba(13, 110, 253, 0.3), transparent);
+  background: radial-gradient(circle, var(--focus-ring-color), transparent);
   border-radius: 50%;
   transform: translate(-50%, -50%);
   transition: all 0.4s ease;
@@ -168,7 +171,7 @@ input[type="reset"],
   top: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(13, 110, 253, 0.1), transparent);
+  background: linear-gradient(90deg, transparent, var(--focus-ring-color), transparent);
   transition: left 0.3s ease;
 }
 
@@ -217,8 +220,8 @@ input[type="reset"],
 }
 
 .fab-btn {
-  background: #00f5d4;
-  color: #04423d;
+  background: var(--fab-bg);
+  color: var(--fab-text);
   border: none;
   width: 42px;
   height: 42px;
@@ -234,13 +237,13 @@ input[type="reset"],
 }
 
 .fab-btn:focus-visible {
-  outline: 2px solid rgba(0, 245, 212, 0.8);
+  outline: 2px solid var(--focus-ring-color);
   outline-offset: 3px;
 }
 
 .fab-btn.is-muted {
-  background: #94a3b8;
-  color: #1f2937;
+  background: var(--fab-muted-bg);
+  color: var(--fab-muted-text);
 }
 
 /* 移除主内容区域内的列的左右padding */
@@ -611,12 +614,12 @@ main {
 }
 
 /* 暗色主题下的代码块样式 - 全局样式确保覆盖 highlight.js */
-:global(.dark-theme) .markdown-body pre,
-:global(.dark-theme) pre.hljs,
+:global(.dark) .markdown-body pre,
+:global(.dark) pre.hljs,
 :global(.dark-theme) .markdown-body pre,
 :global(.dark-theme) pre.hljs {
-  background-color: #161b22 !important;
-  color: #e6edf3 !important;
+  background-color: var(--code-block-bg) !important;
+  color: var(--code-block-text) !important;
 }
 
 :global(.dark-theme) .markdown-body pre code,
@@ -627,50 +630,50 @@ main {
   color: inherit !important;
 }
 
-:global(.dark-theme) .markdown-body code,
+:global(.dark) .markdown-body code,
 :global(.dark-theme) .markdown-body code {
-  background-color: rgba(110,118,129,0.4) !important;
-  color: #e6edf3 !important;
+  background-color: var(--code-inline-bg) !important;
+  color: var(--code-block-text) !important;
 }
 
 /* 确保 highlight.js 的语法高亮在暗色主题下可见 */
-:global(.dark-theme) .hljs-keyword,
-:global(.dark-theme) .hljs-selector-tag,
-:global(.dark-theme) .hljs-literal,
+:global(.dark) .hljs-keyword,
+:global(.dark) .hljs-selector-tag,
+:global(.dark) .hljs-literal,
 :global(.dark-theme) .hljs-keyword,
 :global(.dark-theme) .hljs-selector-tag,
 :global(.dark-theme) .hljs-literal {
-  color: #ff7b72 !important;
+  color: var(--hljs-keyword) !important;
 }
 
-:global(.dark-theme) .hljs-string,
-:global(.dark-theme) .hljs-title,
-:global(.dark-theme) .hljs-name,
+:global(.dark) .hljs-string,
+:global(.dark) .hljs-title,
+:global(.dark) .hljs-name,
 :global(.dark-theme) .hljs-string,
 :global(.dark-theme) .hljs-title,
 :global(.dark-theme) .hljs-name {
-  color: #a5d6ff !important;
+  color: var(--hljs-string) !important;
 }
 
-:global(.dark-theme) .hljs-comment,
-:global(.dark-theme) .hljs-quote,
+:global(.dark) .hljs-comment,
+:global(.dark) .hljs-quote,
 :global(.dark-theme) .hljs-comment,
 :global(.dark-theme) .hljs-quote {
-  color: #8b949e !important;
+  color: var(--hljs-comment) !important;
 }
 
-:global(.dark-theme) .hljs-number,
-:global(.dark-theme) .hljs-tag,
+:global(.dark) .hljs-number,
+:global(.dark) .hljs-tag,
 :global(.dark-theme) .hljs-number,
 :global(.dark-theme) .hljs-tag {
-  color: #79c0ff !important;
+  color: var(--hljs-number) !important;
 }
 
-:global(.dark-theme) .hljs-variable,
-:global(.dark-theme) .hljs-attr,
+:global(.dark) .hljs-variable,
+:global(.dark) .hljs-attr,
 :global(.dark-theme) .hljs-variable,
 :global(.dark-theme) .hljs-attr {
-  color: #ffa657 !important;
+  color: var(--hljs-variable) !important;
 }
 
 :global(.dark-theme) .navbar-center-nav .dropdown:hover .nav-link {
@@ -705,7 +708,7 @@ main {
 }
 
 :global(.dark-theme) .theme-toggle-btn::before {
-  background: radial-gradient(circle, rgba(66, 153, 225, 0.3), transparent);
+  background: radial-gradient(circle, var(--focus-ring-color), transparent);
 }
 
 /* 自定义动画类替换animate.css */
@@ -817,12 +820,12 @@ main {
 /* Nav-link 脉冲效果 */
 @keyframes navPulse {
   0% {
-    box-shadow: 0 0 0 0 rgba(13, 110, 253, 0.3);
+    box-shadow: 0 0 0 0 var(--nav-pulse-ring);
   }
   70% {
-    box-shadow: 0 0 0 10px rgba(13, 110, 253, 0);
+    box-shadow: 0 0 0 10px transparent;
   }
   100% {
-    box-shadow: 0 0 0 0 rgba(13, 110, 253, 0);
+    box-shadow: 0 0 0 0 transparent;
   }
 }

@@ -105,7 +105,7 @@
   left: 0;
   width: 100%;
   height: 40%; /* 底部40%区域 */
-  background:#1c232c;  /* 渐变颜色调整 */
+  background: var(--welcome-overlay-bg);
   z-index: 1;
   pointer-events: none;
 }
@@ -117,8 +117,8 @@
   z-index: 3;
   padding: 6px 14px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.85);
-  color: #1f1f1f;
+  background: var(--welcome-badge-bg);
+  color: var(--welcome-badge-text);
   font-weight: 700;
   font-size: 0.95rem;
   letter-spacing: 0.05em;
@@ -147,7 +147,7 @@
   font-weight: 700;
   line-height: 1.35;
   margin: 0 0 10px 0;
-  text-shadow: 0 4px 18px rgba(0, 0, 0, 0.45);
+  text-shadow: 0 4px 18px var(--panel-border-soft);
   display: -webkit-box;
   -webkit-line-clamp: 2;
   line-clamp: 2;
@@ -200,9 +200,9 @@
   justify-content: space-between;
   gap: 20px;
   padding: 1.5rem 2rem;
-  background: linear-gradient(135deg, rgba(255,255,255,0.8), rgba(248,249,250,0.9));
+  background: var(--panel-bg-soft);
   border-radius: 12px;
-  border: 1px solid rgba(102, 126, 234, 0.15);
+  border: 1px solid var(--article-category-hover-border);
   transition: all 0.3s ease;
   min-height: 0; /* 允许压缩 */
   position: relative;
@@ -224,9 +224,10 @@
 }
 
 
+:global(.dark) .top-section,
 .dark-theme .top-section {
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.12) 0%, rgba(118, 75, 162, 0.08) 100%);
-  border-color: rgba(102, 126, 234, 0.2);
+  background: var(--panel-bg-soft);
+  border-color: var(--article-category-hover-border);
 }
 
 
@@ -317,7 +318,7 @@
   align-items: center;
   padding: 0 20px;
   z-index: 2; /* 位于背景层之上 */
-  color: #ffffff;
+  color: var(--text-inverse);
   gap: 12px;
   transition: opacity 0.3s ease; /* 简单的淡出 */
 }
@@ -363,21 +364,21 @@
   font-weight: 600;
   letter-spacing: 0.5px;
   line-height: 1;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  text-shadow: 0 1px 2px var(--panel-border-soft);
 }
 
 
 /* 三张卡片的主题色 - 更新为新配色 */
 .articles-card {
-  background-color: #ff595eff; /* Vibrant Coral */
+  background-color: var(--accent-danger);
 }
 
 .gallery-card {
-  background-color: #8ac926ff; /* Yellow Green */
+  background-color: var(--accent-success);
 }
 
 .host-card {
-  background-color: #1982c4ff; /* Steel Blue */
+  background-color: var(--accent-primary);
 }
 
 /* ========== 移动端悬浮按钮样式 ========== */
@@ -607,14 +608,14 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0);
+  background: transparent;
   pointer-events: none;
   transition: background 0.3s ease;
   z-index: 999;
 }
 
 .fab-overlay-active {
-  background: rgba(0, 0, 0, 0.4);
+  background: var(--bg-overlay);
   pointer-events: auto;
 }
 
@@ -624,11 +625,11 @@
   height: 52px;
   border-radius: 50%;
   border: none;
-  background: linear-gradient(135deg, #207dff 0%, #207dff 100%);
-  color: white;
+  background: var(--accent-primary);
+  color: var(--text-inverse);
   font-size: 1.3rem;
   cursor: pointer;
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+  box-shadow: var(--shadow-md);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   align-items: center;
@@ -639,7 +640,7 @@
 
 .fab-main-btn:hover {
   transform: scale(1.08);
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+  box-shadow: var(--shadow-lg);
 }
 
 .fab-main-btn:active {
@@ -669,7 +670,7 @@
 }
 
 .fab-main-btn-active {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  background: var(--gradient-secondary);
 }
 
 /* 展开菜单 */
@@ -723,13 +724,13 @@
 
 /* 菜单标签 */
 .fab-menu-label {
-  background: rgba(255, 255, 255, 0.95);
-  color: #333;
+  background: var(--glass-bg);
+  color: var(--text-primary);
   padding: 6px 12px;
   border-radius: 8px;
   font-size: 0.85rem;
   font-weight: 500;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--shadow-sm);
   white-space: nowrap;
   backdrop-filter: blur(10px);
 }
@@ -743,8 +744,8 @@
   align-items: center;
   justify-content: center;
   font-size: 1.1rem;
-  color: white;
-  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.2);
+  color: var(--text-inverse);
+  box-shadow: var(--shadow-sm);
   transition: all 0.2s ease;
 }
 
@@ -761,11 +762,11 @@
 /* 暗色主题悬浮按钮适配 */
 .dark-theme .fab-main-btn {
   background: var(--gradient-primary);
-  box-shadow: 0 4px 15px rgba(66, 153, 225, 0.35);
+  box-shadow: var(--shadow-md);
 }
 
 .dark-theme .fab-main-btn:hover {
-  box-shadow: 0 6px 20px rgba(66, 153, 225, 0.45);
+  box-shadow: var(--shadow-lg);
 }
 
 .dark-theme .fab-main-btn-active {
@@ -773,77 +774,77 @@
 }
 
 .dark-theme .fab-menu-label {
-  background: rgba(36, 52, 71, 0.95);
+  background: var(--glass-bg);
   color: var(--text-primary);
 }
 
 .dark-theme .fab-overlay-active {
-  background: rgba(0, 0, 0, 0.4);
+  background: var(--bg-overlay);
 }
 
 .dark-theme .info-card {
   border-color: rgba(255, 255, 255, 0.12);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  box-shadow: var(--shadow-xl);
 }
 
 .dark-theme .info-card:hover {
-  box-shadow: 0 14px 38px rgba(0, 0, 0, 0.5);
+  box-shadow: var(--shadow-2xl);
 }
 
 
 
 .dark-theme .card-chip {
-  background: rgba(255, 255, 255, 0.12);
-  border-color: rgba(255, 255, 255, 0.18);
-  color: #f8fafc;
+  background: var(--glass-border);
+  border-color: var(--panel-border-soft);
+  color: var(--text-primary);
 }
 
 .dark-theme .card-subtitle {
-  color: #cbd5e1;
+  color: var(--text-secondary);
 }
 
 .dark-theme .card-cta {
-  color: #e5e7eb;
+  color: var(--text-primary);
 }
 
 .dark-theme .card-wave {
-  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.28);
+  box-shadow: var(--shadow-lg);
 }
 
 /* Remove gradient overrides for dark theme to maintain pure color look */
 .dark-theme .articles-card {
-  background-color: #ff595eff;
+  background-color: var(--accent-danger);
 }
 
 .dark-theme .gallery-card {
-  background-color: #8ac926ff;
+  background-color: var(--accent-success);
 }
 
 .dark-theme .host-card {
-  background-color: #1982c4ff;
+  background-color: var(--accent-primary);
 }
 
 .dark-theme .carousel-nav-btn {
-  background: rgba(36, 52, 71, 0.9) !important;
+  background: var(--glass-bg) !important;
   color: var(--text-primary) !important;
 }
 
 .dark-theme .carousel-nav-btn:hover {
-  background: rgba(26, 26, 26, 1) !important;
+  background: var(--bg-tertiary) !important;
 }
 
 .dark-theme :deep(.swiper-pagination-bullet) {
-  background: rgba(255, 255, 255, 0.3) !important;
+  background: var(--glass-border) !important;
 }
 
 .dark-theme :deep(.swiper-pagination-bullet-active) {
-  background: #fff !important;
+  background: var(--text-inverse) !important;
 }
 
 .dark-theme .slide-card {
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--shadow-xl);
 }
 
 .dark-theme .carousel-slide.active .slide-card {
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  box-shadow: var(--shadow-2xl);
 }

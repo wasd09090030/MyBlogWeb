@@ -4,8 +4,11 @@ export const useTheme = () => {
   const applyTheme = (): void => {
     if (process.client) {
       document.documentElement.classList.toggle('dark', isDarkMode.value)
+      // 兼容期：保留 legacy class，真实主题源仅为 `.dark`
       document.documentElement.classList.toggle('dark-theme', isDarkMode.value)
       document.documentElement.classList.toggle('light-theme', !isDarkMode.value)
+      document.documentElement.setAttribute('data-theme', isDarkMode.value ? 'dark' : 'light')
+      document.documentElement.style.colorScheme = isDarkMode.value ? 'dark' : 'light'
     }
   }
 

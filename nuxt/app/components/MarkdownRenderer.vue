@@ -138,6 +138,51 @@ async function preloadMermaid() {
   }
 }
 
+function getThemeVar(name, fallbackName = '') {
+  if (!process.client) return ''
+  const style = getComputedStyle(document.documentElement)
+  const value = style.getPropertyValue(name).trim()
+  if (value) return value
+  return fallbackName ? style.getPropertyValue(fallbackName).trim() : ''
+}
+
+function buildMermaidThemeVariables() {
+  return {
+    primaryColor: getThemeVar('--bg-tertiary', '--bg-secondary'),
+    primaryTextColor: getThemeVar('--text-primary'),
+    primaryBorderColor: getThemeVar('--accent-primary'),
+    lineColor: getThemeVar('--text-muted', '--text-secondary'),
+    secondaryColor: getThemeVar('--bg-secondary'),
+    tertiaryColor: getThemeVar('--bg-tertiary', '--bg-secondary'),
+    background: getThemeVar('--bg-primary'),
+    mainBkg: getThemeVar('--card-bg', '--bg-secondary'),
+    secondBkg: getThemeVar('--bg-secondary'),
+    nodeBorder: getThemeVar('--accent-primary'),
+    clusterBkg: getThemeVar('--bg-secondary'),
+    clusterBorder: getThemeVar('--border-color-dark', '--border-color'),
+    titleColor: getThemeVar('--text-primary'),
+    edgeLabelBackground: getThemeVar('--bg-primary'),
+    textColor: getThemeVar('--text-secondary', '--text-primary'),
+    nodeTextColor: getThemeVar('--text-primary'),
+    actorTextColor: getThemeVar('--text-primary'),
+    actorBkg: getThemeVar('--bg-tertiary', '--bg-secondary'),
+    actorBorder: getThemeVar('--accent-primary'),
+    actorLineColor: getThemeVar('--text-muted', '--text-secondary'),
+    signalColor: getThemeVar('--text-muted', '--text-secondary'),
+    signalTextColor: getThemeVar('--text-secondary', '--text-primary'),
+    labelBoxBkgColor: getThemeVar('--bg-secondary'),
+    labelBoxBorderColor: getThemeVar('--border-color-dark', '--border-color'),
+    labelTextColor: getThemeVar('--text-secondary', '--text-primary'),
+    loopTextColor: getThemeVar('--text-secondary', '--text-primary'),
+    noteBkgColor: getThemeVar('--bg-hover', '--bg-secondary'),
+    noteBorderColor: getThemeVar('--accent-warning', '--accent-primary'),
+    noteTextColor: getThemeVar('--text-primary'),
+    activationBkgColor: getThemeVar('--bg-tertiary', '--bg-secondary'),
+    activationBorderColor: getThemeVar('--accent-primary'),
+    sequenceNumberColor: getThemeVar('--text-primary')
+  }
+}
+
 // 渲染 Mermaid 图表，返回找到的图表数量
 async function renderMermaidDiagrams() {
   if (!process.client || !containerRef.value) return 0
@@ -171,84 +216,13 @@ async function renderMermaidDiagrams() {
     const mermaid = mermaidInstance || (await import('mermaid')).default
     mermaidInstance = mermaid
     
-    // 检测暗色模式
-    const isDark = document.documentElement.classList.contains('dark')
-    
-    // 初始化 mermaid - 使用自定义主题变量以获得更好的暗色适配
+    // 初始化 mermaid - 使用主题 token 构建颜色，随主题实时切换
     mermaid.initialize({
       startOnLoad: false,
       theme: 'base',
       securityLevel: 'loose',
       fontFamily: 'ui-sans-serif, system-ui, sans-serif',
-      themeVariables: isDark ? {
-        // 暗色主题变量
-        primaryColor: '#1e3a5f',
-        primaryTextColor: '#f3f4f6',
-        primaryBorderColor: '#60a5fa',
-        lineColor: '#9ca3af',
-        secondaryColor: '#374151',
-        tertiaryColor: '#1f2937',
-        background: '#111827',
-        mainBkg: '#1f2937',
-        secondBkg: '#374151',
-        nodeBorder: '#60a5fa',
-        clusterBkg: '#1f2937',
-        clusterBorder: '#4b5563',
-        titleColor: '#f9fafb',
-        edgeLabelBackground: '#374151',
-        textColor: '#e5e7eb',
-        nodeTextColor: '#f3f4f6',
-        actorTextColor: '#f3f4f6',
-        actorBkg: '#1e3a5f',
-        actorBorder: '#60a5fa',
-        actorLineColor: '#6b7280',
-        signalColor: '#9ca3af',
-        signalTextColor: '#e5e7eb',
-        labelBoxBkgColor: '#374151',
-        labelBoxBorderColor: '#4b5563',
-        labelTextColor: '#e5e7eb',
-        loopTextColor: '#e5e7eb',
-        noteBkgColor: '#374151',
-        noteBorderColor: '#60a5fa',
-        noteTextColor: '#e5e7eb',
-        activationBkgColor: '#1e3a5f',
-        activationBorderColor: '#60a5fa',
-        sequenceNumberColor: '#f3f4f6'
-      } : {
-        // 亮色主题变量
-        primaryColor: '#dbeafe',
-        primaryTextColor: '#1f2937',
-        primaryBorderColor: '#3b82f6',
-        lineColor: '#6b7280',
-        secondaryColor: '#f3f4f6',
-        tertiaryColor: '#e5e7eb',
-        background: '#ffffff',
-        mainBkg: '#f9fafb',
-        secondBkg: '#f3f4f6',
-        nodeBorder: '#3b82f6',
-        clusterBkg: '#f9fafb',
-        clusterBorder: '#d1d5db',
-        titleColor: '#111827',
-        edgeLabelBackground: '#ffffff',
-        textColor: '#374151',
-        nodeTextColor: '#1f2937',
-        actorTextColor: '#1f2937',
-        actorBkg: '#dbeafe',
-        actorBorder: '#3b82f6',
-        actorLineColor: '#9ca3af',
-        signalColor: '#6b7280',
-        signalTextColor: '#374151',
-        labelBoxBkgColor: '#f9fafb',
-        labelBoxBorderColor: '#d1d5db',
-        labelTextColor: '#374151',
-        loopTextColor: '#374151',
-        noteBkgColor: '#fef3c7',
-        noteBorderColor: '#f59e0b',
-        noteTextColor: '#1f2937',
-        activationBkgColor: '#dbeafe',
-        activationBorderColor: '#3b82f6',
-        sequenceNumberColor: '#1f2937'
-      },
+      themeVariables: buildMermaidThemeVariables(),
       flowchart: {
         useMaxWidth: true,
         htmlLabels: true,
@@ -475,88 +449,88 @@ onUnmounted(() => {
 
 /* 暗色模式下的 Mermaid 样式增强 */
 .dark .mermaid-diagram text {
-  fill: #e5e7eb !important;
+  fill: var(--text-secondary) !important;
 }
 
 .dark .mermaid-diagram .nodeLabel,
 .dark .mermaid-diagram .label {
-  color: #f3f4f6 !important;
-  fill: #f3f4f6 !important;
+  color: var(--text-primary) !important;
+  fill: var(--text-primary) !important;
 }
 
 .dark .mermaid-diagram .edgeLabel {
-  color: #e5e7eb !important;
-  background-color: #374151 !important;
+  color: var(--text-secondary) !important;
+  background-color: var(--bg-secondary) !important;
 }
 
 .dark .mermaid-diagram .edgePath .path {
-  stroke: #9ca3af !important;
+  stroke: var(--text-muted) !important;
 }
 
 .dark .mermaid-diagram .arrowheadPath {
-  fill: #9ca3af !important;
+  fill: var(--text-muted) !important;
 }
 
 .dark .mermaid-diagram .node rect,
 .dark .mermaid-diagram .node circle,
 .dark .mermaid-diagram .node polygon {
-  stroke: #60a5fa !important;
+  stroke: var(--accent-primary) !important;
 }
 
 .dark .mermaid-diagram .cluster rect {
-  fill: #1f2937 !important;
-  stroke: #4b5563 !important;
+  fill: var(--bg-tertiary) !important;
+  stroke: var(--border-color-dark) !important;
 }
 
 .dark .mermaid-diagram .actor {
-  fill: #1e3a5f !important;
-  stroke: #60a5fa !important;
+  fill: var(--bg-tertiary) !important;
+  stroke: var(--accent-primary) !important;
 }
 
 .dark .mermaid-diagram .actor-line {
-  stroke: #6b7280 !important;
+  stroke: var(--text-muted) !important;
 }
 
 .dark .mermaid-diagram .messageLine0,
 .dark .mermaid-diagram .messageLine1 {
-  stroke: #9ca3af !important;
+  stroke: var(--text-muted) !important;
 }
 
 .dark .mermaid-diagram .messageText {
-  fill: #e5e7eb !important;
+  fill: var(--text-secondary) !important;
 }
 
 .dark .mermaid-diagram .loopText,
 .dark .mermaid-diagram .loopText > tspan {
-  fill: #e5e7eb !important;
+  fill: var(--text-secondary) !important;
 }
 
 .dark .mermaid-diagram .loopLine {
-  stroke: #4b5563 !important;
+  stroke: var(--border-color-dark) !important;
 }
 
 .dark .mermaid-diagram .labelBox {
-  fill: #374151 !important;
-  stroke: #4b5563 !important;
+  fill: var(--bg-secondary) !important;
+  stroke: var(--border-color-dark) !important;
 }
 
 .dark .mermaid-diagram .note {
-  fill: #374151 !important;
-  stroke: #60a5fa !important;
+  fill: var(--bg-secondary) !important;
+  stroke: var(--accent-primary) !important;
 }
 
 .dark .mermaid-diagram .noteText {
-  fill: #e5e7eb !important;
+  fill: var(--text-secondary) !important;
 }
 
 .dark .mermaid-diagram .activation0,
 .dark .mermaid-diagram .activation1,
 .dark .mermaid-diagram .activation2 {
-  fill: #1e3a5f !important;
-  stroke: #60a5fa !important;
+  fill: var(--bg-tertiary) !important;
+  stroke: var(--accent-primary) !important;
 }
 
 .dark .mermaid-diagram .sequenceNumber {
-  fill: #f3f4f6 !important;
+  fill: var(--text-primary) !important;
 }
 </style>

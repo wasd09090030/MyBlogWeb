@@ -200,8 +200,6 @@
 </template>
 
 <script setup>
-import '~/assets/css/components/AboutPage.styles.css'
-
 useHead({
   title: 'WyrmKk - 关于我',
   meta: [{ name: 'description', content: '开发者个人主页，展示项目与技术栈' }],
@@ -377,3 +375,7 @@ const goToArticles = () => {
   router.push({ path: '/', query: { category: 'work' } })
 }
 </script>
+
+<style scoped>
+@import '~/assets/css/components/AboutPage.styles.css';
+</style>

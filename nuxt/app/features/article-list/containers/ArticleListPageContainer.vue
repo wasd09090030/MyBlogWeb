@@ -66,7 +66,6 @@ import ArticleListArticlePagination from '~/features/article-list/components/Art
 import { getCategoryName } from '~/features/article-list/utils/formatters'
 import { buildPageNumbers, syncPageFromQuery } from '~/features/article-list/utils/pagination'
 import { updatePageState, triggerViewSwitchAnimation } from '~/features/article-list/utils/navigation'
-import '~/assets/css/components/ArticleList.styles.css'
 
 const route = useRoute()
 const viewMode = ref('list')
@@ -301,9 +300,11 @@ defineExpose({
 })
 </script>
 
-<style scoped>
+<style>
 @import '~/assets/css/components/ArticleList.styles.css';
+</style>
 
+<style scoped>
 .view-toggle-btn {
   padding: 0.6rem;
   line-height: 0;

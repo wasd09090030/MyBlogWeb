@@ -1,5 +1,5 @@
 <template>
-  <NuxtLoadingIndicator color="#18a058" :height="3" :duration="2000" :throttle="200" />
+  <NuxtLoadingIndicator color="var(--accent-success)" :height="3" :duration="2000" :throttle="200" />
   <NuxtLayout>
     <NuxtPage :keepalive="shouldKeepAlive" :page-key="getPageKey" :transition="{
       name: 'page',
@@ -169,32 +169,32 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: var(--scrollbar-track);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
+  background: var(--scrollbar-thumb);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
+  background: var(--scrollbar-thumb-hover);
 }
 
 /* 自定义选择文本颜色 */
 ::selection {
-  background: #0d6efd;
-  color: white;
+  background: var(--accent-primary);
+  color: var(--text-inverse);
 }
 
 ::-moz-selection {
-  background: #0d6efd;
-  color: white;
+  background: var(--accent-primary);
+  color: var(--text-inverse);
 }
 
 /* 焦点样式 */
 :focus-visible {
-  outline: 2px solid #0d6efd;
+  outline: 2px solid var(--accent-primary);
   outline-offset: 2px;
 }
 
@@ -206,13 +206,13 @@ img {
 
 /* 链接样式 */
 a {
-  color: #0d6efd;
+  color: var(--accent-primary);
   text-decoration: none;
   transition: color 0.3s ease;
 }
 
 a:hover {
-  color: #0a58ca;
+  color: var(--accent-primary-hover);
 }
 
 /* 按钮基础样式 */
@@ -231,29 +231,29 @@ a:hover {
 
 .card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  box-shadow: var(--shadow-md);
 }
 
 /* 表单样式 */
 .form-control:focus {
-  border-color: #0d6efd;
-  box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 0.2rem var(--focus-ring-color);
 }
 
 /* 工具类 */
 .text-gradient {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--gradient-primary);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 .bg-gradient-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  background: var(--gradient-primary) !important;
 }
 
 .shadow-custom {
-  box-shadow: 0 8px 32px rgba(0,0,0,0.1) !important;
+  box-shadow: var(--shadow-lg) !important;
 }
 
 /* 响应式隐藏类 */
@@ -283,22 +283,22 @@ a:hover {
 
 /* 错误状态 */
 .error {
-  color: #dc3545;
+  color: var(--accent-danger);
 }
 
 /* 成功状态 */
 .success {
-  color: #198754;
+  color: var(--accent-success);
 }
 
 /* 警告状态 */
 .warning {
-  color: #ffc107;
+  color: var(--accent-warning);
 }
 
 /* 信息状态 */
 .info {
-  color: #0dcaf0;
+  color: var(--accent-info);
 }
 
 /* 打印样式 */

@@ -321,7 +321,7 @@ onUnmounted(() => {
 <style scoped>
 .waterfall-section {
   padding: 2rem 1rem;
-  background: linear-gradient(180deg, transparent 0%, rgba(255, 255, 255, 0.5) 100%);
+  background: linear-gradient(180deg, transparent 0%, var(--glass-bg) 100%);
   border-radius: 30px 30px 0 0;
   margin-top: -20px;
   width: 100%;
@@ -360,7 +360,7 @@ onUnmounted(() => {
 .section-title {
   font-size: 1.5rem;
   font-weight: 600;
-  color: #4a5568;
+  color: var(--text-secondary);
   margin-bottom: 0.5rem;
   display: flex;
   align-items: center;
@@ -369,12 +369,12 @@ onUnmounted(() => {
 }
 
 .title-icon {
-  color: #667eea;
+  color: var(--accent-primary);
 }
 
 .section-subtitle {
   font-size: 0.95rem;
-  color: #718096;
+  color: var(--text-muted);
   margin: 0;
 }
 
@@ -396,7 +396,7 @@ onUnmounted(() => {
   overflow: hidden;
   cursor: pointer;
   transform-origin: center;
-  background: #fff;
+  background: var(--card-bg);
   /* 初始隐藏状态：向下偏移并透明 */
   opacity: 0;
   transform: translateY(60px) scale(0.95);
@@ -405,7 +405,7 @@ onUnmounted(() => {
     opacity 0.8s cubic-bezier(0.2, 0.8, 0.2, 1),
     transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1),
     box-shadow 0.4s ease;
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--shadow-sm);
   will-change: transform, opacity;
 }
 
@@ -416,7 +416,7 @@ onUnmounted(() => {
 
 .waterfall-item:hover {
   transform: translateY(-8px) scale(1.02);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
+  box-shadow: var(--shadow-lg);
   z-index: 2;
 }
 
@@ -456,15 +456,15 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  color: #667eea;
+  color: var(--accent-primary);
   font-size: 0.95rem;
 }
 
 .loading-spinner {
   width: 24px;
   height: 24px;
-  border: 3px solid rgba(102, 126, 234, 0.2);
-  border-top-color: #667eea;
+  border: 3px solid var(--focus-ring-color);
+  border-top-color: var(--accent-primary);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
@@ -477,10 +477,10 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  color: #48bb78;
+  color: var(--accent-success);
   font-size: 0.9rem;
   padding: 0.75rem 1.5rem;
-  background: rgba(72, 187, 120, 0.1);
+  background: color-mix(in srgb, var(--accent-success) 12%, transparent);
   border-radius: 25px;
 }
 
@@ -528,50 +528,60 @@ onUnmounted(() => {
 }
 
 /* 暗色主题 */
+:global(.dark) .waterfall-section,
 :global(.dark-theme) .waterfall-section {
-  background: linear-gradient(180deg, transparent 0%, rgba(45, 55, 72, 0.5) 100%);
+  background: linear-gradient(180deg, transparent 0%, var(--glass-bg) 100%);
 }
 
+:global(.dark) .section-title,
 :global(.dark-theme) .section-title {
-  color: #e2e8f0;
+  color: var(--text-primary);
 }
 
+:global(.dark) .title-icon,
 :global(.dark-theme) .title-icon {
-  color: #a78bfa;
+  color: var(--accent-secondary);
 }
 
+:global(.dark) .section-subtitle,
 :global(.dark-theme) .section-subtitle {
-  color: #a0aec0;
+  color: var(--text-muted);
 }
 
+:global(.dark) .waterfall-item,
 :global(.dark-theme) .waterfall-item {
-  background: #2d3748;
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+  background: var(--card-bg);
+  box-shadow: var(--shadow-md);
 }
 
+:global(.dark) .waterfall-item:hover,
 :global(.dark-theme) .waterfall-item:hover {
-  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+  box-shadow: var(--shadow-xl);
 }
 
+:global(.dark) .item-overlay,
 :global(.dark-theme) .item-overlay {
   background: linear-gradient(
     135deg,
-    rgba(167, 139, 250, 0.7) 0%,
-    rgba(139, 92, 246, 0.7) 100%
+    color-mix(in srgb, var(--accent-secondary) 70%, transparent) 0%,
+    color-mix(in srgb, var(--accent-primary) 70%, transparent) 100%
   );
 }
 
+:global(.dark) .loading-indicator,
 :global(.dark-theme) .loading-indicator {
-  color: #a78bfa;
+  color: var(--accent-secondary);
 }
 
+:global(.dark) .loading-spinner,
 :global(.dark-theme) .loading-spinner {
-  border-color: rgba(167, 139, 250, 0.2);
-  border-top-color: #a78bfa;
+  border-color: color-mix(in srgb, var(--accent-secondary) 25%, transparent);
+  border-top-color: var(--accent-secondary);
 }
 
+:global(.dark) .end-message,
 :global(.dark-theme) .end-message {
-  color: #68d391;
-  background: rgba(104, 211, 145, 0.1);
+  color: var(--accent-success);
+  background: color-mix(in srgb, var(--accent-success) 12%, transparent);
 }
 </style>

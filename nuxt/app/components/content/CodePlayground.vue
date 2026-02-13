@@ -196,7 +196,7 @@ const runCode = () => {
 }
 
 .code-playground-mdc code {
-  color: #e5e7eb;
+  color: var(--text-secondary);
   font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
   display: block;
 }
@@ -225,7 +225,7 @@ const runCode = () => {
 .playground-body {
   max-height: 600px;
   overflow-y: auto;
-  background: rgb(23 23 23); /* bg-gray-950 - 统一背景色 */
+  background: var(--code-playground-bg);
 }
 
 /* 确保输出文字可见 */
@@ -241,15 +241,15 @@ const runCode = () => {
 }
 
 .playground-body::-webkit-scrollbar-track {
-  background: rgb(31 41 55);
+  background: var(--code-scrollbar-track);
 }
 
 .playground-body::-webkit-scrollbar-thumb {
-  background: rgb(75 85 99);
+  background: var(--code-scrollbar-thumb);
   border-radius: 4px;
 }
 
 .playground-body::-webkit-scrollbar-thumb:hover {
-  background: rgb(107 114 128);
+  background: var(--code-scrollbar-thumb-hover);
 }
 </style>

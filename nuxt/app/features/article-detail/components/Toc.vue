@@ -125,6 +125,8 @@ function getTocItemClass(level) {
 
 // 滚动到指定标题
 function scrollToHeading(id) {
+  if (!process.client || typeof document === 'undefined') return
+
   const element = document.getElementById(id)
   if (!element) return
   
@@ -137,7 +139,16 @@ function scrollToHeading(id) {
   })
   
   // 延迟确保滚动完成后再显示高亮
-  setTimeout(() => {
+  if (highlightTimer) {
+    clearTimeout(highlightTimer)
+    highlightTimer = null
+  }
+  if (clearHighlightTimer) {
+    clearTimeout(clearHighlightTimer)
+    clearHighlightTimer = null
+  }
+
+  highlightTimer = window.setTimeout(() => {
     // 移除之前的高亮
     const prevHighlighted = document.querySelector('.heading-highlight')
     if (prevHighlighted) {
@@ -149,7 +160,7 @@ function scrollToHeading(id) {
     highlightedId.value = id
     
     // 3秒后移除高亮
-    setTimeout(() => {
+    clearHighlightTimer = window.setTimeout(() => {
       element.classList.remove('heading-highlight')
       highlightedId.value = null
     }, 3000)
@@ -171,8 +182,15 @@ function handleScroll() {
 let observer = null
 let observerRetryCount = 0
 const MAX_RETRY = 5
+let observerSetupTimer = null
+let highlightTimer = null
+let clearHighlightTimer = null
 
 function setupObserver() {
+  if (!process.client || typeof document === 'undefined') {
+    return
+  }
+
   if (observer) observer.disconnect()
   
   // 检查是否有标题需要观察
@@ -185,7 +203,7 @@ function setupObserver() {
   if (!firstHeading && observerRetryCount < MAX_RETRY) {
     // 如果第一个标题元素还不存在，延迟重试
     observerRetryCount++
-    setTimeout(() => {
+    observerSetupTimer = window.setTimeout(() => {
       setupObserver()
     }, 200)
     return
@@ -248,10 +266,15 @@ function setupObserver() {
 
 // 监听 headings 变化
 watch(() => props.headings, (newHeadings) => {
+  if (!process.client) return
+
   if (newHeadings.length > 0) {
     observerRetryCount = 0
     nextTick(() => {
-      setTimeout(setupObserver, 100)
+      if (observerSetupTimer) {
+        clearTimeout(observerSetupTimer)
+      }
+      observerSetupTimer = window.setTimeout(setupObserver, 100)
     })
   }
 }, { immediate: true })
@@ -263,7 +286,10 @@ onMounted(() => {
   // 在组件挂载时也尝试初始化 observer
   if (props.headings.length > 0) {
     nextTick(() => {
-      setTimeout(setupObserver, 150)
+      if (observerSetupTimer) {
+        clearTimeout(observerSetupTimer)
+      }
+      observerSetupTimer = window.setTimeout(setupObserver, 150)
     })
   }
 })
@@ -271,6 +297,18 @@ onMounted(() => {
 onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll)
   if (observer) observer.disconnect()
+  if (observerSetupTimer) {
+    clearTimeout(observerSetupTimer)
+    observerSetupTimer = null
+  }
+  if (highlightTimer) {
+    clearTimeout(highlightTimer)
+    highlightTimer = null
+  }
+  if (clearHighlightTimer) {
+    clearTimeout(clearHighlightTimer)
+    clearHighlightTimer = null
+  }
 })
 </script>
 
@@ -284,21 +322,21 @@ onUnmounted(() => {
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #d1d5db;
+  background: var(--scrollbar-thumb);
   border-radius: 2px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #9ca3af;
+  background: var(--scrollbar-thumb-hover);
 }
 
 /* 暗色模式滚动条 */
 :global(.dark) .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #4b5563;
+  background: var(--scrollbar-thumb);
 }
 
 :global(.dark) .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #6b7280;
+  background: var(--scrollbar-thumb-hover);
 }
 </style>
 
@@ -310,12 +348,12 @@ onUnmounted(() => {
 
 @keyframes highlight-flash {
   0% {
-    background-color: rgb(236 72 153 / 0.3) !important;
+    background-color: color-mix(in srgb, var(--accent-primary) 30%, transparent) !important;
     border-radius: 0.25rem;
-    box-shadow: 0 0 8px rgb(236 72 153 / 0.4);
+    box-shadow: 0 0 8px color-mix(in srgb, var(--accent-primary) 40%, transparent);
   }
   50% {
-    background-color: rgb(236 72 153 / 0.2);
+    background-color: color-mix(in srgb, var(--accent-primary) 20%, transparent);
   }
   100% {
     background-color: transparent;

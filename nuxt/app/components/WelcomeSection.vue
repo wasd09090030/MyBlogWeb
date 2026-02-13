@@ -146,7 +146,6 @@
 <script setup>
 import { useArticlesFeature } from '~/features/article-list/composables/useArticlesFeature'
 import { useArticleNavigation } from '~/composables/useArticleNavigation'
-import '~/assets/css/components/WelcomeSection.styles.css'
 
 const router = useRouter()
 const { navigateToArticle } = useArticleNavigation()
