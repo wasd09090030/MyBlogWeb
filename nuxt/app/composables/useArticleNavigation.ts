@@ -40,7 +40,6 @@ function getErrorMessage(error: unknown): string {
 const pendingNavigations = new Set<string>()
 
 export function useArticleNavigation() {
-  const loadingIndicator = useLoadingIndicator()
   const router = useRouter()
 
   void router // 保留：后续可能用于更精细的导航控制
@@ -85,20 +84,16 @@ export function useArticleNavigation() {
     if (pendingNavigations.has(articleId)) return
     pendingNavigations.add(articleId)
 
-    // 1. 启动 Loading 动画
-    loadingIndicator.start({ force: true })
-
     try {
-      // 2. 先跳转：不再等待数据预加载，保证导航不阻塞
+      // 1. 先跳转：不再等待数据预加载，保证导航不阻塞
       await navigateTo({ path: articlePath, query })
 
-      // 3. 后台预加载（不阻塞当前导航）
+      // 2. 后台预加载（不阻塞当前导航）
       if (cacheKey) {
         void $fetch<ArticleApiResponse>(`/api/articles/${articleId}`)
           .then((articleData) => {
             if (!articleData) return
             setPreloadedArticle(cacheKey, articleData)
-            loadingIndicator.set(80)
           })
           .catch((error: unknown) => {
             console.warn('[ArticleNav] 后台预加载失败（已降级，不影响浏览）:', getErrorMessage(error))
@@ -110,12 +105,6 @@ export function useArticleNavigation() {
       await navigateTo({ path: articlePath, query })
     } finally {
       pendingNavigations.delete(articleId)
-      // 确保 loading 状态结束
-      setTimeout(() => {
-        if (loadingIndicator.isLoading.value) {
-          loadingIndicator.finish()
-        }
-      }, 300)
     }
   }
 

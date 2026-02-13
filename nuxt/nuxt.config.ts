@@ -54,8 +54,8 @@ export default defineNuxtConfig({
     disablePrefetchLinks: 'dynamicImports',
     // 移除构建资源的 preload，降低首屏请求数量
     disablePreloadLinks: true,
-    // 需要 inline styles 生效；仅去掉 entry 样式表，避免阻塞渲染
-    disableStylesheets: 'entry'
+    // 保留 entry 样式，避免在部分路由出现样式缺失
+    disableStylesheets: false
   },
 
   // 字体配置（本地化）
