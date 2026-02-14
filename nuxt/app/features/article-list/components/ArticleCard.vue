@@ -94,7 +94,7 @@ const isListView = computed(() => props.viewMode === 'list')
 const isGridView = computed(() => props.viewMode === 'grid')
 const isPriority = computed(() => props.index < 3)
 
-const articleExcerpt = computed(() => getExcerpt(props.article.content))
+const articleExcerpt = computed(() => getExcerpt(props.article.contentMarkdown || props.article.content))
 
 const getArticlePath = (article) => {
   if (!article?.id || article.id === 'null' || article.id === 'undefined') {

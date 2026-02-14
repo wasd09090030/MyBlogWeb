@@ -441,6 +441,22 @@ onUnmounted(() => {
 </style>
 
 <style>
+/* MDC 组件统一块级显示，避免行内拼接 */
+.markdown-renderer .prose .alert-mdc,
+.markdown-renderer .prose .tabs-mdc,
+.markdown-renderer .prose .collapse-mdc,
+.markdown-renderer .prose .code-playground-mdc,
+.markdown-renderer .prose .link-card-wrapper,
+.markdown-renderer .prose .image-comparison-mdc,
+.markdown-renderer .prose .web-embed-mdc,
+.markdown-renderer .prose .star-rating-mdc,
+.markdown-renderer .prose .steps-mdc,
+.markdown-renderer .prose .github-card-mdc,
+.markdown-renderer .prose .image-enhanced-mdc,
+.markdown-renderer .prose .related-articles-mdc {
+  display: block;
+}
+
 /* Mermaid 图表样式 */
 .mermaid-diagram svg {
   max-width: 100%;

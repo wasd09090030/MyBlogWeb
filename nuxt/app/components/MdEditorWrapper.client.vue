@@ -41,6 +41,15 @@
             🎨 Image+
           </n-button>
         </n-button-group>
+        <n-button
+          quaternary
+          circle
+          title="查看 MDC 组件参数说明"
+          class="mdc-help-trigger"
+          @click="showMdcHelp = true"
+        >
+          ?
+        </n-button>
       </div>
     </div>
     
@@ -69,6 +78,69 @@
       :auto-save="true"
       placeholder="请输入文章内容...支持 Markdown 语法、HTML 标签和 MDC 组件"
     />
+
+    <n-modal
+      v-model:show="showMdcHelp"
+      preset="card"
+      title="MDC 组件说明"
+      :mask-closable="true"
+      style="width: min(1024px, 95vw);"
+    >
+      <div class="mdc-help-layout">
+        <aside class="mdc-help-sidebar">
+          <n-menu
+            :options="mdcHelpMenuOptions"
+            :value="activeDocKey"
+            @update:value="handleDocChange"
+          />
+        </aside>
+
+        <section v-if="activeDoc" class="mdc-help-content">
+          <h3 class="mdc-help-title">{{ activeDoc.label }}</h3>
+          <p class="mdc-help-description">{{ activeDoc.description }}</p>
+
+          <div class="mdc-help-block">
+            <div class="mdc-help-subtitle">使用语法</div>
+            <pre class="mdc-help-code">{{ activeDoc.syntax }}</pre>
+          </div>
+
+          <div class="mdc-help-block">
+            <div class="mdc-help-subtitle">参数说明</div>
+            <div class="mdc-help-table-wrapper">
+              <table class="mdc-help-table">
+                <thead>
+                  <tr>
+                    <th>参数</th>
+                    <th>类型</th>
+                    <th>默认值</th>
+                    <th>说明</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="param in activeDoc.params" :key="`${activeDoc.key}-${param.name}`">
+                    <td>{{ param.name }}</td>
+                    <td>{{ param.type }}</td>
+                    <td>{{ param.defaultValue }}</td>
+                    <td>{{ param.description }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="mdc-help-block">
+            <div class="mdc-help-subtitle">示例</div>
+            <pre class="mdc-help-code">{{ activeDoc.example }}</pre>
+          </div>
+        </section>
+      </div>
+
+      <template #footer>
+        <div class="mdc-help-footer">
+          <n-button type="primary" @click="showMdcHelp = false">我知道了</n-button>
+        </div>
+      </template>
+    </n-modal>
   </div>
 </template>
 
@@ -179,6 +251,8 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue', 'save', 'html-change'])
 
 const editorRef = ref(null)
+const showMdcHelp = ref(false)
+const activeDocKey = ref('alert')
 
 // 本地状态，解决 v-model 不能直接用在 prop 上的问题
 const localValue = ref(props.modelValue)
@@ -280,6 +354,167 @@ steps:
 ::`
 }
 
+const mdcDocs = [
+  {
+    key: 'alert',
+    label: 'Alert 提示框',
+    description: '用于展示信息、警告、错误、成功提示。支持标题和正文插槽。',
+    syntax: '::alert{type="info" title="提示" icon="true" dismissible="false"}\n正文内容\n::',
+    params: [
+      { name: 'type', type: 'string', defaultValue: 'info', description: '提示类型：info/success/warning/error' },
+      { name: 'title', type: 'string', defaultValue: '-', description: '可选标题文本' },
+      { name: 'icon', type: 'boolean', defaultValue: 'true', description: '是否显示图标' },
+      { name: 'dismissible', type: 'boolean', defaultValue: 'false', description: '是否可关闭' }
+    ],
+    example: '::alert{type="warning" title="注意"}\n请先备份数据再执行操作。\n::'
+  },
+  {
+    key: 'tabs',
+    label: 'Tabs 标签页',
+    description: '将多段内容分组展示，通过标签切换不同面板。',
+    syntax: '::tabs\n---\nlabels: ["标签1", "标签2"]\n---\n#tab-0\n第一个面板\n\n#tab-1\n第二个面板\n::',
+    params: [
+      { name: 'labels', type: 'string[]', defaultValue: '[]', description: '标签标题数组（YAML 头部）' },
+      { name: 'defaultTab', type: 'number', defaultValue: '0', description: '默认激活标签索引' },
+      { name: 'animated', type: 'boolean', defaultValue: 'false', description: '切换时是否启用动画' },
+      { name: 'type', type: 'string', defaultValue: 'line', description: '样式类型：line/card/segment' }
+    ],
+    example: '::tabs\n---\nlabels: ["简介", "安装"]\ndefaultTab: 0\n---\n#tab-0\n这是简介\n\n#tab-1\nnpm install xxx\n::'
+  },
+  {
+    key: 'collapse',
+    label: 'Collapse 折叠面板',
+    description: '适合放置可选阅读内容，默认收起，按需展开。',
+    syntax: '::collapse{title="更多内容" open="false" icon="true"}\n折叠内容\n::',
+    params: [
+      { name: 'title', type: 'string', defaultValue: '点击展开', description: '折叠面板标题' },
+      { name: 'open', type: 'boolean', defaultValue: 'false', description: '是否默认展开' },
+      { name: 'icon', type: 'boolean', defaultValue: 'true', description: '是否显示箭头图标' },
+      { name: 'size', type: 'string', defaultValue: 'medium', description: '尺寸：small/medium/large' }
+    ],
+    example: '::collapse{title="查看完整步骤"}\n1. 打开设置\n2. 选择账号\n3. 完成绑定\n::'
+  },
+  {
+    key: 'codePlayground',
+    label: 'Code Playground 代码演示',
+    description: '展示可读代码片段，可配置语言和标题。',
+    syntax: '::code-playground{lang="javascript" title="示例" runnable="true"}\nconsole.log("Hello")\n::',
+    params: [
+      { name: 'lang', type: 'string', defaultValue: 'javascript', description: '代码语言标识' },
+      { name: 'title', type: 'string', defaultValue: '-', description: '代码块标题' },
+      { name: 'runnable', type: 'boolean', defaultValue: 'false', description: '是否显示运行入口' },
+      { name: 'lineNumbers', type: 'boolean', defaultValue: 'true', description: '是否显示行号' }
+    ],
+    example: '::code-playground{lang="ts" title="类型示例"}\nconst name: string = "Nuxt"\n::'
+  },
+  {
+    key: 'linkCard',
+    label: 'Link Card 链接卡片',
+    description: '将普通链接展示为信息卡片，适合资料推荐。',
+    syntax: '::link-card{url="https://example.com" text="示例网站" desc="链接说明" icon="link"}\n::',
+    params: [
+      { name: 'url', type: 'string', defaultValue: '-', description: '目标链接地址（必填）' },
+      { name: 'text', type: 'string', defaultValue: '访问链接', description: '卡片标题文字' },
+      { name: 'desc', type: 'string', defaultValue: '-', description: '补充描述文本' },
+      { name: 'icon', type: 'string', defaultValue: 'link', description: '图标名称' }
+    ],
+    example: '::link-card{url="https://nuxt.com" text="Nuxt 官网" desc="框架文档入口"}\n::'
+  },
+  {
+    key: 'imageComparison',
+    label: 'Image Comparison 图片对比',
+    description: '左右拖拽查看 before/after 图像差异。',
+    syntax: '::image-comparison{before="/before.jpg" after="/after.jpg" aspectRatio="16/9"}\n::',
+    params: [
+      { name: 'before', type: 'string', defaultValue: '-', description: '对比前图片地址（必填）' },
+      { name: 'after', type: 'string', defaultValue: '-', description: '对比后图片地址（必填）' },
+      { name: 'aspectRatio', type: 'string', defaultValue: '16/9', description: '容器宽高比，如 4/3' },
+      { name: 'startPosition', type: 'number', defaultValue: '50', description: '分隔线初始位置（百分比）' }
+    ],
+    example: '::image-comparison{before="/img/v1.png" after="/img/v2.png" aspectRatio="4/3"}\n::'
+  },
+  {
+    key: 'webEmbed',
+    label: 'Web Embed 视频/网页嵌入',
+    description: '嵌入外部视频或网页内容。',
+    syntax: '::web-embed{url="https://www.bilibili.com/video/xxxx" aspectRatio="16/9" title="视频"}\n::',
+    params: [
+      { name: 'url', type: 'string', defaultValue: '-', description: '嵌入地址（必填）' },
+      { name: 'aspectRatio', type: 'string', defaultValue: '16/9', description: '播放器宽高比' },
+      { name: 'title', type: 'string', defaultValue: 'Web Embed', description: 'iframe 标题' },
+      { name: 'allowFullscreen', type: 'boolean', defaultValue: 'true', description: '是否允许全屏' }
+    ],
+    example: '::web-embed{url="https://www.youtube.com/embed/xxxx" aspectRatio="16/9"}\n::'
+  },
+  {
+    key: 'starRating',
+    label: 'Star Rating 星级评分',
+    description: '展示评分信息，可显示分数与标签。',
+    syntax: '::star-rating{rating="4.5" maxStars="5" label="推荐指数" showScore}\n::',
+    params: [
+      { name: 'rating', type: 'number|string', defaultValue: '0', description: '当前评分值' },
+      { name: 'maxStars', type: 'number|string', defaultValue: '5', description: '最大星星数' },
+      { name: 'size', type: 'string', defaultValue: 'medium', description: '尺寸：small/medium/large' },
+      { name: 'showScore', type: 'boolean', defaultValue: 'true', description: '是否显示数字评分' }
+    ],
+    example: '::star-rating{rating="4.8" label="编辑推荐" showScore}\n::'
+  },
+  {
+    key: 'steps',
+    label: 'Steps 步骤条',
+    description: '展示流程型内容，支持当前步骤和状态。',
+    syntax: '::steps{current="1" status="process" showControls clickable}\n---\nsteps:\n  - title: "第一步"\n    description: "说明"\n---\n::',
+    params: [
+      { name: 'current', type: 'number|string', defaultValue: '0', description: '当前步骤索引' },
+      { name: 'status', type: 'string', defaultValue: 'process', description: '状态：wait/process/finish/error' },
+      { name: 'showControls', type: 'boolean', defaultValue: 'false', description: '是否显示前后切换控件' },
+      { name: 'clickable', type: 'boolean', defaultValue: 'false', description: '步骤是否可点击切换' }
+    ],
+    example: '::steps{current="2" status="process"}\n---\nsteps:\n  - title: "注册"\n  - title: "配置"\n  - title: "完成"\n---\n::'
+  },
+  {
+    key: 'githubCard',
+    label: 'GitHub Card 仓库卡片',
+    description: '展示 GitHub 仓库信息摘要。',
+    syntax: '::github-card{repo="owner/repo" branch="main"}\n::',
+    params: [
+      { name: 'repo', type: 'string', defaultValue: '-', description: '仓库标识，格式 owner/repo（必填）' },
+      { name: 'branch', type: 'string', defaultValue: 'main', description: '目标分支' },
+      { name: 'theme', type: 'string', defaultValue: 'auto', description: '展示主题：light/dark/auto' },
+      { name: 'showStats', type: 'boolean', defaultValue: 'true', description: '是否显示 star/fork 等统计' }
+    ],
+    example: '::github-card{repo="nuxt/nuxt" branch="main"}\n::'
+  },
+  {
+    key: 'imageEnhanced',
+    label: 'Image Enhanced 增强图片',
+    description: '为图片提供说明、放大、圆角、阴影等增强展示。',
+    syntax: '::image-enhanced{src="/img/photo.jpg" alt="说明" caption="标题" zoomable shadow rounded}\n::',
+    params: [
+      { name: 'src', type: 'string', defaultValue: '-', description: '图片地址（必填）' },
+      { name: 'alt', type: 'string', defaultValue: '', description: '图片替代文本' },
+      { name: 'caption', type: 'string', defaultValue: '-', description: '图片下方说明文字' },
+      { name: 'zoomable', type: 'boolean', defaultValue: 'false', description: '点击是否支持放大' }
+    ],
+    example: '::image-enhanced{src="/img/demo.jpg" caption="架构示意图" zoomable rounded}\n::'
+  }
+]
+
+const mdcHelpMenuOptions = computed(() => {
+  return mdcDocs.map((item) => ({
+    label: item.label,
+    key: item.key
+  }))
+})
+
+const activeDoc = computed(() => {
+  return mdcDocs.find((item) => item.key === activeDocKey.value) || mdcDocs[0]
+})
+
+const handleDocChange = (key) => {
+  activeDocKey.value = key
+}
+
 // 定义编辑器工具栏
 const toolbars = [
   'bold', 'underline', 'italic', 'strikeThrough',
@@ -346,9 +581,107 @@ const handleUploadImg = async (files, callback) => {
   gap: 0.5rem;
 }
 
+.mdc-help-trigger {
+  margin-left: auto;
+  font-weight: 700;
+}
+
+.mdc-help-layout {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 1rem;
+  min-height: 460px;
+}
+
+.mdc-help-sidebar {
+  border-right: 1px solid var(--n-border-color);
+  padding-right: 0.75rem;
+  overflow-y: auto;
+}
+
+.mdc-help-content {
+  max-height: 70vh;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+}
+
+.mdc-help-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.mdc-help-description {
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+  color: var(--n-text-color-2);
+}
+
+.mdc-help-block {
+  margin-bottom: 1rem;
+}
+
+.mdc-help-subtitle {
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.mdc-help-code {
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  border: 1px solid var(--n-border-color);
+  background: var(--n-color-modal);
+  border-radius: 8px;
+  padding: 0.75rem;
+}
+
+.mdc-help-table-wrapper {
+  overflow-x: auto;
+}
+
+.mdc-help-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+
+.mdc-help-table th,
+.mdc-help-table td {
+  border: 1px solid var(--n-border-color);
+  padding: 0.45rem 0.5rem;
+  text-align: left;
+  vertical-align: top;
+}
+
+.mdc-help-table th {
+  background: var(--n-color-modal);
+  font-weight: 600;
+}
+
+.mdc-help-footer {
+  display: flex;
+  justify-content: flex-end;
+}
+
 @media (max-width: 768px) {
   .mdc-toolbar {
     font-size: 0.75rem;
+  }
+
+  .mdc-help-layout {
+    grid-template-columns: 1fr;
+    min-height: 0;
+  }
+
+  .mdc-help-sidebar {
+    border-right: none;
+    border-bottom: 1px solid var(--n-border-color);
+    padding-right: 0;
+    padding-bottom: 0.75rem;
+    margin-bottom: 0.75rem;
   }
 }
 </style>

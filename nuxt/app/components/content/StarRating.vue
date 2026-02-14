@@ -1,21 +1,21 @@
 <template>
-  <div class="star-rating-mdc inline-flex items-center gap-3 my-4">
-    <n-rate
-      v-model:value="currentRating"
-      :count="Number(maxStars)"
-      :size="rateSize"
-      :readonly="readonly"
-      :allow-half="true"
-      color="#facc15"
-    />
-    
-    <span v-if="showScore" class="text-sm font-medium text-gray-700 dark:text-gray-300">
-      {{ displayRating }} / {{ maxStars }}
-    </span>
-    
-    <span v-if="label" class="text-sm text-gray-600 dark:text-gray-400">
-      {{ label }}
-    </span>
+  <div class="star-rating-mdc my-4">
+    <div class="star-rating-inner">
+      <span v-if="label" class="star-rating-label text-gray-600 dark:text-gray-400">
+        {{ label }}:
+      </span>
+
+      <n-rate
+        :value="displayRating"
+        :count="Number(maxStars)"
+        :size="rateSize"
+        :readonly="readonly"
+        :allow-half="true"
+        color="#facc15"
+        class="star-rating-rate"
+        @update:value="handleRateUpdate"
+      />
+    </div>
   </div>
 </template>
 
@@ -62,21 +62,35 @@ const props = defineProps({
 
 const emit = defineEmits(['update:rating'])
 
-const currentRating = ref(Number(props.rating) || 0)
+const normalizeRating = (rating, maxStars) => {
+  const parsed = Number(rating)
+  const parsedMax = Number(maxStars)
 
-watch(() => props.rating, (newRating) => {
-  currentRating.value = Number(newRating) || 0
-})
+  if (Number.isNaN(parsed)) return 0
+  const max = Number.isNaN(parsedMax) ? 5 : parsedMax
+  const clamped = Math.max(0, Math.min(parsed, max))
+  return Math.round(clamped * 2) / 2
+}
 
-watch(currentRating, (newValue) => {
-  if (!props.readonly) {
-    emit('update:rating', newValue)
+const currentRating = ref(normalizeRating(props.rating, props.maxStars))
+
+watch(
+  () => [props.rating, props.maxStars],
+  ([rating, maxStars]) => {
+    currentRating.value = normalizeRating(rating, maxStars)
   }
-})
+)
 
-const displayRating = computed(() => {
-  return currentRating.value.toFixed(1)
-})
+const displayRating = computed(() => normalizeRating(currentRating.value, props.maxStars))
+
+const handleRateUpdate = (value) => {
+  const nextValue = normalizeRating(value, props.maxStars)
+  currentRating.value = nextValue
+
+  if (!props.readonly) {
+    emit('update:rating', nextValue)
+  }
+}
 
 // 映射 size 到 n-rate 的尺寸
 const rateSize = computed(() => {
@@ -91,7 +105,38 @@ const rateSize = computed(() => {
 
 <style scoped>
 .star-rating-mdc {
-  /* 确保组件在 prose 内正确显示 */
-  display: inline-flex;
+  display: block;
 }
+
+.star-rating-inner {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.625rem;
+  line-height: 1;
+}
+
+.star-rating-label {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.95rem;
+  line-height: 1;
+}
+
+.star-rating-score {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.85rem;
+  line-height: 1;
+}
+
+/* :deep(.star-rating-rate.n-rate) {
+  display: inline-flex;
+  align-items: center;
+  line-height: 1;
+}
+
+:deep(.star-rating-rate .n-rate__item) {
+  display: inline-flex;
+  align-items: center;
+} */
 </style>
