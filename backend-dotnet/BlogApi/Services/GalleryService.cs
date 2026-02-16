@@ -6,12 +6,20 @@ using SixLabors.ImageSharp;
 
 namespace BlogApi.Services
 {
+    /// <summary>
+    /// 画廊领域服务。
+    /// 负责画廊数据 CRUD、排序/启用状态管理、缩略图 URL 生成与图片尺寸探测。
+    /// </summary>
     public class GalleryService
     {
         private readonly BlogDbContext _context;
         private readonly HttpClient _httpClient;
         private readonly ILogger<GalleryService> _logger;
 
+        /// <summary>
+        /// 初始化 <see cref="GalleryService"/>。
+        /// 使用独立 HttpClient 读取远程图片头/流信息，避免阻塞主业务请求。
+        /// </summary>
         public GalleryService(BlogDbContext context, IHttpClientFactory httpClientFactory, ILogger<GalleryService> logger)
         {
             _context = context;
@@ -20,6 +28,9 @@ namespace BlogApi.Services
             _logger = logger;
         }
 
+        /// <summary>
+        /// 获取全部启用中的画廊项，并补齐缩略图地址。
+        /// </summary>
         public async Task<List<Gallery>> GetAllActiveAsync()
         {
             var galleries = await _context.Galleries
@@ -31,6 +42,9 @@ namespace BlogApi.Services
             return galleries;
         }
 
+        /// <summary>
+        /// 获取全部画廊项（含禁用项），并补齐缩略图地址。
+        /// </summary>
         public async Task<List<Gallery>> GetAllAsync()
         {
             var galleries = await _context.Galleries
@@ -41,6 +55,9 @@ namespace BlogApi.Services
             return galleries;
         }
 
+        /// <summary>
+        /// 按 ID 获取画廊项，并补齐缩略图地址。
+        /// </summary>
         public async Task<Gallery?> GetByIdAsync(int id)
         {
             var gallery = await _context.Galleries.FindAsync(id);
@@ -51,6 +68,10 @@ namespace BlogApi.Services
             return gallery;
         }
 
+        /// <summary>
+        /// 创建画廊项。
+        /// 未显式提供排序时自动追加到末尾，并尝试探测图片宽高。
+        /// </summary>
         public async Task<Gallery> CreateAsync(CreateGalleryDto dto)
         {
             // 如果未指定排序，自动分配到最后
@@ -78,6 +99,9 @@ namespace BlogApi.Services
             return gallery;
         }
 
+        /// <summary>
+        /// 批量补齐缩略图地址。
+        /// </summary>
         private async Task ApplyThumbnailUrlsAsync(List<Gallery> galleries)
         {
             if (galleries.Count == 0) return;
@@ -88,12 +112,19 @@ namespace BlogApi.Services
             }
         }
 
+        /// <summary>
+        /// 补齐单条缩略图地址。
+        /// </summary>
         private async Task ApplyThumbnailUrlAsync(Gallery gallery)
         {
             var config = await _context.CfImageConfigs.AsNoTracking().FirstOrDefaultAsync();
             gallery.ThumbnailUrl = BuildThumbnailUrl(gallery.ImageUrl, config);
         }
 
+        /// <summary>
+        /// 根据配置生成缩略图 URL。
+        /// 配置缺失、关闭或 URL 非法时回退原图地址。
+        /// </summary>
         private string? BuildThumbnailUrl(string imageUrl, CfImageConfig? config)
         {
             if (string.IsNullOrWhiteSpace(imageUrl)) return null;
@@ -102,6 +133,7 @@ namespace BlogApi.Services
 
             if (config.UseWorker)
             {
+                // Worker 生成失败时回退原图，保证前台至少可展示。
                 var workerUrl = BuildWorkerThumbnailUrl(sourceUri, config);
                 return string.IsNullOrWhiteSpace(workerUrl) ? imageUrl : workerUrl;
             }
@@ -109,6 +141,9 @@ namespace BlogApi.Services
             return BuildCdnThumbnailUrl(sourceUri, imageUrl, config);
         }
 
+        /// <summary>
+        /// 生成 Cloudflare Image Resizing（cdn-cgi）风格缩略图 URL。
+        /// </summary>
         private string? BuildCdnThumbnailUrl(Uri sourceUri, string imageUrl, CfImageConfig config)
         {
             string? baseHost = null;
@@ -142,6 +177,7 @@ namespace BlogApi.Services
             var optionString = options.Count > 0 ? string.Join(',', options) : "";
 
             var baseUrl = $"{scheme}://{baseHost}/cdn-cgi/image/{optionString}/{imageUrl}";
+            // 可选签名：支持 HMAC secret 或固定 token。
             var signature = BuildSignature(optionString, imageUrl, config);
             if (!string.IsNullOrWhiteSpace(signature))
             {
@@ -151,6 +187,9 @@ namespace BlogApi.Services
             return baseUrl;
         }
 
+        /// <summary>
+        /// 生成 Worker 缩略图 URL（带过期时间与签名）。
+        /// </summary>
         private string? BuildWorkerThumbnailUrl(Uri sourceUri, CfImageConfig config)
         {
             if (string.IsNullOrWhiteSpace(config.WorkerBaseUrl)) return null;
@@ -165,6 +204,7 @@ namespace BlogApi.Services
             }
             else
             {
+                // 非 /file/ 前缀时仍尝试按绝对路径去掉 leading slash。
                 path = path.TrimStart('/');
             }
 
@@ -186,6 +226,10 @@ namespace BlogApi.Services
             return $"{baseUrl}/thumb/{path}?w={width}&q={quality}&fmt={format}&fit={fit}&exp={exp}&{param}={sig}";
         }
 
+        /// <summary>
+        /// 生成签名参数字符串。
+        /// 优先 secret(HMAC)；未提供 secret 时回退静态 token。
+        /// </summary>
         private string? BuildSignature(string optionString, string imageUrl, CfImageConfig config)
         {
             if (!string.IsNullOrWhiteSpace(config.SignatureSecret))
@@ -205,6 +249,9 @@ namespace BlogApi.Services
             return null;
         }
 
+        /// <summary>
+        /// 计算 HMAC-SHA256 签名，输出小写十六进制。
+        /// </summary>
         private string? BuildHmacSignature(string data, string secret)
         {
             using var hmac = new System.Security.Cryptography.HMACSHA256(System.Text.Encoding.UTF8.GetBytes(secret));
@@ -212,6 +259,10 @@ namespace BlogApi.Services
             return Convert.ToHexString(hash).ToLowerInvariant();
         }
 
+        /// <summary>
+        /// 更新画廊项。
+        /// 当图片地址变化时重新探测尺寸并刷新缩略图地址。
+        /// </summary>
         public async Task<Gallery?> UpdateAsync(int id, UpdateGalleryDto dto)
         {
             var gallery = await _context.Galleries.FindAsync(id);
@@ -238,6 +289,9 @@ namespace BlogApi.Services
             return gallery;
         }
 
+        /// <summary>
+        /// 删除画廊项。
+        /// </summary>
         public async Task<bool> DeleteAsync(int id)
         {
             var gallery = await _context.Galleries.FindAsync(id);
@@ -248,6 +302,9 @@ namespace BlogApi.Services
             return true;
         }
 
+        /// <summary>
+        /// 批量更新排序。
+        /// </summary>
         public async Task<bool> UpdateSortOrderAsync(List<UpdateSortOrderDto> updates)
         {
             foreach (var update in updates)
@@ -264,6 +321,9 @@ namespace BlogApi.Services
             return true;
         }
 
+        /// <summary>
+        /// 切换单条画廊启用状态。
+        /// </summary>
         public async Task<Gallery?> ToggleActiveAsync(int id)
         {
             var gallery = await _context.Galleries.FindAsync(id);
@@ -276,6 +336,10 @@ namespace BlogApi.Services
             return gallery;
         }
 
+        /// <summary>
+        /// 批量导入画廊项。
+        /// 空 URL 会被跳过，排序从当前末尾连续追加。
+        /// </summary>
         public async Task<List<Gallery>> BatchImportAsync(BatchImportGalleryDto dto)
         {
             var maxSortOrder = await _context.Galleries.AnyAsync() 
@@ -317,6 +381,10 @@ namespace BlogApi.Services
             return galleries;
         }
 
+        /// <summary>
+        /// 批量刷新全量画廊图片尺寸。
+        /// 返回总数、成功与失败统计。
+        /// </summary>
         public async Task<GalleryRefreshResultDto> RefreshAllDimensionsAsync()
         {
             var galleries = await _context.Galleries
@@ -355,6 +423,10 @@ namespace BlogApi.Services
             };
         }
 
+        /// <summary>
+        /// 尝试读取远程图片尺寸。
+        /// 任何网络/格式异常都只记录日志并返回 null，避免影响主流程。
+        /// </summary>
         private async Task<(int? Width, int? Height)> TryFetchImageSizeAsync(string imageUrl)
         {
             if (string.IsNullOrWhiteSpace(imageUrl)) return (null, null);
@@ -377,6 +449,7 @@ namespace BlogApi.Services
                 }
 
                 var contentLength = response.Content.Headers.ContentLength;
+                // 仅做轻量探测，超大图片直接跳过以控制内存和等待时间。
                 if (contentLength.HasValue && contentLength.Value > 20 * 1024 * 1024)
                 {
                     _logger.LogWarning("图片过大，跳过解析: {ContentLength} {Url}", contentLength.Value, imageUrl);

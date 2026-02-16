@@ -1,6 +1,7 @@
 <template>
   <div class="min-h-screen flex">
     <div class="flex-1 bg-white dark:bg-gray-900 rounded-xl overflow-hidden lg:rounded-l-xl lg:rounded-r-none">
+      <!-- 状态渲染优先级：loading -> error -> content -> empty -->
       <StateLoading v-if="pending">
         <div class="flex flex-col items-center justify-center min-h-[60vh]">
           <n-spin size="large" />
@@ -49,6 +50,7 @@ import StateLoading from '~/shared/ui/StateLoading.vue'
 import StateError from '~/shared/ui/StateError.vue'
 import StateEmpty from '~/shared/ui/StateEmpty.vue'
 
+// 详情页所有状态与行为由组合式函数集中编排，容器仅负责状态分发与组件拼装。
 const {
   article,
   pending,

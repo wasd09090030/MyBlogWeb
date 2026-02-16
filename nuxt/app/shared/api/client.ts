@@ -2,15 +2,25 @@ import { resolveApiBaseURL } from '~/shared/api/base-url'
 
 type FetchOptions = NonNullable<Parameters<typeof $fetch>[1]>
 
+/**
+ * 归一化请求路径：
+ * - 绝对 URL 原样透传；
+ * - 相对路径补前导 `/`，便于与 baseURL 拼接。
+ */
 function normalizePath(path: string): string {
   if (/^https?:\/\//i.test(path)) return path
   if (path.startsWith('/')) return path
   return `/${path}`
 }
 
+/**
+ * 轻量 API 客户端。
+ * 只负责 URL 拼接与 HTTP 方法封装，不处理业务错误翻译。
+ */
 export function createApiClient(baseURL = resolveApiBaseURL()) {
   const request = async <T = unknown>(path: string, options: FetchOptions = {}): Promise<T> => {
     const normalized = normalizePath(path)
+    // 当 path 已是绝对地址时，允许覆盖默认 baseURL（用于跨域静态资源或外部 API）。
     const target = /^https?:\/\//i.test(normalized) ? normalized : `${baseURL}${normalized}`
     return await $fetch<T>(target, options)
   }
@@ -46,6 +56,9 @@ export function createApiClient(baseURL = resolveApiBaseURL()) {
   }
 }
 
+/**
+ * 为调用方补充统一日志上下文，不吞掉原始异常。
+ */
 export async function withApiError<T>(scope: string, action: string, run: () => Promise<T>): Promise<T> {
   try {
     return await run()
