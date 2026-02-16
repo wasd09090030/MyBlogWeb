@@ -1,3 +1,7 @@
+/**
+ * Worker 与主线程之间的统一消息协议。
+ * 约定：每个任务由 taskId 关联，返回类型使用 discriminated union 区分。
+ */
 export type WorkerMessageType = 'result' | 'progress' | 'error'
 
 export type WorkerResultMessage<TResult = unknown> = {
@@ -23,6 +27,10 @@ export type WorkerInboundMessage<TResult = unknown, TProgress = unknown> =
   | WorkerProgressMessage<TProgress>
   | WorkerErrorMessage
 
+/**
+ * ActionMap 是 Worker 类型系统的核心：为每个 action 声明 payload/result/progress。
+ * 之后通过 ActionName/PayloadOf/ResultOf 在调用侧自动推导类型。
+ */
 export type WorkerActionDefinition = {
   payload: Record<string, unknown>
   result: unknown
@@ -49,6 +57,9 @@ export type WorkerTaskUnion<TMap extends WorkerActionMap> = {
   [K in ActionName<TMap>]: WorkerTaskMessage<TMap, K>
 }[ActionName<TMap>]
 
+/**
+ * 搜索相关类型
+ */
 export type ArticleLike = {
   id?: string | number
   title?: string
@@ -90,6 +101,9 @@ export type SearchWorkerActionMap = {
   }
 }
 
+/**
+ * Markdown 预处理类型
+ */
 export type TocItem = { id: string; text: string; level: number }
 
 export type MarkdownCodeBlocks = {
@@ -133,6 +147,9 @@ export type MarkdownWorkerActionMap = {
   }
 }
 
+/**
+ * 图片预加载类型
+ */
 export type ImagePreloadProgress = {
   loaded: number
   total: number
@@ -172,6 +189,9 @@ export type ImagePreloadWorkerActionMap = {
   }
 }
 
+/**
+ * 图片转换（OffscreenCanvas / createImageBitmap）类型
+ */
 export type ImageProcessOptions = {
   format: 'png' | 'jpeg' | 'webp' | 'avif'
   quality?: number
@@ -213,6 +233,9 @@ export type ImageProcessorWorkerActionMap = {
   }
 }
 
+/**
+ * Markdown -> Docx 导出类型
+ */
 export type DocxRun = {
   text: string
   bold?: boolean

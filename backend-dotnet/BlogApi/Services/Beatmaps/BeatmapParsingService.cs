@@ -15,6 +15,9 @@ namespace BlogApi.Services.Beatmaps
     /// </summary>
     public class BeatmapParsingService : IBeatmapParsingService
     {
+        /// <summary>
+        /// 从已解压目录中读取所有 .osu，仅保留 mode=3(Mania) 的解析结果。
+        /// </summary>
         public IReadOnlyList<BeatmapParseResult> ParseManiaFromExtractedDirectory(string setRoot)
         {
             var osuFiles = Directory.GetFiles(setRoot, "*.osu", SearchOption.AllDirectories);
@@ -37,6 +40,9 @@ namespace BlogApi.Services.Beatmaps
             return maniaResults;
         }
 
+        /// <summary>
+        /// 从前端导入文本中解析 Mania 谱面；上传资源路径通过 uploadedFiles 映射补全。
+        /// </summary>
         public IReadOnlyList<BeatmapParseResult> ParseManiaFromImport(IEnumerable<BeatmapOsuFileDto> osuFiles, IReadOnlyDictionary<string, string> uploadedFiles)
         {
             var maniaResults = new List<BeatmapParseResult>();
@@ -76,6 +82,7 @@ namespace BlogApi.Services.Beatmaps
 
                 if (line.StartsWith("[", StringComparison.Ordinal) && line.EndsWith("]", StringComparison.Ordinal))
                 {
+                    // .osu 使用 section 分段，后续按当前 section 路由到对应解析器。
                     section = line.Substring(1, line.Length - 2);
                     continue;
                 }
@@ -142,6 +149,7 @@ namespace BlogApi.Services.Beatmaps
 
                 if (line.StartsWith("[", StringComparison.Ordinal) && line.EndsWith("]", StringComparison.Ordinal))
                 {
+                    // 与目录解析保持同一状态机，确保导入与上传流程行为一致。
                     section = line.Substring(1, line.Length - 2);
                     continue;
                 }
@@ -217,6 +225,7 @@ namespace BlogApi.Services.Beatmaps
             }
 
             var circleSize = ParseDouble(result.Difficulty, "CircleSize", 4d);
+            // Mania 下 CircleSize 实际表示列数（keys）。
             result.Columns = Math.Max(1, (int)Math.Round(circleSize));
             result.OverallDifficulty = ParseDouble(result.Difficulty, "OverallDifficulty", 5d);
 
@@ -228,6 +237,7 @@ namespace BlogApi.Services.Beatmaps
 
             if (!result.IsMania)
             {
+                // 非 Mania 谱面不保留 HitObjects，避免误入后续持久化和前端渲染。
                 result.Notes.Clear();
             }
         }
@@ -330,6 +340,7 @@ namespace BlogApi.Services.Beatmaps
                 return null;
             }
 
+            // osu!standard 的 x 坐标范围是 [0,512)，按列数映射到 [0, columns-1]。
             var column = (int)Math.Floor(x * columns / 512d);
             if (column < 0) column = 0;
             if (column >= columns) column = columns - 1;
@@ -337,6 +348,7 @@ namespace BlogApi.Services.Beatmaps
             int? endTime = null;
             if ((type & 128) != 0 && parts.Length > 5)
             {
+                // 长按音符的结束时间位于第 6 段，格式类似 "end:sample:set"。
                 var endPart = parts[5].Split(':').FirstOrDefault();
                 if (int.TryParse(endPart, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsedEnd))
                 {
@@ -379,6 +391,7 @@ namespace BlogApi.Services.Beatmaps
             var baseDir = Path.GetDirectoryName(osuRelativePath) ?? string.Empty;
             var combined = Path.GetFullPath(Path.Combine(setRoot, baseDir, assetRelativePath));
             var rootFull = Path.GetFullPath(setRoot);
+            // 阻断越界路径（Zip Slip / 手工构造 ../）。
             if (!combined.StartsWith(rootFull, StringComparison.OrdinalIgnoreCase))
             {
                 return null;
@@ -390,6 +403,7 @@ namespace BlogApi.Services.Beatmaps
                 var fileName = Path.GetFileName(combined);
                 if (!string.IsNullOrWhiteSpace(dir) && Directory.Exists(dir))
                 {
+                    // 文件系统大小写不敏感场景下补一次大小写纠偏匹配。
                     var match = Directory.EnumerateFiles(dir)
                         .FirstOrDefault(path => string.Equals(Path.GetFileName(path), fileName, StringComparison.OrdinalIgnoreCase));
                     if (!string.IsNullOrWhiteSpace(match))
@@ -414,6 +428,7 @@ namespace BlogApi.Services.Beatmaps
             var combined = NormalizeRelativePath(Path.Combine(baseDir, assetRelativePath)).TrimStart('/');
             if (combined.Contains("..", StringComparison.Ordinal))
             {
+                // 导入模式下同样拒绝目录穿越。
                 return null;
             }
 

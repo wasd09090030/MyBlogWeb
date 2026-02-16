@@ -2,12 +2,20 @@ import { consumePreloadedArticle } from '~/utils/articlePreloadCache'
 import { createArticleDetailRepository } from '~/features/article-detail/services/articleDetail.repository'
 import { logAppError, toNuxtErrorPayload } from '~/shared/errors'
 
+/**
+ * 文章详情页组合式逻辑：
+ * 1) 数据加载与缓存复用；
+ * 2) 规范 slug 重定向；
+ * 3) SEO / Schema 生成；
+ * 4) 目录 TOC 标准化。
+ */
 export const useArticleDetailPage = async () => {
   const repository = createArticleDetailRepository()
   const route = useRoute()
   const router = useRouter()
   const config = useRuntimeConfig()
 
+  // 路由格式约定：/article/:id-:slug，其中 slug 可选。
   const rawIdParam = computed(() => String(route.params.id || ''))
   const articleId = computed(() => rawIdParam.value.split('-')[0])
   const routeSlug = computed(() => rawIdParam.value.split('-').slice(1).join('-'))
@@ -40,12 +48,16 @@ export const useArticleDetailPage = async () => {
       return response
     },
     {
+      // id 变更时自动刷新详情。
       watch: [articleId],
+      // 不阻塞路由切换，交由页面内 pending 状态处理。
       lazy: true,
       getCachedData: (key, nuxtApp, ctx) => {
+        // 手动刷新应强制走网络，避免取到旧 payload。
         if (ctx?.cause === 'refresh:manual') return undefined
 
         if (import.meta.client) {
+          // 优先消费预加载缓存（例如列表页 hover/预取）。
           const preloaded = consumePreloadedArticle(key)
           if (preloaded) {
             console.log('[ArticlePage] 命中预加载缓存，跳过 fetch + parseMarkdown')
@@ -53,6 +65,7 @@ export const useArticleDetailPage = async () => {
           }
         }
 
+        // 回退到 Nuxt 内置 payload/static 缓存。
         return nuxtApp.payload?.data?.[key] ?? nuxtApp.static?.data?.[key]
       }
     }
@@ -71,6 +84,7 @@ export const useArticleDetailPage = async () => {
     return `${baseSiteUrl.value}${canonicalPath.value}`
   })
 
+  // 统一将相对地址转换为绝对地址，供 meta/schema 使用。
   const resolveUrl = (value: string | undefined | null): string => {
     if (!value) return ''
     if (/^https?:\/\//i.test(value)) return value
@@ -82,6 +96,7 @@ export const useArticleDetailPage = async () => {
   let isRedirectingToCanonical = false
   const ensureCanonicalSlug = async () => {
     const slug = (article.value as { slug?: string } | null)?.slug
+    // 仅在“路由 slug 与后端 slug 不一致”时执行 301 规范化跳转。
     if (!slug || routeSlug.value === slug || isRedirectingToCanonical) return
     isRedirectingToCanonical = true
     try {
@@ -103,6 +118,7 @@ export const useArticleDetailPage = async () => {
   const normalizeTocToHeadings = (toc: unknown): Array<{ id: string; text: string; level: number }> => {
     if (!toc) return []
 
+    // 兼容两种结构：数组或 { links } 容器。
     const tocLinks = Array.isArray(toc)
       ? toc
       : (toc as { links?: unknown[] })?.links || []
@@ -114,6 +130,7 @@ export const useArticleDetailPage = async () => {
         if (!item?.id || !item?.text) continue
         result.push({ id: item.id, text: item.text, level })
         if (item.children?.length) {
+          // children 逐级递归，层级 +1。
           result.push(...convertLinks(item.children, level + 1))
         }
       }
@@ -129,6 +146,7 @@ export const useArticleDetailPage = async () => {
     () => (article.value as { _mdcToc?: unknown } | null)?._mdcToc,
     (toc) => {
       if (!toc) return
+      // 已从渲染器回调拿到目录时，不再覆盖，避免两路更新抖动。
       if (headings.value.length > 0) return
       const normalized = normalizeTocToHeadings(toc)
       if (normalized.length > 0) {
@@ -185,6 +203,7 @@ export const useArticleDetailPage = async () => {
     const articleUrl = canonicalUrl.value || resolveUrl(canonicalPath.value)
     const siteUrl = baseSiteUrl.value || resolveUrl('/')
 
+    // 同时输出 Article 与 BreadcrumbList，提升搜索引擎理解度。
     return [
       {
         '@type': 'Article',
@@ -223,6 +242,7 @@ export const useArticleDetailPage = async () => {
   useSchemaOrg(schemaGraph)
 
   const goBack = () => {
+    // 优先复用浏览器历史，缺历史时回首页兜底。
     if (import.meta.client && window.history.length > 1) {
       router.back()
     } else {

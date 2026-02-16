@@ -12,6 +12,10 @@ using Microsoft.Extensions.Logging;
 
 namespace BlogApi.Services
 {
+    /// <summary>
+    /// Cloudflare 图床 HTTP 客户端。
+    /// 仅负责协议交互（上传/删除）与返回值解析，不承载业务编排逻辑。
+    /// </summary>
     public class CfBedClient
     {
         private readonly HttpClient _httpClient;
@@ -23,6 +27,9 @@ namespace BlogApi.Services
             _logger = logger;
         }
 
+        /// <summary>
+        /// 上传单个文件并返回图床可访问地址（src）。
+        /// </summary>
         public async Task<string> UploadAsync(ImagebedConfig config, string filePath, string uploadFolder)
         {
             if (config == null)
@@ -41,6 +48,7 @@ namespace BlogApi.Services
             }
 
             var baseUrl = NormalizeBaseUrl(config.Domain);
+            // 按现有图床 API 约定固定参数；uploadFolder 按需附加。
             var query = new Dictionary<string, string?>
             {
                 ["uploadChannel"] = "cfr2",
@@ -60,6 +68,7 @@ namespace BlogApi.Services
             var contentTypeProvider = new FileExtensionContentTypeProvider();
             if (!contentTypeProvider.TryGetContentType(filePath, out var contentType))
             {
+                // 未识别扩展名时回退二进制流，避免被服务端拒绝。
                 contentType = "application/octet-stream";
             }
             fileContent.Headers.ContentType = new MediaTypeHeaderValue(contentType);
@@ -86,6 +95,7 @@ namespace BlogApi.Services
             }
 
             using var doc = JsonDocument.Parse(responseText);
+            // 现有图床 upload 接口返回数组，首项里包含 src 字段。
             if (doc.RootElement.ValueKind == JsonValueKind.Array && doc.RootElement.GetArrayLength() > 0)
             {
                 var first = doc.RootElement[0];
@@ -102,6 +112,9 @@ namespace BlogApi.Services
             throw new InvalidOperationException("上传返回格式异常");
         }
 
+        /// <summary>
+        /// 删除图床资源。path 支持文件或目录，isFolder 控制删除语义。
+        /// </summary>
         public async Task DeleteAsync(ImagebedConfig config, string path, bool isFolder)
         {
             if (config == null)
@@ -146,6 +159,7 @@ namespace BlogApi.Services
 
             if (!string.IsNullOrWhiteSpace(responseText))
             {
+                // 某些情况下 HTTP 200 仍可能携带业务失败标记，需二次校验 success 字段。
                 using var doc = JsonDocument.Parse(responseText);
                 if (doc.RootElement.ValueKind == JsonValueKind.Object
                     && doc.RootElement.TryGetProperty("success", out var successElement)
@@ -159,6 +173,9 @@ namespace BlogApi.Services
             }
         }
 
+        /// <summary>
+        /// 规范化图床域名，仅保留 scheme + host(+port)，避免拼接接口地址时重复 path/query。
+        /// </summary>
         private static string NormalizeBaseUrl(string domain)
         {
             if (!Uri.TryCreate(domain, UriKind.Absolute, out var uri))
