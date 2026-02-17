@@ -34,7 +34,7 @@ jobs:
           NODE_ENV: production
           NUXT_PUBLIC_API_BASE_URL: /api
           NUXT_PUBLIC_SITE_URL: https://blog.wasd09090030.top
-          NUXT_REVALIDATE_TOKEN: kIenRs6cX1K9ZfA54ir8BptJVxPSlk7xM3gl
+          NUXT_API_BASE_URL: http://127.0.0.1:5000/api
         run: npm run build
       
       - name: Create production archive
