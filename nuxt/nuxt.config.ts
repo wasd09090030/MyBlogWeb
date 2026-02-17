@@ -275,7 +275,10 @@ export default defineNuxtConfig({
   runtimeConfig: {
     // 私有配置（服务器端）
     apiSecret: process.env.API_SECRET,
-    apiBaseServer: process.env.NUXT_API_BASE_URL || 'http://127.0.0.1:5000/api',
+    // SSR 时的 API 地址：优先使用 NUXT_API_BASE_URL，否则与客户端保持一致
+    apiBaseServer: process.env.NUXT_API_BASE_URL 
+      || process.env.NUXT_PUBLIC_API_BASE_URL
+      || (process.env.NODE_ENV === 'production' ? '' : 'http://127.0.0.1:5000/api'),
 
     // 公共配置（客户端+服务器端）
     public: {
