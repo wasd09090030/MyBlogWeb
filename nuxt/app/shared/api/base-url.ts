@@ -1,6 +1,11 @@
 export function resolveApiBaseURL(): string {
   const config = useRuntimeConfig()
   const apiBase = config.public.apiBase
+  const apiBaseServer = String(config.apiBaseServer || '').replace(/\/$/, '')
+
+  if (process.server && apiBaseServer) {
+    return apiBaseServer
+  }
 
   if (apiBase) {
     if (process.server && apiBase.startsWith('/')) {
