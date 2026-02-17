@@ -414,14 +414,11 @@ export default defineNuxtConfig({
         'cache-control': 'no-cache, no-store, must-revalidate'
       }
     },
-    // 首页 SWR 缓存（1分钟，后台可重验证 5 分钟）
+    // 首页强制 SSR（不启用 SWR/ISR 缓存）
     '/': {
       ssr: true,
-      ...(process.env.NODE_ENV === 'production' ? { swr: 3600 } : {}),
       headers: {
-        'cache-control': process.env.NODE_ENV === 'production'
-          ? 'public, max-age=3600, stale-while-revalidate=3600'
-          : 'no-cache, no-store, must-revalidate'
+        'cache-control': 'no-cache, no-store, must-revalidate'
       }
     },
     // 🔥 文章页面 SWR 缓存（5分钟，后台可重验证 1 小时）
