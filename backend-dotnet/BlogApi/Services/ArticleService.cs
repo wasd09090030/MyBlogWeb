@@ -4,7 +4,6 @@ using BlogApi.Models;
 using BlogApi.DTOs;
 using BlogApi.Utils;
 using Markdig;
-using System.Net.Http.Json;
 
 namespace BlogApi.Services
 {
@@ -15,27 +14,14 @@ namespace BlogApi.Services
     public class ArticleService
     {
         private readonly BlogDbContext _context;
-        private readonly IHttpClientFactory _httpClientFactory;
-        private readonly IConfiguration _configuration;
-        private readonly ILogger<ArticleService> _logger;
 
         /// <summary>
         /// 初始化 <see cref="ArticleService"/>。
         /// </summary>
         /// <param name="context">数据库上下文。</param>
-        /// <param name="httpClientFactory">HTTP 客户端工厂。</param>
-        /// <param name="configuration">配置访问器。</param>
-        /// <param name="logger">日志实例。</param>
-        public ArticleService(
-            BlogDbContext context,
-            IHttpClientFactory httpClientFactory,
-            IConfiguration configuration,
-            ILogger<ArticleService> logger)
+        public ArticleService(BlogDbContext context)
         {
             _context = context;
-            _httpClientFactory = httpClientFactory;
-            _configuration = configuration;
-            _logger = logger;
         }
 
         /// <summary>
@@ -64,67 +50,7 @@ namespace BlogApi.Services
 
             _context.Articles.Add(article);
             await _context.SaveChangesAsync();
-
-            await TriggerServerSideRevalidateAsync(article);
             return article;
-        }
-
-        private async Task TriggerServerSideRevalidateAsync(Article article)
-        {
-            var enabled = _configuration.GetValue<bool?>("Revalidate:Enabled") ?? true;
-            if (!enabled)
-            {
-                return;
-            }
-
-            var endpoint = _configuration["Revalidate:NuxtEndpoint"];
-            var token = _configuration["Revalidate:Token"];
-            var timeoutSeconds = _configuration.GetValue<int?>("Revalidate:TimeoutSeconds") ?? 5;
-
-            if (string.IsNullOrWhiteSpace(endpoint) || string.IsNullOrWhiteSpace(token))
-            {
-                _logger.LogWarning("[Revalidate] 未配置 NuxtEndpoint 或 Token，跳过服务端刷新。ArticleId={ArticleId}", article.Id);
-                return;
-            }
-
-            var payload = new
-            {
-                mode = "targeted",
-                reason = "article-created",
-                paths = new[]
-                {
-                    "/",
-                    $"/article/{article.Id}",
-                    $"/article/{article.Id}-{article.Slug}"
-                }
-            };
-
-            try
-            {
-                var client = _httpClientFactory.CreateClient();
-                client.Timeout = TimeSpan.FromSeconds(timeoutSeconds);
-
-                using var request = new HttpRequestMessage(HttpMethod.Post, endpoint)
-                {
-                    Content = JsonContent.Create(payload)
-                };
-                request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-
-                using var response = await client.SendAsync(request);
-                if (!response.IsSuccessStatusCode)
-                {
-                    var responseText = await response.Content.ReadAsStringAsync();
-                    _logger.LogWarning(
-                        "[Revalidate] 服务端刷新失败。ArticleId={ArticleId} Status={StatusCode} Response={Response}",
-                        article.Id,
-                        (int)response.StatusCode,
-                        responseText);
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "[Revalidate] 调用 Nuxt 刷新接口异常。ArticleId={ArticleId}", article.Id);
-            }
         }
 
         /// <summary>

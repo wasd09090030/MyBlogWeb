@@ -275,7 +275,6 @@ export default defineNuxtConfig({
   runtimeConfig: {
     // 私有配置（服务器端）
     apiSecret: process.env.API_SECRET,
-    revalidateToken: process.env.NUXT_REVALIDATE_TOKEN || process.env.API_SECRET || '',
 
     // 公共配置（客户端+服务器端）
     public: {
@@ -303,18 +302,7 @@ export default defineNuxtConfig({
 
   sitemap: {
     exclude: ['/admin/**', '/api/**'],
-    cacheMaxAgeSeconds: 60 * 10,
-    sitemaps: {
-      pages: {
-        includeAppSources: true,
-        exclude: ['/admin/**', '/api/**', '/article/**']
-      },
-      articles: {
-        sources: ['/api/__sitemap__/urls'],
-        chunks: true,
-        chunkSize: 500
-      }
-    }
+    sources: ['/api/__sitemap__/urls']
   },
 
   schemaOrg: {
@@ -414,24 +402,19 @@ export default defineNuxtConfig({
         'cache-control': 'no-cache, no-store, must-revalidate'
       }
     },
-    // 首页强制 SSR（不启用 SWR/ISR 缓存）
+    // 首页 SWR 缓存（1分钟，后台可重验证 5 分钟）
     '/': {
       ssr: true,
       headers: {
-        'cache-control': 'no-cache, no-store, must-revalidate'
+        'cache-control': 'public, max-age=60, stale-while-revalidate=300'
       }
     },
     // 🔥 文章页面 SWR 缓存（5分钟，后台可重验证 1 小时）
     '/article/**': {
       ssr: true,
-      ...(process.env.NODE_ENV === 'production' ? { swr: 3600 } : {}),
       headers: {
-        'cache-control': process.env.NODE_ENV === 'production'
-          ? 'public, max-age=3600, stale-while-revalidate=3600'
-          : 'no-cache, no-store, must-revalidate',
-        'cdn-cache-control': process.env.NODE_ENV === 'production'
-          ? 'public, max-age=3600, stale-while-revalidate=3600'
-          : 'no-cache, no-store, must-revalidate'
+        'cache-control': 'public, max-age=300, stale-while-revalidate=3600',
+        'cdn-cache-control': 'public, max-age=300, stale-while-revalidate=3600'
       }
     },
     // 画廊页面 SWR 缓存（3分钟）
