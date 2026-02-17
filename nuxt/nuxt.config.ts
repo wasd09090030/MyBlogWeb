@@ -365,8 +365,8 @@ export default defineNuxtConfig({
   // 实验性功能
   experimental: {
     // SSR 动态站点不需要 payload 提取（避免 404 警告）
-    payloadExtraction: process.env.NODE_ENV === 'production',
-    renderJsonPayloads: process.env.NODE_ENV === 'production',
+    payloadExtraction: false,
+    renderJsonPayloads: false,
     viewTransition: true,
     // 启用内联路由规则
     inlineRouteRules: true,
