@@ -9,16 +9,18 @@ type ArticleSummary = {
 
 export default defineEventHandler(async () => {
   const config = useRuntimeConfig()
+  const apiBaseServer = String(config.apiBaseServer || '').replace(/\/$/, '')
   const apiBase = String(config.public.apiBase || '').replace(/\/$/, '')
   const siteUrl = String(config.public.siteUrl || '').replace(/\/$/, '')
 
-  if (!apiBase) {
+  if (!apiBaseServer && !apiBase) {
     return []
   }
 
-  const resolvedApiBase = /^https?:\/\//i.test(apiBase)
-    ? apiBase
-    : `${siteUrl}${apiBase.startsWith('/') ? apiBase : `/${apiBase}`}`
+  const resolvedApiBase = apiBaseServer
+    || (/^https?:\/\//i.test(apiBase)
+      ? apiBase
+      : `${siteUrl}${apiBase.startsWith('/') ? apiBase : `/${apiBase}`}`)
 
   if (!resolvedApiBase || !/^https?:\/\//i.test(resolvedApiBase)) {
     console.warn('[sitemap] Invalid apiBase for sitemap source', { apiBase, siteUrl })

@@ -275,6 +275,7 @@ export default defineNuxtConfig({
   runtimeConfig: {
     // 私有配置（服务器端）
     apiSecret: process.env.API_SECRET,
+    apiBaseServer: process.env.NUXT_API_BASE_URL || 'http://127.0.0.1:5000/api',
 
     // 公共配置（客户端+服务器端）
     public: {

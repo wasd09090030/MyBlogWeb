@@ -19,6 +19,7 @@ module.exports = {
     // 环境变量
     env: {
       NODE_ENV: 'production',
+      NUXT_API_BASE_URL: 'http://127.0.0.1:5000/api',
       NUXT_PUBLIC_API_BASE_URL: 'https://blog.wasd09090030.top/api',
       NUXT_PUBLIC_SITE_URL: 'https://blog.wasd09090030.top',
       PORT: 3000,
