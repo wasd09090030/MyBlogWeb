@@ -303,7 +303,18 @@ export default defineNuxtConfig({
 
   sitemap: {
     exclude: ['/admin/**', '/api/**'],
-    sources: ['/api/__sitemap__/urls']
+    cacheMaxAgeSeconds: 60 * 10,
+    sitemaps: {
+      pages: {
+        includeAppSources: true,
+        exclude: ['/admin/**', '/api/**', '/article/**']
+      },
+      articles: {
+        sources: ['/api/__sitemap__/urls'],
+        chunks: true,
+        chunkSize: 500
+      }
+    }
   },
 
   schemaOrg: {
@@ -354,8 +365,8 @@ export default defineNuxtConfig({
   // 实验性功能
   experimental: {
     // SSR 动态站点不需要 payload 提取（避免 404 警告）
-    payloadExtraction: false,
-    renderJsonPayloads: false,
+    payloadExtraction: process.env.NODE_ENV === 'production',
+    renderJsonPayloads: process.env.NODE_ENV === 'production',
     viewTransition: true,
     // 启用内联路由规则
     inlineRouteRules: true,
@@ -406,18 +417,24 @@ export default defineNuxtConfig({
     // 首页 SWR 缓存（1分钟，后台可重验证 5 分钟）
     '/': {
       ssr: true,
-      swr: 3600,
+      ...(process.env.NODE_ENV === 'production' ? { swr: 3600 } : {}),
       headers: {
-        'cache-control': 'public, max-age=3600, stale-while-revalidate=3600'
+        'cache-control': process.env.NODE_ENV === 'production'
+          ? 'public, max-age=3600, stale-while-revalidate=3600'
+          : 'no-cache, no-store, must-revalidate'
       }
     },
     // 🔥 文章页面 SWR 缓存（5分钟，后台可重验证 1 小时）
     '/article/**': {
       ssr: true,
-      swr: 3600,
+      ...(process.env.NODE_ENV === 'production' ? { swr: 3600 } : {}),
       headers: {
-        'cache-control': 'public, max-age=3600, stale-while-revalidate=3600',
-        'cdn-cache-control': 'public, max-age=3600, stale-while-revalidate=3600'
+        'cache-control': process.env.NODE_ENV === 'production'
+          ? 'public, max-age=3600, stale-while-revalidate=3600'
+          : 'no-cache, no-store, must-revalidate',
+        'cdn-cache-control': process.env.NODE_ENV === 'production'
+          ? 'public, max-age=3600, stale-while-revalidate=3600'
+          : 'no-cache, no-store, must-revalidate'
       }
     },
     // 画廊页面 SWR 缓存（3分钟）
