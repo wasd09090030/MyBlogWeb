@@ -14,6 +14,7 @@
 
 import type { LocationQueryRaw } from 'vue-router'
 import { setPreloadedArticle } from '~/utils/articlePreloadCache'
+import { createApiClient } from '~/shared/api/client'
 
 type ArticleNavInput = {
   id?: string | number | null
@@ -90,7 +91,8 @@ export function useArticleNavigation() {
 
       // 2. 后台预加载（不阻塞当前导航）
       if (cacheKey) {
-        void $fetch<ArticleApiResponse>(`/api/articles/${articleId}`)
+        const client = createApiClient()
+        void client.get<ArticleApiResponse>(`/articles/${articleId}`)
           .then((articleData) => {
             if (!articleData) return
             setPreloadedArticle(cacheKey, articleData)
