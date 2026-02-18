@@ -69,7 +69,10 @@ export function getGallerySlice<T>(allGalleries: T[], start: number, end: number
   for (let i = start; i < end; i++) {
     // 通过取模实现循环窗口，支持无限轮播数据视图。
     const index = i % allGalleries.length
-    result.push(allGalleries[index])
+    const current = allGalleries[index]
+    if (current !== undefined) {
+      result.push(current)
+    }
   }
   return result
 }

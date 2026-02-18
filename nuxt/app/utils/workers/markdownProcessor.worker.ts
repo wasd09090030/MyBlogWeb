@@ -41,8 +41,13 @@ function extractToc(markdown: string): TocItem[] {
 
     const match = line.match(/^(#{1,6})\s+(.+?)(?:\s+#*)?$/)
     if (match) {
-      const level = match[1].length
-      const text = match[2]
+      const headingHashes = match[1]
+      const headingText = match[2]
+      if (!headingHashes || !headingText) {
+        continue
+      }
+      const level = headingHashes.length
+      const text = headingText
         .replace(/\*\*(.*?)\*\*/g, '$1')
         .replace(/\*(.*?)\*/g, '$1')
         .replace(/`(.*?)`/g, '$1')
@@ -77,11 +82,15 @@ function buildTocTree(headings: TocItem[]): TocItem[] {
       children: [] as TocItem[]
     }
 
-    while (stack.length > 1 && stack[stack.length - 1].level >= heading.level) {
+    while (stack.length > 1 && (stack[stack.length - 1]?.level ?? 0) >= heading.level) {
       stack.pop()
     }
 
-    stack[stack.length - 1].node.children.push(item)
+    const parent = stack[stack.length - 1]
+    if (!parent) {
+      continue
+    }
+    parent.node.children.push(item)
     stack.push({ node: item, level: heading.level })
   }
 

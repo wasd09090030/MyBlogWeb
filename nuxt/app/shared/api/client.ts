@@ -1,6 +1,7 @@
 import { resolveApiBaseURL } from '~/shared/api/base-url'
 
 type FetchOptions = NonNullable<Parameters<typeof $fetch>[1]>
+type RequestBody = Extract<FetchOptions['body'], BodyInit | Record<string, unknown> | null | undefined>
 
 /**
  * 归一化请求路径：
@@ -18,26 +19,28 @@ function normalizePath(path: string): string {
  * 只负责 URL 拼接与 HTTP 方法封装，不处理业务错误翻译。
  */
 export function createApiClient(baseURL = resolveApiBaseURL()) {
+  const fetchJson = $fetch as <T>(request: string, options?: FetchOptions) => Promise<T>
+
   const request = async <T = unknown>(path: string, options: FetchOptions = {}): Promise<T> => {
     const normalized = normalizePath(path)
     // 当 path 已是绝对地址时，允许覆盖默认 baseURL（用于跨域静态资源或外部 API）。
     const target = /^https?:\/\//i.test(normalized) ? normalized : `${baseURL}${normalized}`
-    return await $fetch<T>(target, options)
+    return await fetchJson<T>(target, options)
   }
 
   const get = async <T = unknown>(path: string, options: FetchOptions = {}): Promise<T> => {
     return await request<T>(path, { ...options, method: 'GET' })
   }
 
-  const post = async <T = unknown>(path: string, body?: unknown, options: FetchOptions = {}): Promise<T> => {
+  const post = async <T = unknown>(path: string, body?: RequestBody, options: FetchOptions = {}): Promise<T> => {
     return await request<T>(path, { ...options, method: 'POST', body })
   }
 
-  const patch = async <T = unknown>(path: string, body?: unknown, options: FetchOptions = {}): Promise<T> => {
+  const patch = async <T = unknown>(path: string, body?: RequestBody, options: FetchOptions = {}): Promise<T> => {
     return await request<T>(path, { ...options, method: 'PATCH', body })
   }
 
-  const put = async <T = unknown>(path: string, body?: unknown, options: FetchOptions = {}): Promise<T> => {
+  const put = async <T = unknown>(path: string, body?: RequestBody, options: FetchOptions = {}): Promise<T> => {
     return await request<T>(path, { ...options, method: 'PUT', body })
   }
 

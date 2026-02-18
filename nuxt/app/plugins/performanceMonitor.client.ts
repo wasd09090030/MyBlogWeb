@@ -13,6 +13,10 @@ export default defineNuxtPlugin((nuxtApp) => {
 
   const router = useRouter()
 
+  function getErrorMessage(error: unknown): string {
+    return error instanceof Error ? error.message : String(error)
+  }
+
   // =========================================================
   // 路由导航性能跟踪
   // =========================================================
@@ -102,7 +106,7 @@ export default defineNuxtPlugin((nuxtApp) => {
          * 标记性能起点
          * @param {string} label - 标记名称
          */
-        mark(label) {
+        mark(label: string) {
           performance.mark(label)
         },
 
@@ -113,7 +117,7 @@ export default defineNuxtPlugin((nuxtApp) => {
          * @param {string} endMark - 终点标记（不传则自动创建）
          * @returns {number} 耗时（毫秒）
          */
-        measure(label, startMark, endMark) {
+        measure(label: string, startMark: string, endMark?: string) {
           if (!endMark) {
             endMark = `${startMark}-end`
             performance.mark(endMark)
@@ -132,7 +136,7 @@ export default defineNuxtPlugin((nuxtApp) => {
          * @param {Function} fn - 异步函数
          * @returns {Promise<*>}
          */
-        async time(label, fn) {
+        async time<T>(label: string, fn: () => Promise<T> | T): Promise<T> {
           const start = performance.now()
           try {
             const result = await fn()
@@ -141,9 +145,9 @@ export default defineNuxtPlugin((nuxtApp) => {
               console.log(`[Perf] ${label}: ${duration.toFixed(1)}ms`)
             }
             return result
-          } catch (e) {
+          } catch (e: unknown) {
             const duration = performance.now() - start
-            console.error(`[Perf] ${label} 失败 (${duration.toFixed(1)}ms):`, e.message)
+            console.error(`[Perf] ${label} 失败 (${duration.toFixed(1)}ms):`, getErrorMessage(e))
             throw e
           }
         }

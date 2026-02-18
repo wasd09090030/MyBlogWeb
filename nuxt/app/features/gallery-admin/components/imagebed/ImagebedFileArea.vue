@@ -54,7 +54,7 @@
             :class="{ 'ring-2 ring-blue-500': selectedRowKeys.includes(file.name) }"
           >
             <div class="absolute top-2 left-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity" :class="{ 'opacity-100': selectedRowKeys.includes(file.name) }">
-              <n-checkbox :checked="selectedRowKeys.includes(file.name)" @update:checked="(val) => toggleSelection(file.name, val)" class="bg-white rounded-sm" />
+              <n-checkbox :checked="selectedRowKeys.includes(file.name)" @update:checked="toggleSelection(file.name, $event)" class="bg-white rounded-sm" />
             </div>
 
             <div class="aspect-square bg-gray-100 dark:bg-gray-900 relative overflow-hidden group/img">
@@ -117,7 +117,7 @@
           <n-data-table
             :columns="fileColumns"
             :data="currentFiles"
-            :row-key="(row) => row.name"
+            :row-key="fileRowKey"
             :checked-row-keys="selectedRowKeys"
             @update:checked-row-keys="handleCheck"
             :bordered="false"
@@ -174,4 +174,6 @@ defineProps<{
   confirmDeleteFolder: (folderPath: string) => void
   handlePageChange: (page: number) => void
 }>()
+
+const fileRowKey = (row: { name: string }): string => row.name
 </script>

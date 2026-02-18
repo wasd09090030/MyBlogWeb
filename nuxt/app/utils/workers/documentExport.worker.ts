@@ -18,7 +18,11 @@ type ExportResult = ResultOf<ExportWorkerActionMap, ExportAction>
 type ExportProgress = ProgressOf<ExportWorkerActionMap, ExportAction>
 type ExportTask = WorkerTaskUnion<ExportWorkerActionMap>
 
-function parseMarkdownToDocxStructure(markdown: string, options: Record<string, unknown> = {}): DocxParagraph[] {
+function parseMarkdownToDocxStructure(
+  markdown: string,
+  options: Record<string, unknown> = {},
+  taskId?: string
+): DocxParagraph[] {
   void options
   const lines = markdown.split('\n')
   const paragraphs: DocxParagraph[] = []
@@ -30,7 +34,7 @@ function parseMarkdownToDocxStructure(markdown: string, options: Record<string, 
   const total = lines.length
 
   for (let i = 0; i < lines.length; i++) {
-    const line = lines[i]
+    const line = lines[i] ?? ''
 
     if (line.startsWith('```')) {
       if (inCodeBlock) {
@@ -73,11 +77,16 @@ function parseMarkdownToDocxStructure(markdown: string, options: Record<string, 
 
     const headingMatch = line.match(/^(#{1,6})\s+(.+)/)
     if (headingMatch) {
+      const headingHashes = headingMatch[1]
+      const headingText = headingMatch[2]
+      if (!headingHashes || !headingText) {
+        continue
+      }
       paragraphs.push({
         type: 'heading',
-        level: headingMatch[1].length,
-        text: headingMatch[2],
-        runs: parseInlineFormatting(headingMatch[2])
+        level: headingHashes.length,
+        text: headingText,
+        runs: parseInlineFormatting(headingText)
       })
       continue
     }
@@ -111,13 +120,18 @@ function parseMarkdownToDocxStructure(markdown: string, options: Record<string, 
 
     const olMatch = line.match(/^(\d+)\.\s+(.+)/)
     if (olMatch) {
+      const orderNumber = olMatch[1]
+      const listText = olMatch[2]
+      if (!orderNumber || !listText) {
+        continue
+      }
       const indent = (line.match(/^\s*/) || [''])[0].length
       paragraphs.push({
         type: 'orderedList',
-        number: parseInt(olMatch[1]),
-        text: olMatch[2],
+        number: parseInt(orderNumber, 10),
+        text: listText,
         indent: Math.floor(indent / 2),
-        runs: parseInlineFormatting(olMatch[2])
+        runs: parseInlineFormatting(listText)
       })
       continue
     }
@@ -130,11 +144,13 @@ function parseMarkdownToDocxStructure(markdown: string, options: Record<string, 
 
     if (i % 100 === 0) {
       const progress: ExportProgress = { percentage: Math.round((i / total) * 100) }
-      workerSelf.postMessage({
-        taskId: currentTaskId,
-        type: 'progress',
-        data: progress
-      })
+      if (taskId) {
+        workerSelf.postMessage({
+          taskId,
+          type: 'progress',
+          data: progress
+        })
+      }
     }
   }
 
@@ -191,7 +207,6 @@ function parseInlineFormatting(text: string): DocxRun[] {
   return runs
 }
 
-let currentTaskId: string | null = null
 const workerSelf = self as {
   onmessage: ((event: MessageEvent<ExportTask>) => void) | null
   postMessage: (message: WorkerInboundMessage<ExportResult, ExportProgress>) => void
@@ -204,14 +219,13 @@ function getErrorMessage(error: unknown): string {
 workerSelf.onmessage = function (event: MessageEvent<ExportTask>) {
   const message = event.data
   const { taskId, action } = message
-  currentTaskId = taskId
 
   try {
     let result: ExportResult
 
     switch (action) {
       case 'parseForDocx': {
-        result = parseMarkdownToDocxStructure(message.markdown, message.options)
+        result = parseMarkdownToDocxStructure(message.markdown, message.options, taskId)
         break
       }
       default:

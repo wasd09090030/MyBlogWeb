@@ -96,7 +96,7 @@ export const useArticleCacheFeature = () => {
     const stats: Record<string, number> = { study: 0, game: 0, work: 0, resource: 0 }
     articlesCache.value.forEach((article) => {
       if (article.category && stats[article.category] !== undefined) {
-        stats[article.category]++
+        stats[article.category] = (stats[article.category] || 0) + 1
       }
     })
     return stats

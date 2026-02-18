@@ -67,13 +67,16 @@ async function batchPreloadFallback(
     const chunkResults = await Promise.allSettled(chunk.map((url) => preloadImageFallback(url)))
 
     for (let j = 0; j < chunkResults.length; j++) {
-      const result = chunkResults[j]
+      const settledResult = chunkResults[j]
+      const currentUrl = chunk[j]
+      if (!settledResult || !currentUrl) continue
+
       loaded++
-      if (result.status === 'fulfilled') {
-        results.push(result.value)
+      if (settledResult.status === 'fulfilled') {
+        results.push(settledResult.value)
       } else {
         failed++
-        results.push({ url: chunk[j], error: getErrorMessage(result.reason) })
+        results.push({ url: currentUrl, error: getErrorMessage(settledResult.reason) })
       }
 
       if (onProgress) {

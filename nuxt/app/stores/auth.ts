@@ -116,8 +116,10 @@ export const useAuthStore = defineStore('auth', {
 
   actions: {
     // 获取 Cookie 实例
-    _getCookies(): AuthCookies | null {
-      if (!import.meta.client) return null
+    _getCookies(): AuthCookies {
+      if (!import.meta.client) {
+        throw new Error('Cookies 仅在客户端可用')
+      }
       // 注意：禁用自动 decode，避免 destr 将字符串转换为其他类型
       const cookieOpts = (maxAge: number) => ({ maxAge, decode: (v: string) => v, encode: (v: string) => v })
       return {
@@ -160,9 +162,9 @@ export const useAuthStore = defineStore('auth', {
           // 使用 Cookie 存储
           if (import.meta.client) {
             const cookies = this._getCookies()
-            cookies.token.value = result.token
-            cookies.refreshToken.value = result.refreshToken
-            cookies.tokenExpires.value = result.expiresAt
+            cookies.token.value = result.token ?? null
+            cookies.refreshToken.value = result.refreshToken ?? null
+            cookies.tokenExpires.value = result.expiresAt ?? null
           }
 
           // 启动后台定时器
@@ -220,9 +222,9 @@ export const useAuthStore = defineStore('auth', {
 
           if (import.meta.client) {
             const cookies = this._getCookies()
-            cookies.token.value = result.token
-            cookies.refreshToken.value = result.refreshToken
-            cookies.tokenExpires.value = result.expiresAt
+            cookies.token.value = result.token ?? null
+            cookies.refreshToken.value = result.refreshToken ?? null
+            cookies.tokenExpires.value = result.expiresAt ?? null
           }
           return true
         }

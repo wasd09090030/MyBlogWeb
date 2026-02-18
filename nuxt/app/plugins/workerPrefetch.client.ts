@@ -24,25 +24,29 @@ export default defineNuxtPlugin((nuxtApp) => {
   const PREFETCH_CACHE_TTL = 5 * 60 * 1000 // 5 分钟
   const prefetchCache = createTimedMapCache<unknown>(PREFETCH_CACHE_TTL)
 
+  function getErrorMessage(error: unknown): string {
+    return error instanceof Error ? error.message : String(error)
+  }
+
   /**
    * 检查路由是否是文章页
    */
-  function isArticleRoute(path) {
+  function isArticleRoute(path: string): boolean {
     return /^\/article\/\d+/.test(path)
   }
 
   /**
    * 从路由路径提取文章 ID
    */
-  function extractArticleId(path) {
+  function extractArticleId(path: string): string | null {
     const match = path.match(/^\/article\/(\d+)/)
-    return match ? match[1] : null
+    return match?.[1] ?? null
   }
 
   /**
    * 预取文章数据（在 Worker 线程中执行）
    */
-  async function prefetchArticleData(articleId) {
+  async function prefetchArticleData(articleId: string): Promise<void> {
     const cacheKey = `article-${articleId}`
     if (prefetchCache.has(cacheKey)) return
 
@@ -64,9 +68,9 @@ export default defineNuxtPlugin((nuxtApp) => {
             console.log(`[WorkerPrefetch] 文章 ${articleId} 数据已预取并缓存`)
           }
         }
-      } catch (e) {
+      } catch (e: unknown) {
         // 预取失败不影响正常导航
-        console.warn('[WorkerPrefetch] 文章预取失败:', e.message)
+        console.warn('[WorkerPrefetch] 文章预取失败:', getErrorMessage(e))
       }
     })
   }
@@ -87,7 +91,10 @@ export default defineNuxtPlugin((nuxtApp) => {
         const galleries = await client.get<Array<{ imageUrl?: string | null }>>('/galleries')
         if (galleries?.length > 0) {
           // 预缓存前 10 张图片
-          const urls = galleries.slice(0, 10).map(g => g.imageUrl).filter(Boolean)
+          const urls = galleries
+            .slice(0, 10)
+            .map(g => g.imageUrl)
+            .filter((url): url is string => typeof url === 'string' && url.length > 0)
           await quickCacheImages(urls)
 
           prefetchCache.set(cacheKey, true)
@@ -139,7 +146,7 @@ export default defineNuxtPlugin((nuxtApp) => {
         /**
          * 获取已预取的文章数据
          */
-        getCachedArticle(articleId) {
+        getCachedArticle(articleId: string) {
           const cached = prefetchCache.get(`article-${articleId}`)
           return cached ?? null
         },

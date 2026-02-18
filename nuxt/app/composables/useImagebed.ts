@@ -104,12 +104,13 @@ export const useImagebed = () => {
       }
 
       const result = await response.json() as Array<{ src?: string }>
+      const firstItem = Array.isArray(result) ? result[0] : undefined
 
-      if (Array.isArray(result) && result.length > 0 && result[0].src) {
-        const fullUrl = getFullUrl(domain, result[0].src)
+      if (firstItem?.src) {
+        const fullUrl = getFullUrl(domain, firstItem.src)
         return {
           success: true,
-          src: result[0].src,
+          src: firstItem.src,
           url: fullUrl,
           fileName: file.name
         }
@@ -131,15 +132,18 @@ export const useImagebed = () => {
     const errors: Array<{ file: string; error: string }> = []
 
     for (let i = 0; i < files.length; i++) {
+      const currentFile = files[i]
+      if (!currentFile) continue
+
       try {
-        const result = await uploadImage(files[i], options)
+        const result = await uploadImage(currentFile, options)
         results.push(result)
         if (onProgress) {
           onProgress(i + 1, files.length, result)
         }
       } catch (error) {
         const errorMessage = getErrorMessage(error)
-        errors.push({ file: files[i].name, error: errorMessage })
+        errors.push({ file: currentFile.name, error: errorMessage })
         if (onProgress) {
           onProgress(i + 1, files.length, { success: false, error: errorMessage })
         }

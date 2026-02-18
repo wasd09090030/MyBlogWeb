@@ -52,8 +52,8 @@ function extractTocFallback(markdown: string): TocItem[] {
 
     const match = line.match(/^(#{1,6})\s+(.+?)(?:\s+#*)?$/)
     if (match) {
-      const level = match[1].length
-      const text = match[2]
+      const level = (match[1] || '').length
+      const text = (match[2] || '')
         .replace(/\*\*(.*?)\*\*/g, '$1')
         .replace(/\*(.*?)\*/g, '$1')
         .replace(/`(.*?)`/g, '$1')

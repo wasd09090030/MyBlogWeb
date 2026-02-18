@@ -58,6 +58,9 @@ async function batchPreload(taskId: string, urls: string[], concurrency = 5) {
 
     for (let j = 0; j < chunkResults.length; j++) {
       const result = chunkResults[j]
+      if (!result) {
+        continue
+      }
       if (result.status === 'fulfilled') {
         loaded++
         const data = result.value
@@ -77,8 +80,9 @@ async function batchPreload(taskId: string, urls: string[], concurrency = 5) {
       } else {
         failed++
         loaded++
+        const failedUrl = chunk[j] ?? ''
         results.push({
-          url: chunk[j],
+          url: failedUrl,
           error: result.reason instanceof Error ? result.reason.message : '加载失败'
         })
       }

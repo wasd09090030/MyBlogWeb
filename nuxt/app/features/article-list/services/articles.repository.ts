@@ -48,7 +48,7 @@ export const createArticlesRepository = () => {
     })
 
     if (error.value) throw error.value
-    return data.value
+    return data.value ?? null
   }
 
   /**

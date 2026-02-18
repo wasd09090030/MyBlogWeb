@@ -27,6 +27,10 @@ jobs:
       - name: Install dependencies
         working-directory: ./nuxt
         run: npm ci
+
+      - name: Strict typecheck (Phase 4)
+        working-directory: ./nuxt
+        run: npm run typecheck:strict:phase4:ci
       
       - name: Build Nuxt application
         working-directory: ./nuxt

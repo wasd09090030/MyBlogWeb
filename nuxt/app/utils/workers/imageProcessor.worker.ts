@@ -85,9 +85,14 @@ async function batchConvert(taskId: string, images: Blob[], options: ImageProces
   const total = images.length
 
   for (let i = 0; i < images.length; i++) {
+    const imageBlob = images[i]
     try {
-      const result = await convertImage(images[i], options)
-      results.push({ index: i, ...result })
+      if (!imageBlob) {
+        results.push({ index: i, error: '图片数据不存在' })
+      } else {
+        const result = await convertImage(imageBlob, options)
+        results.push({ index: i, ...result })
+      }
     } catch (e: unknown) {
       results.push({
         index: i,

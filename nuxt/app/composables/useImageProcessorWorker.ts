@@ -220,8 +220,11 @@ async function batchConvertMainThread(
 ): Promise<BatchConvertResult> {
   const results: BatchConvertResult = []
   for (let i = 0; i < images.length; i++) {
+    const currentImage = images[i]
+    if (!currentImage) continue
+
     try {
-      const result = await convertImageMainThread(images[i], options)
+      const result = await convertImageMainThread(currentImage, options)
       results.push({ index: i, ...result })
     } catch (e: unknown) {
       results.push({ index: i, error: getErrorMessage(e) })

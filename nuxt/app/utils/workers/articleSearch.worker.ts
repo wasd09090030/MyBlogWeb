@@ -15,6 +15,11 @@ import type {
 let invertedIndex: Map<string, Set<number>> | null = null
 let indexedArticles: ArticleLike[] | null = null
 
+type IndexedSearchHit = {
+  article: ArticleLike
+  score: number
+}
+
 function buildIndex(articles: ArticleLike[]) {
   const index = new Map<string, Set<number>>()
 
@@ -51,14 +56,19 @@ function tokenize(text: string) {
   cjk.forEach((c) => tokens.add(c))
 
   for (let i = 0; i < cjk.length - 1; i++) {
-    tokens.add(cjk[i] + cjk[i + 1])
+    const current = cjk[i]
+    const next = cjk[i + 1]
+    if (current && next) {
+      tokens.add(current + next)
+    }
   }
 
   return Array.from(tokens)
 }
 
-function searchWithIndex(keyword: string) {
+function searchWithIndex(keyword: string): IndexedSearchHit[] {
   if (!invertedIndex || !indexedArticles) return []
+  const articles = indexedArticles
 
   const tokens = tokenize(keyword)
   if (tokens.length === 0) return []
@@ -84,10 +94,12 @@ function searchWithIndex(keyword: string) {
 
   return Array.from(scores.entries())
     .sort((a, b) => b[1] - a[1])
-    .map(([idx, score]) => ({
-      article: indexedArticles?.[idx],
-      score
-    }))
+    .map(([idx, score]): IndexedSearchHit | null => {
+      const article = articles[idx]
+      if (!article) return null
+      return { article, score }
+    })
+    .filter((item): item is IndexedSearchHit => item !== null)
 }
 
 function simpleSearch(articles: ArticleLike[], keyword: string) {
