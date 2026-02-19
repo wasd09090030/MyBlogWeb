@@ -53,17 +53,23 @@ const emit = defineEmits(['toc-ready', 'go-back'])
 // 从 MarkdownRenderer 接收 TOC 数据（来自 AST，更快）
 function onTocReady(toc) {
   if (toc?.links?.length > 0) {
-    // 将 MDC 的 toc 格式转换为我们的格式
-    const convertLinks = (links, level = 2) => {
+    const toHeadingLevel = (value, fallback) => {
+      const parsed = Number(value)
+      return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback
+    }
+
+    // 将 MDC 的 toc 格式转换为我们的格式（优先保留原始 depth/level）
+    const convertLinks = (links, parentLevel = 1) => {
       const result = []
       for (const link of links) {
+        const currentLevel = toHeadingLevel(link?.depth ?? link?.level, parentLevel + 1)
         result.push({
           id: link.id,
           text: link.text,
-          level
+          level: currentLevel
         })
         if (link.children?.length > 0) {
-          result.push(...convertLinks(link.children, level + 1))
+          result.push(...convertLinks(link.children, currentLevel))
         }
       }
       return result

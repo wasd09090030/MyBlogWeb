@@ -66,7 +66,7 @@ const props = defineProps({
   caption: String,
   allow: {
     type: String,
-    default: 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture'
+    default: 'accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture'
   },
   allowFullscreen: {
     type: Boolean,
@@ -109,12 +109,12 @@ const getPlatformUrl = (platform, vid) => {
     bilibili: (id) => {
       // 支持 BV 号
       if (id.startsWith('BV')) {
-        return `https://player.bilibili.com/player.html?bvid=${id}&high_quality=1&danmaku=0`
+        return `https://player.bilibili.com/player.html?bvid=${id}&high_quality=1&danmaku=0&autoplay=0`
       }
       // 支持 av 号
-      return `https://player.bilibili.com/player.html?aid=${id}&high_quality=1&danmaku=0`
+      return `https://player.bilibili.com/player.html?aid=${id}&high_quality=1&danmaku=0&autoplay=0`
     },
-    youtube: (id) => `https://www.youtube.com/embed/${id}`,
+    youtube: (id) => `https://www.youtube.com/embed/${id}?autoplay=0`,
     codepen: (id) => `https://codepen.io/${id}/embed`,
     codesandbox: (id) => `https://codesandbox.io/embed/${id}`,
     stackblitz: (id) => `https://stackblitz.com/edit/${id}?embed=1`,
@@ -130,11 +130,11 @@ const parseUrl = (url) => {
     if (url.includes('bilibili.com')) {
       const bvMatch = url.match(/BV[\w]+/)
       if (bvMatch) {
-        return `https://player.bilibili.com/player.html?bvid=${bvMatch[0]}&high_quality=1&danmaku=0`
+        return `https://player.bilibili.com/player.html?bvid=${bvMatch[0]}&high_quality=1&danmaku=0&autoplay=0`
       }
       const avMatch = url.match(/av(\d+)/)
       if (avMatch) {
-        return `https://player.bilibili.com/player.html?aid=${avMatch[1]}&high_quality=1&danmaku=0`
+        return `https://player.bilibili.com/player.html?aid=${avMatch[1]}&high_quality=1&danmaku=0&autoplay=0`
       }
     }
     
@@ -142,7 +142,7 @@ const parseUrl = (url) => {
     if (url.includes('youtube.com') || url.includes('youtu.be')) {
       const videoIdMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]+)/)
       if (videoIdMatch) {
-        return `https://www.youtube.com/embed/${videoIdMatch[1]}`
+        return `https://www.youtube.com/embed/${videoIdMatch[1]}?autoplay=0`
       }
     }
     

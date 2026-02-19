@@ -1,5 +1,5 @@
 <template>
-  <div v-if="headings.length > 0" class="h-full flex flex-col">
+  <div v-if="tocItems.length > 0" class="h-full flex flex-col">
     <!-- 头部 -->
     <div 
       class="flex items-center justify-between px-3 py-3 border-b border-gray-200 dark:border-gray-600 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
@@ -25,17 +25,19 @@
       <nav class="flex-1 py-3 overflow-y-auto custom-scrollbar">
         <ul class="space-y-0.5 px-2">
           <li 
-            v-for="heading in headings" 
+            v-for="heading in tocItems" 
             :key="heading.id"
-            :class="getTocItemClass(heading.level)"
+            :class="getTocItemClass(heading)"
+            :style="getTocItemStyle(heading)"
           >
             <n-tooltip placement="left" :delay="300" :disabled="!isTextTruncated(heading.id)">
               <template #trigger>
                 <a 
                   :ref="el => setItemRef(heading.id, el)"
                   :href="`#${heading.id}`"
-                  class="flex items-center gap-2 px-3 py-2 text-sm rounded-lg transition-all duration-200"
+                  class="flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200"
                   :class="[
+                    getTocTextClass(heading),
                     activeHeading === heading.id 
                       ? 'bg-pink-100 dark:bg-pink-500/20 text-pink-600 dark:text-pink-300 font-medium shadow-sm dark:shadow-pink-500/10' 
                       : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-pink-600 dark:hover:text-pink-400'
@@ -89,6 +91,61 @@ const progress = ref(0)
 const itemRefs = ref({})
 let highlightedId = ref(null)
 
+const normalizedHeadings = computed(() => {
+  return (props.headings || [])
+    .map((heading) => ({
+      id: heading?.id,
+      text: heading?.text,
+      level: Number(heading?.level) || 2
+    }))
+    .filter((heading) => Boolean(heading.id && heading.text))
+})
+
+const tocItems = computed(() => {
+  const roots = []
+  const stack = []
+
+  for (const heading of normalizedHeadings.value) {
+    const node = {
+      ...heading,
+      depth: 0,
+      children: []
+    }
+
+    while (stack.length > 0 && stack[stack.length - 1].level >= node.level) {
+      stack.pop()
+    }
+
+    node.depth = stack.length
+
+    if (stack.length === 0) {
+      roots.push(node)
+    } else {
+      stack[stack.length - 1].children.push(node)
+    }
+
+    stack.push(node)
+  }
+
+  const flattened = []
+  const walk = (nodes) => {
+    for (const node of nodes) {
+      flattened.push({
+        id: node.id,
+        text: node.text,
+        level: node.level,
+        depth: node.depth
+      })
+      if (node.children.length > 0) {
+        walk(node.children)
+      }
+    }
+  }
+
+  walk(roots)
+  return flattened
+})
+
 // 设置目录项引用
 function setItemRef(id, el) {
   if (el) {
@@ -111,16 +168,29 @@ function toggleCollapse() {
 }
 
 // 获取目录项缩进类
-function getTocItemClass(level) {
-  const indentMap = {
-    1: 'pl-0',
-    2: 'pl-0',
-    3: 'pl-4',
-    4: 'pl-8',
-    5: 'pl-12',
-    6: 'pl-16'
+function getTocItemClass(heading) {
+  const depth = heading?.depth || 0
+  return depth > 0
+    ? 'toc-item-child border-l border-gray-200 dark:border-gray-700'
+    : 'toc-item-root'
+}
+
+function getHeadingDepth(heading) {
+  return Math.min(Math.max(heading?.depth || 0, 0), 5)
+}
+
+function getTocItemStyle(heading) {
+  const depth = getHeadingDepth(heading)
+  return {
+    paddingLeft: `${depth * 20}px`
   }
-  return indentMap[level] || 'pl-0'
+}
+
+function getTocTextClass(heading) {
+  const depth = getHeadingDepth(heading)
+  if (depth === 0) return 'text-sm font-semibold'
+  if (depth === 1) return 'text-sm font-medium'
+  return 'text-[13px]'
 }
 
 // 滚动到指定标题
@@ -194,12 +264,12 @@ function setupObserver() {
   if (observer) observer.disconnect()
   
   // 检查是否有标题需要观察
-  if (!props.headings || props.headings.length === 0) {
+  if (!tocItems.value || tocItems.value.length === 0) {
     return
   }
   
   // 检查 DOM 元素是否已经渲染
-  const firstHeading = document.getElementById(props.headings[0].id)
+  const firstHeading = document.getElementById(tocItems.value[0].id)
   if (!firstHeading && observerRetryCount < MAX_RETRY) {
     // 如果第一个标题元素还不存在，延迟重试
     observerRetryCount++
@@ -232,7 +302,7 @@ function setupObserver() {
   
   // 观察所有标题元素
   let observedCount = 0
-  props.headings.forEach(heading => {
+  tocItems.value.forEach(heading => {
     const el = document.getElementById(heading.id)
     if (el) {
       observer.observe(el)
@@ -247,7 +317,7 @@ function setupObserver() {
       const scrollTop = window.pageYOffset || document.documentElement.scrollTop
       const navbarHeight = 80
       
-      for (const heading of props.headings) {
+      for (const heading of tocItems.value) {
         const el = document.getElementById(heading.id)
         if (el && el.offsetTop - navbarHeight <= scrollTop + 100) {
           activeHeading.value = heading.id
@@ -257,15 +327,15 @@ function setupObserver() {
       }
       
       // 如果没有找到，使用第一个标题
-      if (!activeHeading.value && props.headings.length > 0) {
-        activeHeading.value = props.headings[0].id
+      if (!activeHeading.value && tocItems.value.length > 0) {
+        activeHeading.value = tocItems.value[0].id
       }
     })
   }
 }
 
 // 监听 headings 变化
-watch(() => props.headings, (newHeadings) => {
+watch(tocItems, (newHeadings) => {
   if (!process.client) return
 
   if (newHeadings.length > 0) {
@@ -284,7 +354,7 @@ onMounted(() => {
   handleScroll()
   
   // 在组件挂载时也尝试初始化 observer
-  if (props.headings.length > 0) {
+  if (tocItems.value.length > 0) {
     nextTick(() => {
       if (observerSetupTimer) {
         clearTimeout(observerSetupTimer)

@@ -123,15 +123,20 @@ export const useArticleDetailPage = async () => {
       ? toc
       : (toc as { links?: unknown[] })?.links || []
 
-    const convertLinks = (links: unknown[], level = 2): Array<{ id: string; text: string; level: number }> => {
+    const toHeadingLevel = (value: unknown, fallback: number): number => {
+      const parsed = Number(value)
+      return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback
+    }
+
+    const convertLinks = (links: unknown[], parentLevel = 1): Array<{ id: string; text: string; level: number }> => {
       const result: Array<{ id: string; text: string; level: number }> = []
       for (const link of links) {
-        const item = link as { id?: string; text?: string; children?: unknown[] }
+        const item = link as { id?: string; text?: string; depth?: number; level?: number; children?: unknown[] }
         if (!item?.id || !item?.text) continue
-        result.push({ id: item.id, text: item.text, level })
+        const currentLevel = toHeadingLevel(item.depth ?? item.level, parentLevel + 1)
+        result.push({ id: item.id, text: item.text, level: currentLevel })
         if (item.children?.length) {
-          // children 逐级递归，层级 +1。
-          result.push(...convertLinks(item.children, level + 1))
+          result.push(...convertLinks(item.children, currentLevel))
         }
       }
       return result

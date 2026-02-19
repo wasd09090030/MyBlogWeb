@@ -16,18 +16,35 @@
               <NuxtLink to="/" class="nav-link">
                 <Icon name="house" size="sm" class="me-1" />首页
               </NuxtLink>
-              <NuxtLink to="/tutorials" class="nav-link">
-                <Icon name="book" size="sm" class="me-1" />教程
+              <NuxtLink to="/gallery" class="nav-link">
+                <Icon name="images" size="sm" class="me-1" />画廊
               </NuxtLink>
               <NuxtLink to="/tools" class="nav-link">
                 <Icon name="wrench-screwdriver" size="sm" class="me-1" />工具箱
               </NuxtLink>
-              <NuxtLink to="/mania" class="nav-link">
-                <Icon name="musical-note" size="sm" class="me-1" />音游
-              </NuxtLink>
-              <NuxtLink to="/about" class="nav-link">
-                <Icon name="person-circle" size="sm" class="me-1" />关于站长
-              </NuxtLink>
+              <div 
+                class="nav-more-wrapper"
+                @mouseenter="showMoreMenu = true" 
+                @mouseleave="showMoreMenu = false"
+              >
+                <button type="button" class="nav-link nav-more-trigger" aria-label="其他导航">
+                  <Icon name="grid-3x3-gap" size="sm" class="me-1" />其他
+                  <Icon name="chevron-down" size="xs" class="ms-1" />
+                </button>
+                <Transition name="dropdown-fade">
+                  <div v-show="showMoreMenu" class="nav-more-panel" role="menu" aria-label="其他">
+                    <NuxtLink to="/tutorials" class="nav-more-item" role="menuitem">
+                      <Icon name="book" size="xs" class="me-1" />教程
+                    </NuxtLink>
+                    <NuxtLink to="/mania" class="nav-more-item" role="menuitem">
+                      <Icon name="musical-note" size="xs" class="me-1" />音游
+                    </NuxtLink>
+                    <NuxtLink to="/about" class="nav-more-item" role="menuitem">
+                      <Icon name="person-circle" size="xs" class="me-1" />关于站长
+                    </NuxtLink>
+                  </div>
+                </Transition>
+              </div>
             </nav>
             <n-button 
               quaternary 
@@ -167,6 +184,7 @@ const { isDarkMode, initTheme, toggleTheme } = useTheme()
 
 const showMobileMenu = ref(false)
 const isHydrated = ref(false)
+const showMoreMenu = ref(false)
 
 // 导航栏滚动隐藏/显示逻辑
 const isNavbarHidden = ref(false)
@@ -231,9 +249,9 @@ const mobileMenuOptions = computed(() => [
     icon: () => h(resolveComponent('Icon'), { name: 'house', size: 'sm' })
   },
   {
-    label: '教程',
-    key: 'tutorials',
-    icon: () => h(resolveComponent('Icon'), { name: 'book', size: 'sm' })
+    label: '画廊',
+    key: 'gallery',
+    icon: () => h(resolveComponent('Icon'), { name: 'images', size: 'sm' })
   },
   {
     label: '工具箱',
@@ -241,14 +259,26 @@ const mobileMenuOptions = computed(() => [
     icon: () => h(resolveComponent('Icon'), { name: 'puzzle-piece', size: 'sm' })
   },
   {
-    label: '音游',
-    key: 'mania',
-    icon: () => h(resolveComponent('Icon'), { name: 'musical-note', size: 'sm' })
-  },
-  {
-    label: '关于站长',
-    key: 'about',
-    icon: () => h(resolveComponent('Icon'), { name: 'person-circle', size: 'sm' })
+    label: '其他',
+    key: 'other',
+    icon: () => h(resolveComponent('Icon'), { name: 'grid-3x3-gap', size: 'sm' }),
+    children: [
+      {
+        label: '教程',
+        key: 'tutorials',
+        icon: () => h(resolveComponent('Icon'), { name: 'book', size: 'sm' })
+      },
+      {
+        label: '音游',
+        key: 'mania',
+        icon: () => h(resolveComponent('Icon'), { name: 'musical-note', size: 'sm' })
+      },
+      {
+        label: '关于站长',
+        key: 'about',
+        icon: () => h(resolveComponent('Icon'), { name: 'person-circle', size: 'sm' })
+      }
+    ]
   }
 ])
 
@@ -264,6 +294,8 @@ const handleMobileMenuSelect = (key) => {
   showMobileMenu.value = false
   if (key === 'home') {
     router.push('/')
+  } else if (key === 'gallery') {
+    router.push('/gallery')
   } else if (key === 'tutorials') {
     router.push('/tutorials')
   } else if (key === 'tools') {
@@ -415,6 +447,75 @@ onUnmounted(() => {
   border-radius: 0.625rem;
 }
 
+.nav-more-wrapper {
+  position: relative;
+  display: inline-flex;
+}
+
+.nav-more-trigger {
+  appearance: none;
+}
+
+.nav-more-panel {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem;
+  border-radius: 999px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  white-space: nowrap;
+  z-index: 1000;
+}
+
+/* Dropdown fade transition */
+.dropdown-fade-enter-active,
+.dropdown-fade-leave-active {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.dropdown-fade-enter-from,
+.dropdown-fade-leave-to {
+  opacity: 0;
+  transform: translateX(-50%) translateY(-8px);
+}
+
+.dropdown-fade-enter-to,
+.dropdown-fade-leave-from {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.nav-more-item {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.42rem 0.78rem;
+  border-radius: 999px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-primary);
+  text-decoration: none;
+  color: var(--text-primary);
+  font-size: 0.92rem;
+  transition: all 0.2s ease;
+}
+
+.nav-more-item:hover {
+  background: var(--nav-link-hover-bg);
+  border-color: var(--accent-primary);
+  color: var(--primary-color);
+}
+
+.nav-more-item:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
 /* 深色主题 */
 :global(.dark) .nav-link,
 .dark-theme .nav-link {
@@ -430,6 +531,18 @@ onUnmounted(() => {
 :global(.dark) .nav-link:active,
 .dark-theme .nav-link:active {
   background: var(--nav-link-active-bg);
+}
+
+:global(.dark) .nav-more-panel,
+.dark-theme .nav-more-panel {
+  border-color: var(--border-color-dark);
+  background: var(--bg-secondary);
+}
+
+:global(.dark) .nav-more-item,
+.dark-theme .nav-more-item {
+  border-color: var(--border-color-dark);
+  background: var(--bg-primary);
 }
 
 .navbar-right-buttons {

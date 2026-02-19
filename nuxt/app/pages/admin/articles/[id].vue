@@ -170,6 +170,21 @@
                   @save="handleSave"
                   @html-change="handleHtmlChange"
                 />
+
+                <n-divider class="my-4" />
+
+                <div class="mdc-preview-panel">
+                  <div class="flex items-center justify-between mb-3">
+                    <span class="text-sm font-medium text-gray-700 dark:text-gray-200">MDC 实时预览</span>
+                    <n-tag size="small" type="success">Nuxt MDC</n-tag>
+                  </div>
+                  <div class="mdc-preview-body">
+                    <MarkdownRenderer
+                      :markdown="articleForm.contentMarkdown"
+                      size="base"
+                    />
+                  </div>
+                </div>
               </ClientOnly>
             </n-card>
           </div>
@@ -422,6 +437,18 @@ watch(() => articleForm.value.coverImage, (newUrl) => {
   grid-template-columns: 320px 1fr;
   gap: 1.5rem;
   align-items: start;
+}
+
+.mdc-preview-panel {
+  border: 1px solid var(--border-color);
+  border-radius: 0.75rem;
+  padding: 1rem;
+  background: var(--bg-secondary);
+}
+
+.mdc-preview-body {
+  max-height: 560px;
+  overflow: auto;
 }
 
 @media (max-width: 1024px) {
