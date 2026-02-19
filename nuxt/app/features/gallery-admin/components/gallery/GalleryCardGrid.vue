@@ -4,9 +4,13 @@
       v-for="gallery in galleries"
       :key="gallery.id"
       class="gallery-card"
+      :class="{
+        'is-drag-over-before': sortBy === 'manual' && dragOverGallery?.id === gallery.id && dragPosition === 'before',
+        'is-drag-over-after': sortBy === 'manual' && dragOverGallery?.id === gallery.id && dragPosition === 'after'
+      }"
       :draggable="sortBy === 'manual'"
       @dragstart="handleDragStart($event, gallery)"
-      @dragover.prevent="handleDragOver($event)"
+      @dragover.prevent="handleDragOver($event, gallery)"
       @drop="handleDrop($event, gallery)"
       @dragend="handleDragEnd"
     >
@@ -57,8 +61,10 @@ defineProps<{
   galleries: any[]
   sortBy: string
   draggedGallery: any
+  dragOverGallery: any
+  dragPosition: 'before' | 'after'
   handleDragStart: (event: DragEvent, gallery: any) => void
-  handleDragOver: (event: DragEvent) => void
+  handleDragOver: (event: DragEvent, gallery: any) => void
   handleDrop: (event: DragEvent, gallery: any) => Promise<void>
   handleDragEnd: () => void
   editGallery: (gallery: any) => void
@@ -77,6 +83,14 @@ defineProps<{
 
 .gallery-card:hover {
   transform: translateY(-4px);
+}
+
+.gallery-card.is-drag-over-before {
+  box-shadow: inset 0 3px 0 rgba(59, 130, 246, 0.9);
+}
+
+.gallery-card.is-drag-over-after {
+  box-shadow: inset 0 -3px 0 rgba(59, 130, 246, 0.9);
 }
 
 .drag-handle {

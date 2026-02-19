@@ -124,6 +124,8 @@
           :galleries="filteredAndSortedGalleries"
           :sort-by="sortBy"
           :dragged-gallery="draggedGallery"
+          :drag-over-gallery="dragOverGallery"
+          :drag-position="dragPosition"
           :handle-drag-start="handleDragStart"
           :handle-drag-over="handleDragOver"
           :handle-drop="handleDrop"
@@ -146,6 +148,7 @@
       :gallery-form="galleryForm"
       :on-update-show="(v) => (showGalleryModal = v)"
       :on-update-image-url="(v) => (galleryForm.imageUrl = v)"
+      :on-update-sort-order="(v) => (galleryForm.sortOrder = v)"
       :on-update-tag="(v) => (galleryForm.tag = v)"
       :on-update-active="(v) => (galleryForm.isActive = v)"
       :on-preview-error="() => (isValidPreview = false)"
@@ -247,6 +250,8 @@ const galleryToDelete = ref(null)
 const isValidPreview = ref(true)
 const draggedGallery = ref(null)
 const dragOverGallery = ref(null)
+const dragPosition = ref('before')
+const lastDragMoveKey = ref('')
 
 const activeTab = ref('all')
 const sortBy = ref('manual')
@@ -303,6 +308,7 @@ const sortOptions = [
 const galleryForm = reactive({
   id: null,
   imageUrl: '',
+  sortOrder: null,
   isActive: true,
   tag: 'artwork'
 })
@@ -323,8 +329,6 @@ const filteredAndSortedGalleries = computed(() => {
     filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
   } else if (sortBy.value === 'oldest') {
     filtered.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
-  } else {
-    filtered.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0))
   }
 
   return filtered
@@ -367,6 +371,7 @@ const showCreateModal = () => {
   isEdit.value = false
   galleryForm.id = null
   galleryForm.imageUrl = ''
+  galleryForm.sortOrder = null
   galleryForm.isActive = true
   galleryForm.tag = 'artwork'
   isValidPreview.value = true
@@ -377,6 +382,7 @@ const editGallery = (gallery) => {
   isEdit.value = true
   galleryForm.id = gallery.id
   galleryForm.imageUrl = gallery.imageUrl
+  galleryForm.sortOrder = gallery.sortOrder ?? null
   galleryForm.isActive = gallery.isActive
   galleryForm.tag = gallery.tag || 'artwork'
   isValidPreview.value = true
@@ -387,6 +393,7 @@ const closeGalleryModal = () => {
   showGalleryModal.value = false
   galleryForm.id = null
   galleryForm.imageUrl = ''
+  galleryForm.sortOrder = null
   galleryForm.isActive = true
   galleryForm.tag = 'artwork'
 }
@@ -399,10 +406,14 @@ const saveGallery = async () => {
 
   isSaving.value = true
   try {
+    const normalizedSortOrder = Number(galleryForm.sortOrder)
     const payload = {
       imageUrl: galleryForm.imageUrl,
       isActive: galleryForm.isActive,
-      tag: galleryForm.tag
+      tag: galleryForm.tag,
+      sortOrder: Number.isInteger(normalizedSortOrder) && normalizedSortOrder > 0
+        ? normalizedSortOrder
+        : undefined
     }
 
     if (isEdit.value) {
@@ -495,35 +506,70 @@ const refreshAllDimensions = async () => {
 }
 
 const handleDragStart = (event, gallery) => {
+  if (sortBy.value !== 'manual') return
   draggedGallery.value = gallery
+  dragOverGallery.value = null
+  dragPosition.value = 'before'
+  lastDragMoveKey.value = ''
   event.dataTransfer.effectAllowed = 'move'
 }
 
-const handleDragOver = (event) => {
+const handleDragOver = (event, targetGallery) => {
+  if (sortBy.value !== 'manual') return
+  if (!draggedGallery.value || draggedGallery.value.id === targetGallery.id) return
+
   event.dataTransfer.dropEffect = 'move'
+
+  const currentTarget = event.currentTarget
+  if (!(currentTarget instanceof HTMLElement)) return
+
+  const rect = currentTarget.getBoundingClientRect()
+  const nextDragPosition = event.clientY < rect.top + rect.height / 2 ? 'before' : 'after'
+  const moveKey = `${targetGallery.id}-${nextDragPosition}`
+
+  dragOverGallery.value = targetGallery
+  dragPosition.value = nextDragPosition
+
+  if (lastDragMoveKey.value === moveKey) return
+
+  const draggedIndex = galleries.value.findIndex(g => g.id === draggedGallery.value.id)
+  const targetIndex = galleries.value.findIndex(g => g.id === targetGallery.id)
+  if (draggedIndex === -1 || targetIndex === -1) return
+
+  const [movedGallery] = galleries.value.splice(draggedIndex, 1)
+  let insertIndex = targetIndex
+  if (draggedIndex < targetIndex) {
+    insertIndex -= 1
+  }
+  if (nextDragPosition === 'after') {
+    insertIndex += 1
+  }
+
+  galleries.value.splice(insertIndex, 0, movedGallery)
+  lastDragMoveKey.value = moveKey
 }
 
-const handleDrop = async (event, targetGallery) => {
-  if (!draggedGallery.value || draggedGallery.value.id === targetGallery.id) return
+const handleDrop = async (event, _targetGallery) => {
+  event.preventDefault()
   if (sortBy.value !== 'manual') {
     message.warning('请切换到"手动排序"模式才能拖拽调整顺序')
     return
   }
+  if (!draggedGallery.value) return
 
-  const draggedIndex = galleries.value.findIndex(g => g.id === draggedGallery.value.id)
-  const targetIndex = galleries.value.findIndex(g => g.id === targetGallery.id)
-
-  const newGalleries = [...galleries.value]
-  const [removed] = newGalleries.splice(draggedIndex, 1)
-  newGalleries.splice(targetIndex, 0, removed)
-  galleries.value = newGalleries
+  const hasOrderChanged = galleries.value.some((gallery, index) => (gallery.sortOrder || 0) !== index + 1)
+  if (!hasOrderChanged) return
 
   try {
-    const sortData = newGalleries.map((g, index) => ({
+    const sortData = galleries.value.map((g, index) => ({
       id: g.id,
       sortOrder: index + 1
     }))
     await updateSort(sortData)
+    galleries.value = galleries.value.map((gallery, index) => ({
+      ...gallery,
+      sortOrder: index + 1
+    }))
     message.success('排序已更新')
   } catch (error) {
     console.error('更新排序失败:', error)
@@ -535,6 +581,8 @@ const handleDrop = async (event, targetGallery) => {
 const handleDragEnd = () => {
   draggedGallery.value = null
   dragOverGallery.value = null
+  dragPosition.value = 'before'
+  lastDragMoveKey.value = ''
 }
 
 const handleImageError = (event) => {

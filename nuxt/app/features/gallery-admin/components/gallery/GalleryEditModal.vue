@@ -5,6 +5,17 @@
         <n-input :value="galleryForm.imageUrl" @update:value="onUpdateImageUrl" placeholder="https://example.com/image.jpg" />
       </n-form-item>
 
+      <n-form-item label="序号">
+        <n-input-number
+          :value="galleryForm.sortOrder"
+          @update:value="onUpdateSortOrder"
+          :min="1"
+          :precision="0"
+          placeholder="留空则自动追加到末尾"
+          class="w-full"
+        />
+      </n-form-item>
+
       <div v-if="galleryForm.imageUrl" class="mb-4">
         <n-form-item label="预览">
           <div class="w-full">
@@ -58,9 +69,10 @@ defineProps<{
   isEdit: boolean
   isSaving: boolean
   isValidPreview: boolean
-  galleryForm: { imageUrl: string; isActive: boolean; tag: string }
+  galleryForm: { imageUrl: string; sortOrder: number | null; isActive: boolean; tag: string }
   onUpdateShow: (v: boolean) => void
   onUpdateImageUrl: (v: string) => void
+  onUpdateSortOrder: (v: number | null) => void
   onUpdateTag: (v: string) => void
   onUpdateActive: (v: boolean) => void
   onPreviewError: () => void

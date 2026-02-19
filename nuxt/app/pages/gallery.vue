@@ -7,7 +7,7 @@ import GalleryPageContainer from '~/features/gallery-public/containers/GalleryPa
 
 // 设置页面元数据
 useHead({
-  title: 'WyrmKk - 图片画廊',
+  title: '图片画廊',
   meta: [
     {
       name: 'description',

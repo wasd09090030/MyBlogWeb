@@ -1,8 +1,35 @@
+const isProduction = process.env.NODE_ENV === 'production'
+const enableSourceMap = process.env.NUXT_SOURCEMAP === 'true'
+const siteUrl = process.env.NUXT_PUBLIC_SITE_URL || 'https://wasd09090030.top'
+
+const immutableAssetHeaders = {
+  'cache-control': 'public, max-age=31536000, immutable',
+  'cdn-cache-control': 'max-age=31536000'
+}
+
+const immutableAssetHeadersNoCdn = {
+  'cache-control': 'public, max-age=31536000, immutable'
+}
+
+const createSwrHeaders = (maxAge: number, staleWhileRevalidate: number, withCdn = false) => {
+  const cacheValue = `public, max-age=${maxAge}, stale-while-revalidate=${staleWhileRevalidate}`
+  if (withCdn) {
+    return {
+      'cache-control': cacheValue,
+      'cdn-cache-control': cacheValue
+    }
+  }
+
+  return {
+    'cache-control': cacheValue
+  }
+}
+
 export default defineNuxtConfig({
   compatibilityDate: '2026-01-09',
   devtools: { enabled: true },
   // 通过 NUXT_SOURCEMAP=true 按需开启 sourcemap
-  sourcemap: process.env.NUXT_SOURCEMAP === 'true',
+  sourcemap: enableSourceMap,
 
   // TypeScript 迁移期配置（渐进 JS -> TS）
   // - 不强制全量 TS：允许 app/ 内仍存在 .js 文件
@@ -151,7 +178,7 @@ export default defineNuxtConfig({
       tailwindcss: {},
       autoprefixer: {},
       // 生产环境CSS优化
-      ...(process.env.NODE_ENV === 'production' ? {
+      ...(isProduction ? {
         cssnano: {
           preset: ['default', {
             discardComments: { removeAll: true },
@@ -251,7 +278,7 @@ export default defineNuxtConfig({
       // 启用CSS代码分割
       cssCodeSplit: true,
       // 通过 NUXT_SOURCEMAP=true 按需开启 sourcemap
-      sourcemap: process.env.NUXT_SOURCEMAP === 'true',
+      sourcemap: enableSourceMap,
       // 目标浏览器
       target: 'es2020'
     },
@@ -278,19 +305,19 @@ export default defineNuxtConfig({
     // SSR 时的 API 地址：优先使用 NUXT_API_BASE_URL，否则与客户端保持一致
     apiBaseServer: process.env.NUXT_API_BASE_URL 
       || process.env.NUXT_PUBLIC_API_BASE_URL
-      || (process.env.NODE_ENV === 'production' ? '' : 'http://127.0.0.1:5000/api'),
+      || (isProduction ? '' : 'http://127.0.0.1:5000/api'),
 
     // 公共配置（客户端+服务器端）
     public: {
       apiBase: process.env.NUXT_PUBLIC_API_BASE_URL
-        || (process.env.NODE_ENV === 'production' ? '/api' : 'http://localhost:5000/api'),
+        || (isProduction ? '/api' : 'http://localhost:5000/api'),
       siteUrl: process.env.NUXT_PUBLIC_SITE_URL || 'http://localhost:3000'
     }
   },
 
   // 站点信息（供 SEO 模块使用）
   site: {
-    url: process.env.NUXT_PUBLIC_SITE_URL || 'https://wasd09090030.top',
+    url: siteUrl,
     name: 'WyrmKk',
     description: '分享技术、生活与创作的个人博客',
     defaultLocale: 'zh-CN'
@@ -299,7 +326,7 @@ export default defineNuxtConfig({
   robots: {
     // 使用 public/robots.txt，避免第三方注入非标准指令导致校验报错
     robotsTxt: false,
-    disallow: process.env.NODE_ENV !== 'production'
+    disallow: !isProduction
       ? ['/']
       : ['/admin/**', '/api/**']
   },
@@ -313,7 +340,7 @@ export default defineNuxtConfig({
     identity: {
       type: 'Person',
       name: 'WyrmKk',
-      url: process.env.NUXT_PUBLIC_SITE_URL || 'https://wasd09090030.top',
+      url: siteUrl,
       sameAs: [
         process.env.NUXT_PUBLIC_TWITTER_URL || 'https://x.com/wyrmwyrm1',
         process.env.NUXT_PUBLIC_GITHUB_URL || 'https://github.com/wasd09090030'
@@ -379,24 +406,22 @@ export default defineNuxtConfig({
     // 静态资源使用强缓存（1年）
     '/icon/**': { 
       headers: { 
-        'cache-control': 'public, max-age=31536000, immutable',
-        'cdn-cache-control': 'max-age=31536000'
+        ...immutableAssetHeaders
       } 
     },
     '/Picture/**': { 
       headers: { 
-        'cache-control': 'public, max-age=31536000, immutable',
-        'cdn-cache-control': 'max-age=31536000'
+        ...immutableAssetHeaders
       } 
     },
     '/flower/**': {
       headers: {
-        'cache-control': 'public, max-age=31536000, immutable'
+        ...immutableAssetHeadersNoCdn
       }
     },
     '/pointer/**': {
       headers: {
-        'cache-control': 'public, max-age=31536000, immutable'
+        ...immutableAssetHeadersNoCdn
       }
     },
     // API路由配置
@@ -409,38 +434,27 @@ export default defineNuxtConfig({
     // 首页 SWR 缓存（1分钟，后台可重验证 5 分钟）
     '/': {
       ssr: true,
-      headers: {
-        'cache-control': 'public, max-age=60, stale-while-revalidate=300'
-      }
+      headers: createSwrHeaders(60, 300)
     },
     // 🔥 文章页面 SWR 缓存（5分钟，后台可重验证 1 小时）
     '/article/**': {
       ssr: true,
-      headers: {
-        'cache-control': 'public, max-age=300, stale-while-revalidate=3600',
-        'cdn-cache-control': 'public, max-age=300, stale-while-revalidate=3600'
-      }
+      headers: createSwrHeaders(300, 3600, true)
     },
     // 画廊页面 SWR 缓存（3分钟）
     '/gallery': {
       ssr: true,
-      headers: {
-        'cache-control': 'public, max-age=180, stale-while-revalidate=600'
-      }
+      headers: createSwrHeaders(180, 600)
     },
     // 关于页面较长缓存（10分钟）
     '/about': {
       ssr: true,
-      headers: {
-        'cache-control': 'public, max-age=600, stale-while-revalidate=1800'
-      }
+      headers: createSwrHeaders(600, 1800)
     },
     // 教程页面 SWR 缓存
     '/tutorials': {
       ssr: true,
-      headers: {
-        'cache-control': 'public, max-age=300, stale-while-revalidate=3600'
-      }
+      headers: createSwrHeaders(300, 3600)
     }
   },
 
