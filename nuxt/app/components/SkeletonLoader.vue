@@ -2,28 +2,22 @@
   <div class="skeleton-loader">
     <div v-for="index in count" :key="index" class="skeleton-item">
       <div class="skeleton-card">
-        <!-- 图片占位符 -->
         <div class="skeleton-image"></div>
 
-        <!-- 内容占位符 -->
         <div class="skeleton-content">
-          <!-- 标题占位符 -->
           <div class="skeleton-title"></div>
 
-          <!-- 元数据占位符 -->
           <div class="skeleton-meta">
             <div class="skeleton-date"></div>
             <div class="skeleton-category"></div>
           </div>
 
-          <!-- 文本占位符 -->
           <div class="skeleton-text">
             <div class="skeleton-line"></div>
             <div class="skeleton-line"></div>
             <div class="skeleton-line short"></div>
           </div>
 
-          <!-- 按钮占位符 -->
           <div class="skeleton-button"></div>
         </div>
       </div>
@@ -157,7 +151,6 @@ defineProps({
   }
 }
 
-/* 响应式设计 */
 @media (max-width: 768px) {
   .skeleton-card {
     grid-template-columns: 1fr;

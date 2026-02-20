@@ -1,6 +1,8 @@
 import type { ArticleLike } from '~/utils/workers/types'
 import type { ArticlesListOptions } from '~/features/article-list/types/article'
 import { createApiClient } from '~/shared/api/client'
+import { API_ENDPOINTS } from '~/shared/api/endpoints'
+import { buildFeaturedArticlesCacheKey } from '~/shared/cache/keys'
 
 type NuxtDataContainer = {
   data?: Record<string, unknown>
@@ -40,7 +42,7 @@ export const createArticlesRepository = () => {
   const getFeaturedArticles = async (limit = 5): Promise<ArticleLike[] | null> => {
     const { data, error } = await useFetch<ArticleLike[] | null>(`${client.baseURL}/articles/featured`, {
       // key 包含 limit，避免不同条数请求共享同一缓存桶。
-      key: `featured-articles-${limit}`,
+      key: buildFeaturedArticlesCacheKey(limit),
       params: { limit },
       getCachedData: (key, nuxtApp) => {
         return getCachedNuxtData<ArticleLike[] | null>(nuxtApp as { payload: unknown; static: unknown }, key)
@@ -55,7 +57,7 @@ export const createArticlesRepository = () => {
    * 按关键词搜索文章。
    */
   const searchArticles = async (keyword: string): Promise<ArticleLike[]> => {
-    return await client.get<ArticleLike[]>('/articles/search', {
+    return await client.get<ArticleLike[]>(`${API_ENDPOINTS.articles.list}/search`, {
       params: { keyword }
     })
   }
@@ -78,7 +80,7 @@ export const createArticlesRepository = () => {
       params.category = category
     }
 
-    return await client.get('/articles', { params })
+    return await client.get(API_ENDPOINTS.articles.list, { params })
   }
 
   /**
@@ -86,7 +88,7 @@ export const createArticlesRepository = () => {
    */
   const getArticlesByCategory = async (category: string): Promise<ArticleLike[]> => {
     // 分类名可能包含空格或中文，必须 URL 编码后再拼接路径段。
-    return await client.get<ArticleLike[]>(`/articles/category/${encodeURIComponent(category)}`)
+    return await client.get<ArticleLike[]>(`${API_ENDPOINTS.articles.list}/category/${encodeURIComponent(category)}`)
   }
 
   return {

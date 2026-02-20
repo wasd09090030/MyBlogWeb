@@ -11,7 +11,10 @@
  */
 
 import { createApiClient } from '~/shared/api/client'
+import { API_ENDPOINTS } from '~/shared/api/endpoints'
+import { buildArticleAsyncDataKey } from '~/shared/cache/keys'
 import { createTimedMapCache, withInFlightDedup } from '~/shared/cache'
+import { setPreloadedArticle } from '~/utils/articlePreloadCache'
 
 export default defineNuxtPlugin((nuxtApp) => {
   // 仅客户端执行
@@ -47,7 +50,7 @@ export default defineNuxtPlugin((nuxtApp) => {
    * 预取文章数据（在 Worker 线程中执行）
    */
   async function prefetchArticleData(articleId: string): Promise<void> {
-    const cacheKey = `article-${articleId}`
+    const cacheKey = buildArticleAsyncDataKey(articleId)
     if (prefetchCache.has(cacheKey)) return
 
     await withInFlightDedup(`worker-prefetch:article:${articleId}`, async () => {
@@ -59,14 +62,12 @@ export default defineNuxtPlugin((nuxtApp) => {
         if (result) {
           prefetchCache.set(cacheKey, result)
 
-          // 将预取结果存入全局缓存供 useAsyncData 使用
-          const nuxtData = nuxtApp.payload?.data || {}
-          const routeKey = result.slug
-            ? `article-${articleId}-${result.slug}`
-            : `article-${articleId}`
-          if (!nuxtData[routeKey]) {
-            console.log(`[WorkerPrefetch] 文章 ${articleId} 数据已预取并缓存`)
-          }
+          // 关键对齐：将预取结果写入 articlePreloadCache，
+          // 供 useAsyncData(getCachedData) 使用同一规则读取，避免“预取成功但页面未命中”。
+          const articleSlug = typeof result.slug === 'string' ? result.slug : null
+          const asyncDataKey = buildArticleAsyncDataKey(articleId, articleSlug)
+          setPreloadedArticle(asyncDataKey, result)
+          console.log(`[WorkerPrefetch] 文章 ${articleId} 数据已预取并缓存，key=${asyncDataKey}`)
         }
       } catch (e: unknown) {
         // 预取失败不影响正常导航
@@ -88,7 +89,7 @@ export default defineNuxtPlugin((nuxtApp) => {
         const { quickCacheImages } = useImagePreloadWorker()
 
         // 获取画廊数据
-        const galleries = await client.get<Array<{ imageUrl?: string | null }>>('/galleries')
+        const galleries = await client.get<Array<{ imageUrl?: string | null }>>(API_ENDPOINTS.gallery.publicList)
         if (galleries?.length > 0) {
           // 预缓存前 10 张图片
           const urls = galleries
@@ -147,7 +148,7 @@ export default defineNuxtPlugin((nuxtApp) => {
          * 获取已预取的文章数据
          */
         getCachedArticle(articleId: string) {
-          const cached = prefetchCache.get(`article-${articleId}`)
+          const cached = prefetchCache.get(buildArticleAsyncDataKey(articleId))
           return cached ?? null
         },
 

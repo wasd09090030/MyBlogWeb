@@ -3,7 +3,7 @@
  */
 
 import { ref, onUnmounted } from 'vue'
-import { createWorkerManager, isWorkerSupported } from '~/utils/workers/workerManager'
+import { createWorkerComposableController } from '~/utils/workers/composableFactory'
 import type {
   BatchConvertProgress,
   ImageConvertResult,
@@ -12,8 +12,16 @@ import type {
   ResultOf
 } from '~/utils/workers/types'
 
-let workerInstance: ReturnType<typeof createWorkerManager<ImageProcessorWorkerActionMap>> | null = null
 let refCount = 0
+
+const imageProcessorWorkerController = createWorkerComposableController<ImageProcessorWorkerActionMap>({
+  label: 'useImageProcessorWorker',
+  name: 'imageProcessor',
+  workerFactory: () => new Worker(new URL('~/utils/workers/imageProcessor.worker.ts', import.meta.url), {
+    type: 'module'
+  }),
+  managerOptions: { maxRetries: 1, timeout: 30000 }
+})
 
 type FormatSupport = ResultOf<ImageProcessorWorkerActionMap, 'checkSupport'>
 type BatchConvertResult = ResultOf<ImageProcessorWorkerActionMap, 'batchConvert'>
@@ -22,33 +30,20 @@ function getErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error)
 }
 
-function getWorker() {
-  if (!workerInstance && isWorkerSupported()) {
-    try {
-      workerInstance = createWorkerManager<ImageProcessorWorkerActionMap>(
-        'imageProcessor',
-        () => new Worker(new URL('~/utils/workers/imageProcessor.worker.ts', import.meta.url), {
-          type: 'module'
-        }),
-        { maxRetries: 1, timeout: 30000 }
-      )
-    } catch (e) {
-      console.warn('[useImageProcessorWorker] Worker 创建失败:', e)
-    }
-  }
+function acquireWorker() {
+  // 生命周期策略：该 Worker 成本较高，采用引用计数复用实例，最后一个消费者释放时再 terminate。
   refCount++
-  return workerInstance
+  return imageProcessorWorkerController.isAvailable()
 }
 
 export function useImageProcessorWorker() {
-  const worker = process.client ? getWorker() : null
+  const hasWorker = process.client ? acquireWorker() : false
   const formatSupport = ref<FormatSupport | null>(null)
 
   onUnmounted(() => {
     refCount--
-    if (refCount <= 0 && workerInstance) {
-      workerInstance.terminate()
-      workerInstance = null
+    if (refCount <= 0) {
+      imageProcessorWorkerController.dispose()
       refCount = 0
     }
   })
@@ -56,12 +51,11 @@ export function useImageProcessorWorker() {
   async function checkSupport() {
     if (formatSupport.value) return formatSupport.value
 
-    if (worker) {
-      try {
-        const result = await worker.postTask('checkSupport', {})
+    if (hasWorker) {
+      const result = await imageProcessorWorkerController.postTaskOrNull('checkSupport', {})
+      if (result) {
         formatSupport.value = result
         return result
-      } catch {
       }
     }
 
@@ -92,13 +86,15 @@ export function useImageProcessorWorker() {
       throw new Error('图片转换仅在客户端可用')
     }
 
-    if (worker) {
+    if (hasWorker) {
       try {
-        return await worker.postTask('convert', {
+        const result = await imageProcessorWorkerController.postTask('convert', {
           imageBlob: imageBlob as Blob,
           options
         })
+        return result
       } catch (e: unknown) {
+        // 降级策略：Worker 失败时回退主线程，确保上传/压缩流程不中断。
         console.warn('[useImageProcessorWorker] Worker 转换失败，降级到主线程:', getErrorMessage(e))
       }
     }
@@ -113,9 +109,9 @@ export function useImageProcessorWorker() {
   ): Promise<BatchConvertResult> {
     if (!process.client) return []
 
-    if (worker) {
+    if (hasWorker) {
       try {
-        return await worker.postTaskWithFallback(
+        return await imageProcessorWorkerController.postTaskWithFallback(
           'batchConvert',
           { images: images as Blob[], options },
           () => batchConvertMainThread(images, options, onProgress),
@@ -129,14 +125,13 @@ export function useImageProcessorWorker() {
   }
 
   function isAvailable() {
-    return !!(worker && typeof OffscreenCanvas !== 'undefined')
+    return !!(hasWorker && typeof OffscreenCanvas !== 'undefined')
   }
 
   function dispose() {
     refCount--
-    if (refCount <= 0 && workerInstance) {
-      workerInstance.terminate()
-      workerInstance = null
+    if (refCount <= 0) {
+      imageProcessorWorkerController.dispose()
       refCount = 0
     }
   }

@@ -123,6 +123,7 @@ export type UpdateArticlePayload = Partial<CreateArticlePayload>
 
 export type AiSummaryResult = {
   summary?: string
+  slug?: string
   content?: string
   [key: string]: unknown
 }

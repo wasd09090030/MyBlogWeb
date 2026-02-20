@@ -9,6 +9,15 @@
 </template>
 
 <script setup>
+/**
+ * StateEmpty 适用场景：
+ * - 列表/详情无数据时的统一占位态
+ * - 允许通过 props 快速设置图标与文案，或用 slot 自定义内容
+ *
+ * 不适用场景：
+ * - 业务引导页（应使用专门引导组件）
+ * - 需要复杂 CTA 组合的营销模块
+ */
 defineProps({
   icon: {
     type: String,

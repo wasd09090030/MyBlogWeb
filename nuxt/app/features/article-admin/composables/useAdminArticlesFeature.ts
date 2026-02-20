@@ -9,6 +9,7 @@ import type {
   UpdateArticlePayload
 } from '~/types/api'
 import { createApiClient, withApiError } from '~/shared/api/client'
+import { API_ENDPOINTS } from '~/shared/api/endpoints'
 import { toAppResult } from '~/shared/types/result'
 import type { AppResult } from '~/shared/types/result'
 
@@ -46,7 +47,7 @@ export const useAdminArticlesFeature = () => {
   ): Promise<ArticleSummary[] | ArticleDetail[] | PagedArticleResult> => {
     const { summary = false, page = 1, limit = 1000 } = options
     return await withApiError('AdminArticles', '获取文章列表', async () => {
-      return await api.get<ArticleSummary[] | ArticleDetail[] | PagedArticleResult>('/articles', {
+      return await api.get<ArticleSummary[] | ArticleDetail[] | PagedArticleResult>(API_ENDPOINTS.articles.list, {
         params: { summary, page, limit }
       })
     })
@@ -54,13 +55,13 @@ export const useAdminArticlesFeature = () => {
 
   const getArticle = async (id: string | number): Promise<ArticleDetail> => {
     return await withApiError('AdminArticles', '获取文章', async () => {
-      return await api.get<ArticleDetail>(`/articles/${id}`)
+      return await api.get<ArticleDetail>(API_ENDPOINTS.articles.detail(id))
     })
   }
 
   const createArticle = async (articleData: CreateArticlePayload): Promise<ArticleDetail> => {
     return await withApiError('AdminArticles', '创建文章', async () => {
-      return await authStore.authFetch<ArticleDetail>('/articles', {
+      return await authStore.authFetch<ArticleDetail>(API_ENDPOINTS.articles.list, {
         method: 'POST',
         body: articleData
       })
@@ -72,7 +73,7 @@ export const useAdminArticlesFeature = () => {
     articleData: UpdateArticlePayload
   ): Promise<ArticleDetail> => {
     return await withApiError('AdminArticles', '更新文章', async () => {
-      return await authStore.authFetch<ArticleDetail>(`/articles/${id}`, {
+      return await authStore.authFetch<ArticleDetail>(API_ENDPOINTS.articles.detail(id), {
         method: 'PUT',
         body: articleData
       })
@@ -81,17 +82,24 @@ export const useAdminArticlesFeature = () => {
 
   const deleteArticle = async (id: string | number): Promise<void> => {
     return await withApiError('AdminArticles', '删除文章', async () => {
-      await authStore.authFetch<void>(`/articles/${id}`, {
+      await authStore.authFetch<void>(API_ENDPOINTS.articles.detail(id), {
         method: 'DELETE'
       })
     })
   }
 
-  const generateAiSummary = async (content: string): Promise<AiSummaryResult> => {
+  const generateAiSummary = async (
+    payload: { content: string; title?: string }
+  ): Promise<AiSummaryResult> => {
+    // 兼容说明：后端当前稳定端点为 /ai/summary。
+    // 将端点决策收敛在 feature 层，避免页面分散直连导致后续切换成本增加。
     return await withApiError('AdminArticles', '生成 AI 概要', async () => {
-      return await authStore.authFetch<AiSummaryResult>('/ai/generate-summary', {
+      return await authStore.authFetch<AiSummaryResult>(API_ENDPOINTS.ai.summary, {
         method: 'POST',
-        body: { content }
+        body: {
+          content: payload.content,
+          title: payload.title
+        }
       })
     })
   }

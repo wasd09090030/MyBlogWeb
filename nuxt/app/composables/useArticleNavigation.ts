@@ -15,6 +15,8 @@
 import type { LocationQueryRaw } from 'vue-router'
 import { setPreloadedArticle } from '~/utils/articlePreloadCache'
 import { createApiClient } from '~/shared/api/client'
+import { API_ENDPOINTS } from '~/shared/api/endpoints'
+import { buildArticleAsyncDataKey } from '~/shared/cache/keys'
 
 type ArticleNavInput = {
   id?: string | number | null
@@ -61,9 +63,7 @@ export function useArticleNavigation() {
    */
   function getCacheKey(article: ArticleNavInput): string | null {
     if (!article?.id) return null
-    // route.params.id 的格式：'77-wsl2-gitconfig-mcprouter' 或 '77'
-    const rawId = article.slug ? `${article.id}-${article.slug}` : `${article.id}`
-    return `article-${rawId}`
+    return buildArticleAsyncDataKey(String(article.id), article.slug || null)
   }
 
   /**
@@ -92,7 +92,7 @@ export function useArticleNavigation() {
       // 2. 后台预加载（不阻塞当前导航）
       if (cacheKey) {
         const client = createApiClient()
-        void client.get<ArticleApiResponse>(`/articles/${articleId}`)
+        void client.get<ArticleApiResponse>(API_ENDPOINTS.articles.detail(articleId))
           .then((articleData) => {
             if (!articleData) return
             setPreloadedArticle(cacheKey, articleData)

@@ -1,5 +1,7 @@
 import { useSearchWorker } from '~/composables/useSearchWorker'
 import { createApiClient, withApiError } from '~/shared/api/client'
+import { API_ENDPOINTS } from '~/shared/api/endpoints'
+import { buildArticlesListCacheKey } from '~/shared/cache/keys'
 import { createTimedCacheState, withInFlightDedup } from '~/shared/cache'
 import type { ArticleLike, SearchQueryOptions } from '~/utils/workers/types'
 
@@ -27,7 +29,11 @@ export const useArticleCacheFeature = () => {
   }
 
   const getAllArticles = async (forceRefresh = false): Promise<ArticleLike[] | null> => {
-    return await withInFlightDedup('cache:articles:getAll', async () => {
+    // key 规则说明：列表预取与分页拉取统一使用 buildArticlesListCacheKey，
+    // 避免“同参数不同 key”导致重复请求或命中不稳定。
+    const firstPageKey = buildArticlesListCacheKey({ summary: true, page: 1, limit: 100 })
+
+    return await withInFlightDedup(`cache:${firstPageKey}`, async () => {
       if (!forceRefresh && isCacheValid()) {
         return timedCache.get()
       }
@@ -36,7 +42,7 @@ export const useArticleCacheFeature = () => {
 
       try {
         const result = await withApiError('ArticleCache', '获取文章缓存', async () => {
-          return await api.get<ArticleListResponse>('/articles', {
+          return await api.get<ArticleListResponse>(API_ENDPOINTS.articles.list, {
             params: { summary: true, page: 1, limit: 100 }
           })
         })
@@ -53,10 +59,11 @@ export const useArticleCacheFeature = () => {
           if (totalPages > 1) {
             const promises: Array<Promise<ArticleListResponse>> = []
             for (let page = 2; page <= totalPages; page++) {
+              const pageKey = buildArticlesListCacheKey({ summary: true, page, limit: 100 })
               promises.push(
-                api.get<ArticleListResponse>('/articles', {
+                withInFlightDedup(`cache:${pageKey}`, async () => await api.get<ArticleListResponse>(API_ENDPOINTS.articles.list, {
                   params: { summary: true, page, limit: 100 }
-                })
+                }))
               )
             }
 
@@ -154,6 +161,7 @@ export const useArticleCacheFeature = () => {
   }
 
   const invalidateCache = (): void => {
+    // 失效策略说明：统一清空 timedCache，下一次读取按统一 key 规则重新拉取第一页并分页补齐。
     timedCache.invalidate()
   }
 

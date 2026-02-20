@@ -2,39 +2,22 @@
  * 文章搜索 Worker Composable
  */
 
-import { createWorkerManager, isWorkerSupported } from '~/utils/workers/workerManager'
+import { createWorkerComposableController } from '~/utils/workers/composableFactory'
 import type {
   ArticleLike,
   SearchQueryOptions,
   SearchWorkerActionMap
 } from '~/utils/workers/types'
 
-let searchWorkerManager: ReturnType<typeof createWorkerManager<SearchWorkerActionMap>> | null = null
-
-function getErrorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : String(error)
-}
-
-function getManager() {
-  if (searchWorkerManager) return searchWorkerManager
-
-  if (!isWorkerSupported() || !process.client) return null
-
-  try {
-    searchWorkerManager = createWorkerManager<SearchWorkerActionMap>(
-      'article-search',
-      () => new Worker(
-        new URL('~/utils/workers/articleSearch.worker.ts', import.meta.url),
-        { type: 'module' }
-      ),
-      { timeout: 10000, singleton: true, maxRetries: 1 }
-    )
-    return searchWorkerManager
-  } catch (e: unknown) {
-    console.warn('[useSearchWorker] Worker 创建失败:', getErrorMessage(e))
-    return null
-  }
-}
+const searchWorkerController = createWorkerComposableController<SearchWorkerActionMap>({
+  label: 'useSearchWorker',
+  name: 'article-search',
+  workerFactory: () => new Worker(
+    new URL('~/utils/workers/articleSearch.worker.ts', import.meta.url),
+    { type: 'module' }
+  ),
+  managerOptions: { timeout: 10000, singleton: true, maxRetries: 1 }
+})
 
 function searchFallback(articles: ArticleLike[] | null | undefined, keyword: string): ArticleLike[] {
   if (!articles || !keyword) return []
@@ -84,27 +67,17 @@ export function useSearchWorker() {
   async function buildIndex(articles: ArticleLike[] | null | undefined): Promise<void> {
     if (!articles || articles.length === 0) return
 
-    const manager = getManager()
-    if (!manager) return
-
-    try {
-      await manager.postTask('buildIndex', { articles })
+    const result = await searchWorkerController.postTaskOrNull('buildIndex', { articles })
+    if (result !== null) {
       indexBuilt.value = true
       console.log(`[SearchWorker] 索引构建完成，共 ${articles.length} 篇文章`)
-    } catch (e: unknown) {
-      console.warn('[SearchWorker] 索引构建失败:', getErrorMessage(e))
     }
   }
 
   async function search(articles: ArticleLike[] | null | undefined, keyword: string): Promise<ArticleLike[]> {
     if (!keyword) return articles || []
 
-    const manager = getManager()
-    if (!manager) {
-      return searchFallback(articles, keyword)
-    }
-
-    return manager.postTaskWithFallback(
+    return searchWorkerController.postTaskWithFallback(
       'search',
       { articles: articles || [], keyword },
       () => searchFallback(articles, keyword)
@@ -112,16 +85,7 @@ export function useSearchWorker() {
   }
 
   async function query(articles: ArticleLike[] | null | undefined, options: SearchQueryOptions = {}): Promise<ArticleLike[]> {
-    const manager = getManager()
-    if (!manager) {
-      let result = articles || []
-      if (options.keyword) result = searchFallback(result, options.keyword)
-      result = filterFallback(result, options.category, options.tag)
-      if (!options.keyword) result = sortFallback(result, options.sortBy, options.order)
-      return result
-    }
-
-    return manager.postTaskWithFallback(
+    return searchWorkerController.postTaskWithFallback(
       'query',
       { articles: articles || [], options },
       () => {
@@ -135,10 +99,7 @@ export function useSearchWorker() {
   }
 
   function dispose() {
-    if (searchWorkerManager) {
-      searchWorkerManager.terminate()
-      searchWorkerManager = null
-    }
+    searchWorkerController.dispose()
     indexBuilt.value = false
   }
 

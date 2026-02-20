@@ -1,15 +1,22 @@
 <template>
-  <div class="loading-spinner" :class="sizeClass">
-    <div class="spinner-container">
-      <div class="spinner-border" role="status">
-        <span class="visually-hidden">Loading...</span>
+  <StateLoading :message="text">
+    <div class="loading-spinner" :class="sizeClass">
+      <div class="spinner-container">
+        <n-spin :size="spinSize" />
+        <p v-if="text" class="loading-text mt-3">{{ text }}</p>
       </div>
-      <p v-if="text" class="loading-text mt-3">{{ text }}</p>
     </div>
-  </div>
+  </StateLoading>
 </template>
 
 <script setup>
+import StateLoading from '~/shared/ui/StateLoading.vue'
+
+/**
+ * 兼容组件（过渡期）：
+ * - 推荐新代码直接使用 shared/ui/StateLoading。
+ * - 计划移除条件：全仓库不再引用 LoadingSpinner。
+ */
 const props = defineProps({
   text: {
     type: String,
@@ -23,6 +30,11 @@ const props = defineProps({
 })
 
 const sizeClass = computed(() => `loading-spinner-${props.size}`)
+const spinSize = computed(() => {
+  if (props.size === 'small') return 'small'
+  if (props.size === 'large') return 'large'
+  return 'medium'
+})
 </script>
 
 <style scoped>
@@ -34,30 +46,15 @@ const sizeClass = computed(() => `loading-spinner-${props.size}`)
 }
 
 .loading-spinner-small {
-  padding: 1rem;
-}
-
-.loading-spinner-small .spinner-border {
-  width: 1rem;
-  height: 1rem;
+  padding: 0.5rem;
 }
 
 .loading-spinner-medium {
-  padding: 2rem;
-}
-
-.loading-spinner-medium .spinner-border {
-  width: 2rem;
-  height: 2rem;
+  padding: 1rem;
 }
 
 .loading-spinner-large {
-  padding: 3rem;
-}
-
-.loading-spinner-large .spinner-border {
-  width: 3rem;
-  height: 3rem;
+  padding: 1.5rem;
 }
 
 .spinner-container {
@@ -65,7 +62,6 @@ const sizeClass = computed(() => `loading-spinner-${props.size}`)
 }
 
 .loading-text {
-  color: #6c757d;
   font-size: 0.9rem;
   margin: 0;
 }

@@ -10,6 +10,7 @@ import type {
   UpdateSortOrderPayload
 } from '~/types/api'
 import { withApiError } from '~/shared/api/client'
+import { API_ENDPOINTS } from '~/shared/api/endpoints'
 import { toAppResult } from '~/shared/types/result'
 import type { AppResult } from '~/shared/types/result'
 
@@ -18,13 +19,13 @@ export const useAdminGalleryFeature = () => {
 
   const getAllGalleries = async (): Promise<AdminGallery[]> => {
     return await withApiError('AdminGallery', '获取画廊', async () => {
-      return await authStore.authFetch<AdminGallery[]>('/gallery/admin')
+      return await authStore.authFetch<AdminGallery[]>(API_ENDPOINTS.gallery.adminList)
     })
   }
 
   const createGallery = async (galleryData: CreateGalleryPayload): Promise<AdminGallery> => {
     return await withApiError('AdminGallery', '创建画廊', async () => {
-      return await authStore.authFetch<AdminGallery>('/gallery', {
+      return await authStore.authFetch<AdminGallery>(API_ENDPOINTS.gallery.publicList, {
         method: 'POST',
         body: galleryData
       })
@@ -36,7 +37,7 @@ export const useAdminGalleryFeature = () => {
     galleryData: UpdateGalleryPayload
   ): Promise<AdminGallery> => {
     return await withApiError('AdminGallery', '更新画廊', async () => {
-      return await authStore.authFetch<AdminGallery>(`/gallery/${id}`, {
+      return await authStore.authFetch<AdminGallery>(API_ENDPOINTS.gallery.detail(id), {
         method: 'PATCH',
         body: galleryData
       })
@@ -45,7 +46,7 @@ export const useAdminGalleryFeature = () => {
 
   const deleteGallery = async (id: string | number): Promise<void> => {
     return await withApiError('AdminGallery', '删除画廊', async () => {
-      await authStore.authFetch<void>(`/gallery/${id}`, {
+      await authStore.authFetch<void>(API_ENDPOINTS.gallery.detail(id), {
         method: 'DELETE'
       })
     })
@@ -53,7 +54,7 @@ export const useAdminGalleryFeature = () => {
 
   const toggleActive = async (id: string | number): Promise<AdminGallery> => {
     return await withApiError('AdminGallery', '切换显示状态', async () => {
-      return await authStore.authFetch<AdminGallery>(`/gallery/${id}/toggle-active`, {
+      return await authStore.authFetch<AdminGallery>(API_ENDPOINTS.gallery.toggleActive(id), {
         method: 'PATCH'
       })
     })
@@ -61,7 +62,7 @@ export const useAdminGalleryFeature = () => {
 
   const batchImport = async (data: BatchImportGalleryPayload): Promise<BatchImportGalleryResult> => {
     return await withApiError('AdminGallery', '批量导入', async () => {
-      return await authStore.authFetch<BatchImportGalleryResult>('/gallery/batch/import', {
+      return await authStore.authFetch<BatchImportGalleryResult>(API_ENDPOINTS.gallery.batchImport, {
         method: 'POST',
         body: data
       })
@@ -70,7 +71,7 @@ export const useAdminGalleryFeature = () => {
 
   const updateSort = async (sortData: UpdateSortOrderPayload): Promise<ApiOperationResult> => {
     return await withApiError('AdminGallery', '更新排序', async () => {
-      return await authStore.authFetch<ApiOperationResult>('/gallery/batch/sort-order', {
+      return await authStore.authFetch<ApiOperationResult>(API_ENDPOINTS.gallery.batchSortOrder, {
         method: 'PATCH',
         body: sortData
       })
@@ -79,7 +80,7 @@ export const useAdminGalleryFeature = () => {
 
   const refreshDimensions = async (): Promise<GalleryRefreshResult> => {
     return await withApiError('AdminGallery', '刷新图片宽高', async () => {
-      return await authStore.authFetch<GalleryRefreshResult>('/gallery/refresh-dimensions', {
+      return await authStore.authFetch<GalleryRefreshResult>(API_ENDPOINTS.gallery.refreshDimensions, {
         method: 'POST'
       })
     })

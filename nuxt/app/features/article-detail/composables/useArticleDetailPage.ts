@@ -1,6 +1,7 @@
 import { consumePreloadedArticle } from '~/utils/articlePreloadCache'
 import { createArticleDetailRepository } from '~/features/article-detail/services/articleDetail.repository'
 import { logAppError, toNuxtErrorPayload } from '~/shared/errors'
+import { buildArticleAsyncDataKey } from '~/shared/cache/keys'
 
 /**
  * 文章详情页组合式逻辑：
@@ -21,7 +22,7 @@ export const useArticleDetailPage = async () => {
   const routeSlug = computed(() => rawIdParam.value.split('-').slice(1).join('-'))
 
   const { data: article, pending, error } = await useAsyncData(
-    `article-${route.params.id}`,
+    buildArticleAsyncDataKey(String(route.params.id || '')),
     async () => {
       const id = articleId.value
       if (!id || !/^\d+$/.test(id)) {

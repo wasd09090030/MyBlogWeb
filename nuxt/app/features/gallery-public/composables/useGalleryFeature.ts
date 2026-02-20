@@ -1,5 +1,6 @@
 import type { AdminGallery } from '~/types/api'
 import { createApiClient, withApiError } from '~/shared/api/client'
+import { API_ENDPOINTS } from '~/shared/api/endpoints'
 import { createTimedCacheState, withInFlightDedup } from '~/shared/cache'
 import { toAppResult } from '~/shared/types/result'
 import type { AppResult } from '~/shared/types/result'
@@ -31,7 +32,7 @@ export const useGalleryFeature = () => {
 
       try {
         const result = await withApiError('gallery-public', '获取画廊数据', async () => {
-          return await client.get<GalleryItem[]>('/gallery')
+          return await client.get<GalleryItem[]>(API_ENDPOINTS.gallery.publicList)
         })
         timedCache.set(result)
         return result
@@ -42,7 +43,7 @@ export const useGalleryFeature = () => {
   }
 
   const getAllGalleries = async (): Promise<GalleryItem[]> => {
-    return await client.get<GalleryItem[]>('/gallery/admin', {
+    return await client.get<GalleryItem[]>(API_ENDPOINTS.gallery.adminList, {
       headers: {
         Authorization: 'AdminToken'
       }

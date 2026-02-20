@@ -2,35 +2,18 @@
  * 文档导出 Worker Composable
  */
 
-import { createWorkerManager, isWorkerSupported } from '~/utils/workers/workerManager'
+import { createWorkerComposableController } from '~/utils/workers/composableFactory'
 import type { DocxParagraph, ExportWorkerActionMap } from '~/utils/workers/types'
 
-let exportWorkerManager: ReturnType<typeof createWorkerManager<ExportWorkerActionMap>> | null = null
-
-function getErrorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : String(error)
-}
-
-function getManager() {
-  if (exportWorkerManager) return exportWorkerManager
-
-  if (!isWorkerSupported() || !process.client) return null
-
-  try {
-    exportWorkerManager = createWorkerManager<ExportWorkerActionMap>(
-      'document-export',
-      () => new Worker(
-        new URL('~/utils/workers/documentExport.worker.ts', import.meta.url),
-        { type: 'module' }
-      ),
-      { timeout: 60000, singleton: true, maxRetries: 0 }
-    )
-    return exportWorkerManager
-  } catch (e: unknown) {
-    console.warn('[useExportWorker] Worker 创建失败:', getErrorMessage(e))
-    return null
-  }
-}
+const exportWorkerController = createWorkerComposableController<ExportWorkerActionMap>({
+  label: 'useExportWorker',
+  name: 'document-export',
+  workerFactory: () => new Worker(
+    new URL('~/utils/workers/documentExport.worker.ts', import.meta.url),
+    { type: 'module' }
+  ),
+  managerOptions: { timeout: 60000, singleton: true, maxRetries: 0 }
+})
 
 export function useExportWorker() {
   const isExporting = ref(false)
@@ -40,26 +23,16 @@ export function useExportWorker() {
     markdown: string,
     options: Record<string, unknown> = {}
   ): Promise<DocxParagraph[] | null> {
-    const manager = getManager()
-    if (!manager) {
-      return null
-    }
-
-    try {
-      return await manager.postTask(
-        'parseForDocx',
-        { markdown, options },
-        {
-          timeout: 30000,
-          onProgress: (progress) => {
-            exportProgress.value = progress?.percentage || 0
-          }
+    return await exportWorkerController.postTaskOrNull(
+      'parseForDocx',
+      { markdown, options },
+      {
+        timeout: 30000,
+        onProgress: (progress) => {
+          exportProgress.value = progress?.percentage || 0
         }
-      )
-    } catch (e: unknown) {
-      console.warn('[useExportWorker] Worker 解析失败:', getErrorMessage(e))
-      return null
-    }
+      }
+    )
   }
 
   async function prepareElementForPdf(
@@ -103,10 +76,7 @@ export function useExportWorker() {
   }
 
   function dispose() {
-    if (exportWorkerManager) {
-      exportWorkerManager.terminate()
-      exportWorkerManager = null
-    }
+    exportWorkerController.dispose()
     reset()
   }
 

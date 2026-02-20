@@ -2,7 +2,7 @@
  * 图片预加载 Worker Composable
  */
 
-import { createWorkerManager, isWorkerSupported } from '~/utils/workers/workerManager'
+import { createWorkerComposableController } from '~/utils/workers/composableFactory'
 import type {
   ImagePreloadProgress,
   ImagePreloadResult,
@@ -10,32 +10,19 @@ import type {
   QuickPreloadResult
 } from '~/utils/workers/types'
 
-let imageWorkerManager: ReturnType<typeof createWorkerManager<ImagePreloadWorkerActionMap>> | null = null
-
 function getErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error)
 }
 
-function getManager() {
-  if (imageWorkerManager) return imageWorkerManager
-
-  if (!isWorkerSupported() || !process.client) return null
-
-  try {
-    imageWorkerManager = createWorkerManager<ImagePreloadWorkerActionMap>(
-      'image-preloader',
-      () => new Worker(
-        new URL('~/utils/workers/imagePreloader.worker.ts', import.meta.url),
-        { type: 'module' }
-      ),
-      { timeout: 60000, singleton: true, maxRetries: 1 }
-    )
-    return imageWorkerManager
-  } catch (e: unknown) {
-    console.warn('[useImagePreloadWorker] Worker 创建失败:', getErrorMessage(e))
-    return null
-  }
-}
+const imagePreloadWorkerController = createWorkerComposableController<ImagePreloadWorkerActionMap>({
+  label: 'useImagePreloadWorker',
+  name: 'image-preloader',
+  workerFactory: () => new Worker(
+    new URL('~/utils/workers/imagePreloader.worker.ts', import.meta.url),
+    { type: 'module' }
+  ),
+  managerOptions: { timeout: 60000, singleton: true, maxRetries: 1 }
+})
 
 function preloadImageFallback(url: string): Promise<ImagePreloadResult> {
   return new Promise((resolve, reject) => {
@@ -103,14 +90,13 @@ export function useImagePreloadWorker() {
     if (!urls || urls.length === 0) return []
     if (!process.client) return []
 
-    const manager = getManager()
-    if (!manager) {
+    if (!imagePreloadWorkerController.isAvailable()) {
       console.log('[useImagePreloadWorker] Worker 不可用，使用主线程降级')
       return batchPreloadFallback(urls, concurrency, onProgress)
     }
 
     try {
-      return await manager.postTask(
+      return await imagePreloadWorkerController.postTask(
         'preloadBatch',
         { urls, concurrency },
         {
@@ -126,27 +112,16 @@ export function useImagePreloadWorker() {
 
   async function quickCacheImages(urls: string[]): Promise<QuickPreloadResult[]> {
     if (!urls || urls.length === 0) return []
-
-    const manager = getManager()
-    if (!manager) return []
-
-    try {
-      return await manager.postTask('quickPreload', { urls }, { timeout: 30000 })
-    } catch {
-      return []
-    }
+    const result = await imagePreloadWorkerController.postTaskOrNull('quickPreload', { urls }, { timeout: 30000 })
+    return result || []
   }
 
   function isAvailable() {
-    const manager = getManager()
-    return manager?.isAvailable() || false
+    return imagePreloadWorkerController.isAvailable()
   }
 
   function dispose() {
-    if (imageWorkerManager) {
-      imageWorkerManager.terminate()
-      imageWorkerManager = null
-    }
+    imagePreloadWorkerController.dispose()
   }
 
   return {

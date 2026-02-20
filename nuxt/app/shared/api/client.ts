@@ -17,6 +17,11 @@ function normalizePath(path: string): string {
 /**
  * 轻量 API 客户端。
  * 只负责 URL 拼接与 HTTP 方法封装，不处理业务错误翻译。
+ *
+ * 边界说明：
+ * - 统一日志由 withApiError 提供最小上下文；
+ * - 错误归一化与用户提示文案在 shared/errors 或 feature 容器层处理，
+ *   避免在 client 层绑定具体业务语义。
  */
 export function createApiClient(baseURL = resolveApiBaseURL()) {
   const fetchJson = $fetch as <T>(request: string, options?: FetchOptions) => Promise<T>

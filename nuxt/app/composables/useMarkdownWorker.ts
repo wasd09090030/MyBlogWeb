@@ -2,39 +2,22 @@
  * Markdown Worker Composable
  */
 
-import { createWorkerManager, isWorkerSupported } from '~/utils/workers/workerManager'
+import { createWorkerComposableController } from '~/utils/workers/composableFactory'
 import type {
   MarkdownPreprocessResult,
   MarkdownWorkerActionMap,
   TocItem
 } from '~/utils/workers/types'
 
-let markdownWorkerManager: ReturnType<typeof createWorkerManager<MarkdownWorkerActionMap>> | null = null
-
-function getErrorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : String(error)
-}
-
-function getManager() {
-  if (markdownWorkerManager) return markdownWorkerManager
-
-  if (!isWorkerSupported() || !process.client) return null
-
-  try {
-    markdownWorkerManager = createWorkerManager<MarkdownWorkerActionMap>(
-      'markdown-processor',
-      () => new Worker(
-        new URL('~/utils/workers/markdownProcessor.worker.ts', import.meta.url),
-        { type: 'module' }
-      ),
-      { timeout: 15000, singleton: true, maxRetries: 1 }
-    )
-    return markdownWorkerManager
-  } catch (e: unknown) {
-    console.warn('[useMarkdownWorker] Worker 创建失败:', getErrorMessage(e))
-    return null
-  }
-}
+const markdownWorkerController = createWorkerComposableController<MarkdownWorkerActionMap>({
+  label: 'useMarkdownWorker',
+  name: 'markdown-processor',
+  workerFactory: () => new Worker(
+    new URL('~/utils/workers/markdownProcessor.worker.ts', import.meta.url),
+    { type: 'module' }
+  ),
+  managerOptions: { timeout: 15000, singleton: true, maxRetries: 1 }
+})
 
 function extractTocFallback(markdown: string): TocItem[] {
   if (!markdown) return []
@@ -128,12 +111,7 @@ export function useMarkdownWorker() {
       }
     }
 
-    const manager = getManager()
-    if (!manager) {
-      return preprocessFallback(markdown)
-    }
-
-    return manager.postTaskWithFallback(
+    return markdownWorkerController.postTaskWithFallback(
       'preprocess',
       { markdown },
       () => preprocessFallback(markdown)
@@ -141,12 +119,7 @@ export function useMarkdownWorker() {
   }
 
   async function extractToc(markdown: string): Promise<TocItem[]> {
-    const manager = getManager()
-    if (!manager) {
-      return extractTocFallback(markdown)
-    }
-
-    return manager.postTaskWithFallback(
+    return markdownWorkerController.postTaskWithFallback(
       'extractToc',
       { markdown },
       () => extractTocFallback(markdown)
@@ -154,27 +127,19 @@ export function useMarkdownWorker() {
   }
 
   async function prefetchArticle(apiBase: string, articleId: string | number): Promise<Record<string, unknown> | null> {
-    const manager = getManager()
-    if (!manager) return null
-
-    try {
-      return await manager.postTask('prefetchArticle', { apiBase, articleId }, { timeout: 10000 })
-    } catch (e: unknown) {
-      console.warn('[useMarkdownWorker] 预取文章失败:', getErrorMessage(e))
-      return null
-    }
+    return await markdownWorkerController.postTaskOrNull(
+      'prefetchArticle',
+      { apiBase, articleId },
+      { timeout: 10000 }
+    )
   }
 
   function isAvailable() {
-    const manager = getManager()
-    return manager?.isAvailable() || false
+    return markdownWorkerController.isAvailable()
   }
 
   function dispose() {
-    if (markdownWorkerManager) {
-      markdownWorkerManager.terminate()
-      markdownWorkerManager = null
-    }
+    markdownWorkerController.dispose()
   }
 
   return {

@@ -22,9 +22,7 @@
         加载教程文章失败：{{ error.message }}
       </n-alert>
 
-      <div v-if="loading" class="loading-container">
-        <LoadingSpinner text="正在整理教程资源..." size="large" />
-      </div>
+      <StateLoading v-if="loading" message="正在整理教程资源..." />
 
       <div v-else-if="paginatedArticles.length" class="tutorials-grid">
         <TransitionGroup name="list-stagger">
@@ -105,6 +103,7 @@ import { useArticlesFeature } from '~/features/article-list/composables/useArtic
 import { formatDate, getArticlePath } from '~/features/tutorials/utils/formatters'
 import { extractAvailableTags, processArticles } from '~/features/tutorials/utils/filters'
 import { scrollToListTop, handleImageError } from '~/features/tutorials/utils/navigation'
+import StateLoading from '~/shared/ui/StateLoading.vue'
 
 const articleListContainer = ref(null)
 const articles = ref([])
