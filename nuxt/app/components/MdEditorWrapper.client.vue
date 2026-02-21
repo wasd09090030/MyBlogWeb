@@ -41,6 +41,14 @@
             🎨 Image+
           </n-button>
         </n-button-group>
+        <n-button-group size="small">
+          <n-button @click="insertTemplate('typeWriter')" quaternary title="插入打字机动画">
+            ⌨️ 打字机
+          </n-button>
+          <n-button @click="insertTemplate('spoiler')" quaternary title="插入剧透遮罩">
+            🙈 剧透
+          </n-button>
+        </n-button-group>
         <n-button
           quaternary
           circle
@@ -351,6 +359,13 @@ steps:
 ::`,
   
   imageEnhanced: `::image-enhanced{src="/img/photo.jpg" caption="图片说明文字" zoomable shadow rounded}
+::`,
+
+  typeWriter: `::type-writer{text="欢迎来到我的博客！这段文字会像打字机一样逐字显示～" speed="60" cursor}
+::`,
+
+  spoiler: `::spoiler{label="⚠ 剧透警告" clickText="点击查看剧透内容"}
+主角最终**活了下来**，他找到了心中的答案，与故友重逢，迎来了久违的安宁。
 ::`
 }
 
@@ -497,6 +512,32 @@ const mdcDocs = [
       { name: 'zoomable', type: 'boolean', defaultValue: 'false', description: '点击是否支持放大' }
     ],
     example: '::image-enhanced{src="/img/demo.jpg" caption="架构示意图" zoomable rounded}\n::'
+  },
+  {
+    key: 'typeWriter',
+    label: '⌨ TypeWriter 打字机',
+    description: '文字逐字打出的动画组件，可循环播放，适合标语、引用、氛围烘托。',
+    syntax: '::type-writer{text="要打印的文字" speed="60" cursor loop delay="500"}\n::',
+    params: [
+      { name: 'text', type: 'string', defaultValue: '-', description: '要逐字打出的文本（必填）' },
+      { name: 'speed', type: 'number', defaultValue: '60', description: '每个字符间隔（ms），越小越快' },
+      { name: 'cursor', type: 'boolean', defaultValue: 'true', description: '是否显示闪烁光标' },
+      { name: 'loop', type: 'boolean', defaultValue: 'false', description: '打完后是否循环重播' },
+      { name: 'delay', type: 'number', defaultValue: '0', description: '开始前延迟（ms）' }
+    ],
+    example: '::type-writer{text="欢迎来到我的博客～" speed="80" cursor loop}\n::'
+  },
+  {
+    key: 'spoiler',
+    label: '😈 Spoiler 剧透遮罩',
+    description: '将内容用遮罩隐藏，读者点击后才能查看，适合游戏攻略、影视剧情等。',
+    syntax: '::spoiler{label="⚠ 剧透警告" clickText="点击查看" open="false"}\n被遮住的内容\n::',
+    params: [
+      { name: 'label', type: 'string', defaultValue: '⚠ 剧透警告', description: '警告条标签文字' },
+      { name: 'clickText', type: 'string', defaultValue: '点击展示剧透内容', description: '遮罩中央的提示文字' },
+      { name: 'open', type: 'boolean', defaultValue: 'false', description: '是否默认展开（不遮罩）' }
+    ],
+    example: '::spoiler{label="⚠ Boss 结局" clickText="点击查看结局"}\n# 最终 Boss 被击败\n玩家在第 47 关击败了最终 Boss，游戏结束。\n::'
   }
 ]
 
