@@ -151,6 +151,7 @@
       :on-update-sort-order="(v) => (galleryForm.sortOrder = v)"
       :on-update-tag="(v) => (galleryForm.tag = v)"
       :on-update-active="(v) => (galleryForm.isActive = v)"
+      :on-update-created-at="(v) => (galleryForm.createdAt = v)"
       :on-preview-error="() => (isValidPreview = false)"
       :on-preview-load="() => (isValidPreview = true)"
       :on-cancel="closeGalleryModal"
@@ -316,7 +317,8 @@ const galleryForm = reactive({
   imageUrl: '',
   sortOrder: null,
   isActive: true,
-  tag: 'artwork'
+  tag: 'artwork',
+  createdAt: null
 })
 
 const gameCount = computed(() => galleries.value.filter(g => g.tag === 'game').length)
@@ -391,6 +393,7 @@ const editGallery = (gallery) => {
   galleryForm.sortOrder = gallery.sortOrder ?? null
   galleryForm.isActive = gallery.isActive
   galleryForm.tag = gallery.tag || 'artwork'
+  galleryForm.createdAt = gallery.createdAt ?? null
   isValidPreview.value = true
   showGalleryModal.value = true
 }
@@ -402,6 +405,7 @@ const closeGalleryModal = () => {
   galleryForm.sortOrder = null
   galleryForm.isActive = true
   galleryForm.tag = 'artwork'
+  galleryForm.createdAt = null
 }
 
 const saveGallery = async () => {
@@ -419,7 +423,8 @@ const saveGallery = async () => {
       tag: galleryForm.tag,
       sortOrder: Number.isInteger(normalizedSortOrder) && normalizedSortOrder > 0
         ? normalizedSortOrder
-        : undefined
+        : undefined,
+      ...(isEdit.value && galleryForm.createdAt ? { createdAt: galleryForm.createdAt } : {})
     }
 
     if (isEdit.value) {

@@ -45,6 +45,19 @@
         </div>
       </n-form-item>
 
+      <n-form-item v-if="isEdit" label="创建时间">
+        <div class="w-full">
+          <n-date-picker
+            :value="galleryForm.createdAt ? new Date(galleryForm.createdAt).getTime() : null"
+            type="datetime"
+            clearable
+            class="w-full"
+            @update:value="(ts) => onUpdateCreatedAt(ts ? new Date(ts).toISOString() : null)"
+          />
+          <p class="text-xs text-gray-400 mt-1">主要用于控制游戏截屏的月份分组，修改后在前端会重新归入对应月份</p>
+        </div>
+      </n-form-item>
+
       <n-form-item>
         <n-checkbox :checked="galleryForm.isActive" @update:checked="onUpdateActive">
           在前端显示此图片
@@ -69,12 +82,13 @@ defineProps<{
   isEdit: boolean
   isSaving: boolean
   isValidPreview: boolean
-  galleryForm: { imageUrl: string; sortOrder: number | null; isActive: boolean; tag: string }
+  galleryForm: { imageUrl: string; sortOrder: number | null; isActive: boolean; tag: string; createdAt: string | null }
   onUpdateShow: (v: boolean) => void
   onUpdateImageUrl: (v: string) => void
   onUpdateSortOrder: (v: number | null) => void
   onUpdateTag: (v: string) => void
   onUpdateActive: (v: boolean) => void
+  onUpdateCreatedAt: (v: string | null) => void
   onPreviewError: () => void
   onPreviewLoad: () => void
   onCancel: () => void

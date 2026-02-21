@@ -59,7 +59,9 @@ export type CreateGalleryPayload = {
   tag?: string
 }
 
-export type UpdateGalleryPayload = Partial<CreateGalleryPayload>
+export type UpdateGalleryPayload = Partial<CreateGalleryPayload> & {
+  createdAt?: string
+}
 
 export type GalleryRefreshResult = {
   total: number

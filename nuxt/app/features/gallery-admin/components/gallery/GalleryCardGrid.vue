@@ -21,7 +21,7 @@
 
         <div class="image-container relative group">
           <img
-            :src="gallery.imageUrl"
+            :src="gallery.thumbnailUrl || gallery.imageUrl"
             :alt="`图片 ${gallery.id}`"
             class="w-full h-48 object-cover rounded-t-lg"
             @error="handleImageError"
